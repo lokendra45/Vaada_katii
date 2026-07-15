@@ -1,0 +1,49 @@
+CREATE TABLE property (
+    id TEXT NOT NULL PRIMARY KEY,
+    owner_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    address TEXT NOT NULL,
+    image_url TEXT,
+    property_type TEXT NOT NULL DEFAULT 'HOUSE',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+insertProperty:
+INSERT OR REPLACE INTO property (id, owner_id, name, address, image_url, property_type, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+selectAllProperties:
+SELECT * FROM property;
+
+selectPropertiesByOwner:
+SELECT * FROM property WHERE owner_id = ?;
+
+deleteProperty:
+DELETE FROM property WHERE id = ?;
+
+-- Store5 Bookkeeper metadata
+CREATE TABLE store_bookkeeper (
+    `key` TEXT NOT NULL PRIMARY KEY,
+    timestamp INTEGER NOT NULL
+);
+
+insertBookkeeper:
+INSERT OR REPLACE INTO store_bookkeeper (`key`, timestamp)
+VALUES (?, ?);
+
+selectBookkeeper:
+SELECT timestamp FROM store_bookkeeper WHERE `key` = ?;
+
+deleteBookkeeper:
+DELETE FROM store_bookkeeper WHERE `key` = ?;
+
+deleteAllBookkeeper:
+DELETE FROM store_bookkeeper;
+
+-- Sync Queue for Store5 Updaters
+CREATE TABLE sync_errors (
+    `key` TEXT NOT NULL PRIMARY KEY,
+    error_message TEXT,
+    timestamp INTEGER NOT NULL
+);

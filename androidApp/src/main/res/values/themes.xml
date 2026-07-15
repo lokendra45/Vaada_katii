@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Window-level theme for the Android activity.
+        Compose handles all Material 3 theming at the UI level via RentManagerTheme.
+        This theme only needs to:
+          1. Remove the ActionBar (NoActionBar)
+          2. Support day/night switching for the system chrome (status bar, nav bar)
+          3. Be compatible with enableEdgeToEdge() called in MainActivity
+    -->
+    <style name="Theme.RentManager" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <!-- Transparent status bar and nav bar — Compose draws into these areas -->
+        <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowTranslucentNavigation">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+    </style>
+</resources>
