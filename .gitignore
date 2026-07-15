@@ -1,19 +1,44 @@
 *.iml
-.kotlin
 .gradle
-**/build/
-xcuserdata
-!src/**/build/
-local.properties
-.idea
+/local.properties
+/.idea/
 .DS_Store
-captures
+/build
+/captures
 .externalNativeBuild
 .cxx
+local.properties
+
+# Kotlin Multiplatform
+.kotlin/
+*.kexe
+*.so
+*.dylib
+*.dll
+
+# Android
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+bin/
+gen/
+out/
+/app/build/
+/shared/build/
+/androidApp/build/
+**/build/
+
+# iOS
 *.xcodeproj/*
 !*.xcodeproj/project.pbxproj
 !*.xcodeproj/xcshareddata/
 !*.xcodeproj/project.xcworkspace/
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
+xcuserdata
+
+# Node (Supabase edge functions)
 node_modules/
+.env
