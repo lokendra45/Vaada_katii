@@ -19,6 +19,7 @@ import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.features.auth.presentation.PhoneOtpLoginScreen
 import com.gaatho.rent.features.auth.presentation.VerifyOtpScreen
 import com.gaatho.rent.features.property.presentation.list.PropertyListScreen
+import com.gaatho.rent.features.property.presentation.add.AddPropertyScreen
 import com.gaatho.rent.features.splash.presentation.SplashScreen
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json.Default.serializersModule
@@ -139,8 +140,9 @@ fun AppNavigation() {
             }
 
             entry<AddPropertyRoute> {
-                // TODO: Replace with AddPropertyScreen()
-                PlaceholderScreen("Add Property")
+                AddPropertyScreen(
+                    onNavigateBack = { backStack.removeLastOrNull() }
+                )
             }
 
             entry<EditPropertyRoute> { route ->

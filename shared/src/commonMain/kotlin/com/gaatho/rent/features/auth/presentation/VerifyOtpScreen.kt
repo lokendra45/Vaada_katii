@@ -73,7 +73,6 @@ fun VerifyOtpScreen(
     selectedRole: UserRole,
     onNavigateToHome: () -> Unit,
     onBack: () -> Unit,
-
 ) {
     val viewModel: AuthViewModel = koinViewModel()
     val state by viewModel.collectAsState()

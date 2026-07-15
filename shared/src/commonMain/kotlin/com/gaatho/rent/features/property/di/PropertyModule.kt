@@ -2,6 +2,7 @@ package com.gaatho.rent.features.property.di
 
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
 import com.gaatho.rent.features.property.data.repository.PropertyStore
+import com.gaatho.rent.features.property.presentation.add.AddPropertyViewModel
 import com.gaatho.rent.features.property.presentation.list.PropertyListViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -23,4 +24,5 @@ val propertyModule = module {
     single { PropertyStore(get(), get()) }       // SupabaseClient, RentManagerDatabase
     single { PropertyRepository(get()) }          // PropertyStore
     viewModel { PropertyListViewModel(get(), get(), get()) } // PropertyRepository, SupabaseClient, SavedStateHandle
+    viewModel { AddPropertyViewModel(get(), get(), get()) } // PropertyRepository, SupabaseClient, SavedStateHandle
 }

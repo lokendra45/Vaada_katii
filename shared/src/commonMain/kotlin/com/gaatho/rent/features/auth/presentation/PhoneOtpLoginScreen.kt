@@ -97,9 +97,9 @@ import org.orbitmvi.orbit.compose.collectSideEffect
 @Composable
 fun PhoneOtpLoginScreen(
     onNavigateToVerifyOtp: (phone: String, role: UserRole) -> Unit,
-    onNavigateToHome: () -> Unit,
-    viewModel: AuthViewModel = koinViewModel()
+    onNavigateToHome: () -> Unit
 ) {
+    val viewModel: AuthViewModel = koinViewModel()
     val state by viewModel.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 

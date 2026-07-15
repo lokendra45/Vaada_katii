@@ -102,10 +102,11 @@ class PropertyRepository(
 
 /**
  * Maps a [Property] domain model to the DTO used for INSERT/UPDATE operations.
- * Does not include `id` or `owner_id` — those are set server-side by Supabase
- * triggers and RLS policies.
+ * We must include `owner_id` to satisfy Supabase Row-Level Security policies.
+ * We do not include `id` if it's generated server-side.
  */
 private fun Property.toCreateDto() = PropertyDto(
+    ownerId = ownerId,
     name = name,
     address = address,
     imageUrl = imageUrl,

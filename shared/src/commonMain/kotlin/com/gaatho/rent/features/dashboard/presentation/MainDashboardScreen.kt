@@ -20,9 +20,9 @@ import org.orbitmvi.orbit.compose.collectAsState
 @Composable
 fun MainDashboardScreen(
     onNavigateToPropertyDetails: (String) -> Unit,
-    onNavigateToAddProperty: () -> Unit,
-    viewModel: MainDashboardViewModel = koinViewModel()
+    onNavigateToAddProperty: () -> Unit
 ) {
+    val viewModel: MainDashboardViewModel = koinViewModel()
     val state by viewModel.collectAsState()
 
     Scaffold(
