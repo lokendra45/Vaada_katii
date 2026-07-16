@@ -6,54 +6,64 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
-private val LightColorScheme = lightColorScheme(
-    primary = PrimaryLight,
-    onPrimary = OnPrimaryLight,
-    primaryContainer = PrimaryContainerLight,
-    onPrimaryContainer = OnPrimaryContainerLight,
-    secondary = SecondaryLight,
-    onSecondary = OnSecondaryLight,
-    secondaryContainer = SecondaryContainerLight,
-    onSecondaryContainer = OnSecondaryContainerLight,
-    tertiary = TertiaryLight,
-    onTertiary = OnTertiaryLight,
-    tertiaryContainer = TertiaryContainerLight,
-    onTertiaryContainer = OnTertiaryContainerLight,
-    error = ErrorLight,
-    onError = OnErrorLight,
-    background = BackgroundLight,
-    onBackground = OnBackgroundLight,
-    surface = SurfaceLight,
-    onSurface = OnSurfaceLight,
-    surfaceVariant = SurfaceVariantLight,
-    onSurfaceVariant = OnSurfaceVariantLight,
-    outline = OutlineLight,
-    outlineVariant = OutlineVariantLight,
+private val EmeraldDarkColorScheme = darkColorScheme(
+    primary = EmeraldDarkPrimary,
+    onPrimary = EmeraldDarkOnPrimary,
+    primaryContainer = EmeraldDarkPrimaryContainer,
+    onPrimaryContainer = EmeraldDarkOnPrimaryContainer,
+    inversePrimary = EmeraldDarkInversePrimary,
+    secondary = EmeraldDarkSecondary,
+    onSecondary = EmeraldDarkOnSecondary,
+    secondaryContainer = EmeraldDarkSecondaryContainer,
+    onSecondaryContainer = EmeraldDarkOnSecondaryContainer,
+    tertiary = EmeraldDarkTertiary,
+    onTertiary = EmeraldDarkOnTertiary,
+    tertiaryContainer = EmeraldDarkTertiaryContainer,
+    onTertiaryContainer = EmeraldDarkOnTertiaryContainer,
+    error = EmeraldDarkError,
+    onError = EmeraldDarkOnError,
+    errorContainer = EmeraldDarkErrorContainer,
+    onErrorContainer = EmeraldDarkOnErrorContainer,
+    background = EmeraldDarkBackground,
+    onBackground = EmeraldDarkOnBackground,
+    surface = EmeraldDarkSurface,
+    onSurface = EmeraldDarkOnSurface,
+    surfaceVariant = EmeraldDarkSurfaceVariant,
+    onSurfaceVariant = EmeraldDarkOnSurfaceVariant,
+    inverseSurface = EmeraldDarkInverseSurface,
+    inverseOnSurface = EmeraldDarkInverseOnSurface,
+    outline = EmeraldDarkOutline,
+    outlineVariant = EmeraldDarkOutlineVariant,
 )
 
-private val DarkColorScheme = darkColorScheme(
-    primary = PrimaryDark,
-    onPrimary = OnPrimaryDark,
-    primaryContainer = PrimaryContainerDark,
-    onPrimaryContainer = OnPrimaryContainerDark,
-    secondary = SecondaryDark,
-    onSecondary = OnSecondaryDark,
-    secondaryContainer = SecondaryContainerDark,
-    onSecondaryContainer = OnSecondaryContainerDark,
-    tertiary = TertiaryDark,
-    onTertiary = OnTertiaryDark,
-    tertiaryContainer = TertiaryContainerDark,
-    onTertiaryContainer = OnTertiaryContainerDark,
-    error = ErrorDark,
-    onError = OnErrorDark,
-    background = BackgroundDark,
-    onBackground = OnBackgroundDark,
-    surface = SurfaceDark,
-    onSurface = OnSurfaceDark,
-    surfaceVariant = SurfaceVariantDark,
-    onSurfaceVariant = OnSurfaceVariantDark,
-    outline = OutlineDark,
-    outlineVariant = OutlineVariantDark,
+private val EmeraldLightColorScheme = lightColorScheme(
+    primary = EmeraldLightPrimary,
+    onPrimary = EmeraldLightOnPrimary,
+    primaryContainer = EmeraldLightPrimaryContainer,
+    onPrimaryContainer = EmeraldLightOnPrimaryContainer,
+    inversePrimary = EmeraldLightInversePrimary,
+    secondary = EmeraldLightSecondary,
+    onSecondary = EmeraldLightOnSecondary,
+    secondaryContainer = EmeraldLightSecondaryContainer,
+    onSecondaryContainer = EmeraldLightOnSecondaryContainer,
+    tertiary = EmeraldLightTertiary,
+    onTertiary = EmeraldLightOnTertiary,
+    tertiaryContainer = EmeraldLightTertiaryContainer,
+    onTertiaryContainer = EmeraldLightOnTertiaryContainer,
+    error = EmeraldLightError,
+    onError = EmeraldLightOnError,
+    errorContainer = EmeraldLightErrorContainer,
+    onErrorContainer = EmeraldLightOnErrorContainer,
+    background = EmeraldLightBackground,
+    onBackground = EmeraldLightOnBackground,
+    surface = EmeraldLightSurface,
+    onSurface = EmeraldLightOnSurface,
+    surfaceVariant = EmeraldLightSurfaceVariant,
+    onSurfaceVariant = EmeraldLightOnSurfaceVariant,
+    inverseSurface = EmeraldLightInverseSurface,
+    inverseOnSurface = EmeraldLightInverseOnSurface,
+    outline = EmeraldLightOutline,
+    outlineVariant = EmeraldLightOutlineVariant,
 )
 
 @Composable
@@ -61,13 +71,15 @@ fun RentManagerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
-    val typography = rentManagerTypography()
+    val colorScheme = if (darkTheme) {
+        EmeraldDarkColorScheme
+    } else {
+        EmeraldLightColorScheme
+    }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = typography,
+        typography = rentManagerTypography(),
         content = content
     )
 }
-

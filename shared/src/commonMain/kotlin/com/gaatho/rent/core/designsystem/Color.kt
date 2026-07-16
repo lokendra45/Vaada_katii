@@ -2,115 +2,90 @@ package com.gaatho.rent.core.designsystem
 
 import androidx.compose.ui.graphics.Color
 
-// User Specified Palette
-val LightBackground = Color(0xFFFAFAFA)
-val DarkBackground = Color(0xFF0B0F0E)
+// ==========================================
+// LIGHT THEME COLORS
+// ==========================================
+val EmeraldLightPrimary = Color(0xFF005f49)
+val EmeraldLightOnPrimary = Color(0xFFffffff)
+val EmeraldLightPrimaryContainer = Color(0xFF0d7a5f)
+val EmeraldLightOnPrimaryContainer = Color(0xFFa8ffdf)
+val EmeraldLightInversePrimary = Color(0xFF7cd8b8)
 
-val LightSurface = Color(0xFFFFFFFF)
-val DarkSurface = Color(0xFF111514)
+val EmeraldLightSecondary = Color(0xFF575e70)
+val EmeraldLightOnSecondary = Color(0xFFffffff)
+val EmeraldLightSecondaryContainer = Color(0xFFd9dff5)
+val EmeraldLightOnSecondaryContainer = Color(0xFF5c6274)
 
-val LightInk = Color(0xFF111827)
-val DarkInk = Color(0xFFF9FAFB) // Soft white
+val EmeraldLightTertiary = Color(0xFF4a5462)
+val EmeraldLightOnTertiary = Color(0xFFffffff)
+val EmeraldLightTertiaryContainer = Color(0xFF626c7b)
+val EmeraldLightOnTertiaryContainer = Color(0xFFe4eeff)
 
-val LightSecondaryText = Color(0xFF4B5563)
-val DarkSecondaryText = Color(0xFF9CA3AF) // Muted
+val EmeraldLightError = Color(0xFFba1a1a)
+val EmeraldLightOnError = Color(0xFFffffff)
+val EmeraldLightErrorContainer = Color(0xFFffdad6)
+val EmeraldLightOnErrorContainer = Color(0xFF93000a)
 
-val LightTertiaryText = Color(0xFF6B7280)
-val DarkTertiaryText = Color(0xFF6B7280) // Dimmer
+val EmeraldLightBackground = Color(0xFFf9f9f9)
+val EmeraldLightOnBackground = Color(0xFF1a1c1c)
 
-val LightBorder = Color(0xFFE5E7EB)
-val DarkBorder = Color(0xFF374151) // Dark hairline
+val EmeraldLightSurface = Color(0xFFf9f9f9)
+val EmeraldLightOnSurface = Color(0xFF1a1c1c)
+val EmeraldLightSurfaceVariant = Color(0xFFe2e2e2)
+val EmeraldLightOnSurfaceVariant = Color(0xFF3e4944)
 
-val LightDivider = Color(0xFFF3F4F6)
-val DarkDivider = Color(0xFF1F2937) // Subtle
+val EmeraldLightInverseSurface = Color(0xFF2f3131)
+val EmeraldLightInverseOnSurface = Color(0xFFf0f1f1)
 
-val LightPrimaryAccent = Color(0xFF0D7A5F) // Emerald
-val DarkPrimaryAccent = Color(0xFF10B981) // Brighter Emerald
+val EmeraldLightOutline = Color(0xFF6e7a74)
+val EmeraldLightOutlineVariant = Color(0xFFbdc9c2)
 
-val LightDanger = Color(0xFFB42318) // Softer Red
-val DarkDanger = Color(0xFFF87171)
+// ==========================================
+// DARK THEME COLORS
+// ==========================================
+val EmeraldDarkPrimary = Color(0xFF7cd8b8)
+val EmeraldDarkOnPrimary = Color(0xFF00382a)
+val EmeraldDarkPrimaryContainer = Color(0xFF0d7a5f)
+val EmeraldDarkOnPrimaryContainer = Color(0xFFa8ffdf)
+val EmeraldDarkInversePrimary = Color(0xFF006c53)
 
-// Material Theme Mappings - LIGHT
-val PrimaryLight = LightPrimaryAccent
-val OnPrimaryLight = Color(0xFFFFFFFF)
-val PrimaryContainerLight = LightPrimaryAccent.copy(alpha = 0.15f)
-val OnPrimaryContainerLight = LightPrimaryAccent
+val EmeraldDarkSecondary = Color(0xFFc0c6db)
+val EmeraldDarkOnSecondary = Color(0xFF293040)
+val EmeraldDarkSecondaryContainer = Color(0xFF404758)
+val EmeraldDarkOnSecondaryContainer = Color(0xFFaeb5c9)
 
-val SecondaryLight = LightPrimaryAccent
-val OnSecondaryLight = Color(0xFFFFFFFF)
-val SecondaryContainerLight = LightPrimaryAccent.copy(alpha = 0.15f)
-val OnSecondaryContainerLight = LightPrimaryAccent
+val EmeraldDarkTertiary = Color(0xFFbdc7d8)
+val EmeraldDarkOnTertiary = Color(0xFF27313e)
+val EmeraldDarkTertiaryContainer = Color(0xFF626c7b)
+val EmeraldDarkOnTertiaryContainer = Color(0xFFe4eeff)
 
-val TertiaryLight = LightSecondaryText
-val OnTertiaryLight = Color(0xFFFFFFFF)
-val TertiaryContainerLight = LightSecondaryText.copy(alpha = 0.15f)
-val OnTertiaryContainerLight = LightSecondaryText
+val EmeraldDarkError = Color(0xFFffb4ab)
+val EmeraldDarkOnError = Color(0xFF690005)
+val EmeraldDarkErrorContainer = Color(0xFF93000a)
+val EmeraldDarkOnErrorContainer = Color(0xFFffdad6)
 
-val BackgroundLight = LightBackground
-val OnBackgroundLight = LightInk
+val EmeraldDarkBackground = Color(0xFF121414)
+val EmeraldDarkOnBackground = Color(0xFFe2e2e2)
 
-val SurfaceLight = LightSurface
-val OnSurfaceLight = LightInk
+val EmeraldDarkSurface = Color(0xFF121414)
+val EmeraldDarkOnSurface = Color(0xFFe2e2e2)
+val EmeraldDarkSurfaceVariant = Color(0xFF333535)
+val EmeraldDarkOnSurfaceVariant = Color(0xFFbdc9c2)
 
-val SurfaceVariantLight = LightDivider
-val OnSurfaceVariantLight = LightSecondaryText
+val EmeraldDarkInverseSurface = Color(0xFFe2e2e2)
+val EmeraldDarkInverseOnSurface = Color(0xFF2f3131)
 
-val ErrorLight = LightDanger
-val OnErrorLight = Color(0xFFFFFFFF)
-
-val OutlineLight = LightTertiaryText
-val OutlineVariantLight = LightBorder
-
-// Material Theme Mappings - DARK
-val PrimaryDark = DarkPrimaryAccent
-val OnPrimaryDark = Color(0xFF000000)
-val PrimaryContainerDark = DarkPrimaryAccent.copy(alpha = 0.2f)
-val OnPrimaryContainerDark = DarkPrimaryAccent
-
-val SecondaryDark = DarkPrimaryAccent
-val OnSecondaryDark = Color(0xFF000000)
-val SecondaryContainerDark = DarkPrimaryAccent.copy(alpha = 0.2f)
-val OnSecondaryContainerDark = DarkPrimaryAccent
-
-val TertiaryDark = DarkSecondaryText
-val OnTertiaryDark = Color(0xFF000000)
-val TertiaryContainerDark = DarkSecondaryText.copy(alpha = 0.2f)
-val OnTertiaryContainerDark = DarkSecondaryText
-
-val BackgroundDark = DarkBackground
-val OnBackgroundDark = DarkInk
-
-val SurfaceDark = DarkSurface
-val OnSurfaceDark = DarkInk
-
-val SurfaceVariantDark = DarkDivider
-val OnSurfaceVariantDark = DarkSecondaryText
-
-val ErrorDark = DarkDanger
-val OnErrorDark = Color(0xFF000000)
-
-val OutlineDark = DarkTertiaryText
-val OutlineVariantDark = DarkBorder
+val EmeraldDarkOutline = Color(0xFF88938d)
+val EmeraldDarkOutlineVariant = Color(0xFF3e4944)
 
 /**
  * Rent Manager Nepal Design System Core Color Tokens (Direct Access)
+ * Using standard hardcoded names that map dynamically based on standard colors.
+ * Note: AppColors is kept for compatibility, but material theme colorScheme is preferred.
  */
 object AppColors {
-    val TextPrimary = LightInk
-    val TextSecondary = LightSecondaryText
-    val TextTertiary = LightTertiaryText
-    val TextDisabled = Color(0xFF9CA3AF)
-
-    val Background = LightBackground
-    val Surface = LightSurface
-    val SurfaceVariant = LightDivider
-
-    val Border = LightBorder
-    val Divider = LightDivider
-
-    val Success = Color(0xFF16A34A)
-    val Warning = Color(0xFFD97706)
-    val Error = LightDanger
-    val Info = Color(0xFF2563EB)
+    val Success = Color(0xFF005f49) // Using primary for success
+    val Warning = Color(0xFFD97706) // Keep as fallback
+    val Error = EmeraldLightError
+    val Info = EmeraldLightSecondary
 }
-

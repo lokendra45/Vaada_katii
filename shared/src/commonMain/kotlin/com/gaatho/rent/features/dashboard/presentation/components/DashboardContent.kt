@@ -7,6 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.gaatho.rent.features.dashboard.presentation.home.HomeScreen
 import com.gaatho.rent.features.dashboard.presentation.model.DashboardTab
 import com.gaatho.rent.features.property.presentation.list.PropertyListScreen
 
@@ -19,6 +20,7 @@ import com.gaatho.rent.features.property.presentation.list.PropertyListScreen
 fun DashboardContent(
     currentTab: DashboardTab,
     modifier: Modifier = Modifier,
+    onNavigateToPropertiesTab: () -> Unit,
     onNavigateToPropertyDetails: (String) -> Unit,
     onNavigateToAddProperty: () -> Unit,
 ) {
@@ -27,7 +29,9 @@ fun DashboardContent(
     ) {
         when (currentTab) {
             DashboardTab.HOME -> {
-                PlaceholderTab("Home Overview Dashboard")
+                HomeScreen(
+                    onNavigateToProperties = onNavigateToPropertiesTab
+                )
             }
             DashboardTab.PROPERTIES -> {
                 // The fully built PropertyListScreen

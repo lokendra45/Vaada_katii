@@ -30,6 +30,7 @@ import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.ui.ErrorMessageExtractor
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.features.property.domain.model.Property
+import com.gaatho.rent.features.property.presentation.list.PropertyListAction.*
 
 import org.koin.compose.viewmodel.koinViewModel
 import org.orbitmvi.orbit.compose.collectAsState
@@ -138,8 +139,10 @@ fun PropertyListContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(padding),
+            contentAlignment = Alignment.TopCenter
         ) {
+            Box(modifier = Modifier.fillMaxHeight().widthIn(max = 800.dp)) {
             when (val propertiesState = state.propertiesState) {
                 is UiState.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
@@ -166,14 +169,14 @@ fun PropertyListContent(
                             item {
                                 QuickActionsStrip(
                                     onRecordRent = {
-                                        onAction(PropertyListAction.OnQuickActionClicked("Select a room to quickly record rent payment."))
+                                        onAction(OnQuickActionClicked("Select a room to quickly record rent payment."))
                                     },
                                     onAddTenant = {
-                                        onAction(PropertyListAction.OnQuickActionClicked("Select a vacant room to assign a new tenant."))
+                                        onAction(OnQuickActionClicked("Select a vacant room to assign a new tenant."))
                                     },
                                     onAddProperty = { onAction(PropertyListAction.OnAddPropertyClicked) },
                                     onReceipts = {
-                                        onAction(PropertyListAction.OnQuickActionClicked("Viewing recent rent receipts history..."))
+                                        onAction(OnQuickActionClicked("Viewing recent rent receipts history..."))
                                     }
                                 )
                             }
@@ -217,7 +220,7 @@ fun PropertyListContent(
                             ) { property ->
                                 PropertyCard(
                                     property = property,
-                                    onClick = { onAction(PropertyListAction.OnPropertyClicked(property.id)) }
+                                    onClick = { onAction(OnPropertyClicked(property.id)) }
                                 )
                             }
 
@@ -237,7 +240,8 @@ fun PropertyListContent(
                     )
                 }
 
-                else -> Unit
+                UiState.Idle -> {}
+            }
             }
         }
     }
@@ -250,7 +254,7 @@ fun PropertyListContent(
 @Composable
 private fun UrgentActionBar() {
     Surface(
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         modifier = Modifier.fillMaxWidth()
@@ -344,9 +348,9 @@ private fun QuickActionPill(
 ) {
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
         modifier = modifier
     ) {
         Column(
@@ -406,7 +410,7 @@ private fun SummaryBox(
     modifier: Modifier = Modifier
 ) {
     Surface(
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
         modifier = modifier
@@ -455,7 +459,7 @@ private fun PropertyCard(
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -544,9 +548,9 @@ private fun EmptyPropertiesState(
     modifier: Modifier = Modifier
 ) {
     Surface(
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
         modifier = modifier.padding(24.dp).fillMaxWidth()
     ) {
         Column(
@@ -583,7 +587,7 @@ private fun EmptyPropertiesState(
             Spacer(modifier = Modifier.height(4.dp))
             Button(
                 onClick = onAddProperty,
-                shape = RoundedCornerShape(12.dp),
+                shape = CircleShape,
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 14.dp)
             ) {
                 Row(

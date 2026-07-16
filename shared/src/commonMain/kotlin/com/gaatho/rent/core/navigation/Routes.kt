@@ -38,21 +38,9 @@ sealed interface Route : NavKey
 @Serializable
 data object SplashRoute : Route
 
-/** The login screen where users select their Role (Landlord vs Tenant) and enter their 10-digit Nepal phone number (+977). */
+/** The unified login screen for Email/Google/Guest. */
 @Serializable
-data object PhoneOtpLoginRoute : Route
-
-/** 
- * Screen where users enter the 6-digit OTP code sent to their phone via SMS/WhatsApp.
- *
- * @property phoneNumber The formatted phone number (e.g. "+9779841234567").
- * @property selectedRole The role chosen on the previous screen ([UserRole.LANDLORD] vs [UserRole.TENANT]).
- */
-@Serializable
-data class VerifyOtpRoute(
-    val phoneNumber: String,
-    val selectedRole: UserRole
-) : Route
+data object LoginRoute : Route
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Property Routes

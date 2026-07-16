@@ -23,7 +23,7 @@ fun RentManagerButton(
         onClick = onClick,
         modifier = modifier.height(56.dp),
         enabled = enabled,
-        shape = MaterialTheme.shapes.medium,
+        shape = androidx.compose.foundation.shape.CircleShape,
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary

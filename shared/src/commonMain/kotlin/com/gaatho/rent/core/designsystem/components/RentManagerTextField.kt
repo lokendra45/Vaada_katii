@@ -22,8 +22,8 @@ import androidx.compose.ui.unit.dp
 fun RentManagerTextField(
     value: String,
     onValueChange: (String) -> Unit,
-    label: String,
     modifier: Modifier = Modifier,
+    label: String? = null,
     placeholder: String? = null,
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
@@ -38,7 +38,7 @@ fun RentManagerTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label) },
+        label = label?.let { { Text(it) } },
         placeholder = placeholder?.let { { Text(it) } },
         leadingIcon = leadingIcon,
         trailingIcon = trailingIcon,
@@ -48,7 +48,7 @@ fun RentManagerTextField(
         keyboardActions = keyboardActions,
         singleLine = singleLine,
         enabled = enabled,
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(8.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = MaterialTheme.colorScheme.primary,
             unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
@@ -56,8 +56,8 @@ fun RentManagerTextField(
             unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
             errorBorderColor = MaterialTheme.colorScheme.error,
             cursorColor = MaterialTheme.colorScheme.primary,
-            focusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surface
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
         supportingText = if (isError && !errorMessage.isNullOrBlank()) {
             {

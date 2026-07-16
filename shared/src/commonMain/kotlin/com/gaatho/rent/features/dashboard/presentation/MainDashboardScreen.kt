@@ -38,6 +38,9 @@ fun MainDashboardScreen(
         DashboardContent(
             currentTab = state.selectedTab,
             modifier = Modifier.padding(innerPadding),
+            onNavigateToPropertiesTab = {
+                viewModel.onAction(MainDashboardAction.OnTabSelected(com.gaatho.rent.features.dashboard.presentation.model.DashboardTab.PROPERTIES))
+            },
             onNavigateToPropertyDetails = onNavigateToPropertyDetails,
             onNavigateToAddProperty = onNavigateToAddProperty
         )

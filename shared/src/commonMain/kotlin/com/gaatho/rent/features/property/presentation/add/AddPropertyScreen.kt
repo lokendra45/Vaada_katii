@@ -2,9 +2,11 @@ package com.gaatho.rent.features.property.presentation.add
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -81,50 +83,57 @@ fun AddPropertyContent(
             )
         }
     ) { innerPadding ->
-        Column(
+        androidx.compose.foundation.layout.Box(
             modifier = Modifier
-                .padding(innerPadding)
                 .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(innerPadding),
+            contentAlignment = androidx.compose.ui.Alignment.TopCenter
         ) {
-            RentManagerTextField(
-                value = state.name,
-                onValueChange = onNameChanged,
-                label = "Property Name",
-                placeholder = "e.g. Peace Villa",
-                isError = state.nameError != null,
-                errorMessage = state.nameError,
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !state.isSaving
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .widthIn(max = 800.dp)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                RentManagerTextField(
+                    value = state.name,
+                    onValueChange = onNameChanged,
+                    label = "Property Name",
+                    placeholder = "e.g. Peace Villa",
+                    isError = state.nameError != null,
+                    errorMessage = state.nameError,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !state.isSaving
+                )
 
-            RentManagerTextField(
-                value = state.address,
-                onValueChange = onAddressChanged,
-                label = "Property Address",
-                placeholder = "e.g. 123 Main St, Kathmandu",
-                isError = state.addressError != null,
-                errorMessage = state.addressError,
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !state.isSaving
-            )
-            
-            // Hardcoded "HOUSE" property type as discussed in the plan.
-            RentManagerTextField(
-                value = state.propertyType,
-                onValueChange = { },
-                label = "Property Type",
-                modifier = Modifier.fillMaxWidth(),
-                enabled = false
-            )
+                RentManagerTextField(
+                    value = state.address,
+                    onValueChange = onAddressChanged,
+                    label = "Property Address",
+                    placeholder = "e.g. 123 Main St, Kathmandu",
+                    isError = state.addressError != null,
+                    errorMessage = state.addressError,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !state.isSaving
+                )
+                
+                // Hardcoded "HOUSE" property type as discussed in the plan.
+                RentManagerTextField(
+                    value = state.propertyType,
+                    onValueChange = { },
+                    label = "Property Type",
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = false
+                )
 
-            RentManagerPrimaryButton(
-                text = "Save Property",
-                onClick = onSaveClicked,
-                isLoading = state.isSaving,
-                modifier = Modifier.fillMaxWidth()
-            )
+                RentManagerPrimaryButton(
+                    text = "Save Property",
+                    onClick = onSaveClicked,
+                    isLoading = state.isSaving,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
 }

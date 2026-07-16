@@ -16,8 +16,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
 import com.gaatho.rent.core.auth.SessionManager
-import com.gaatho.rent.features.auth.presentation.PhoneOtpLoginScreen
-import com.gaatho.rent.features.auth.presentation.VerifyOtpScreen
+import com.gaatho.rent.features.auth.presentation.LoginScreen
 import com.gaatho.rent.features.property.presentation.list.PropertyListScreen
 import com.gaatho.rent.features.property.presentation.add.AddPropertyScreen
 import com.gaatho.rent.features.splash.presentation.SplashScreen
@@ -28,39 +27,6 @@ import kotlinx.serialization.modules.polymorphic
 import com.gaatho.rent.features.dashboard.presentation.MainDashboardScreen
 import org.koin.compose.koinInject
 
-/**
- * Root navigation graph for the entire application.
- *
- * ## Architecture
- *
- * Navigation 3 uses a **user-owned backStack** (`SnapshotStateList<Route>`).
- * The UI owns the backStack — the ViewModel does NOT touch any navigator.
- * This is the correct separation of concerns:
- *
- * ```
- * ViewModel      →  postSideEffect(NavigateToDetails(id))
- * Screen         →  collectSideEffect { onNavigateToDetails(id) }
- * AppNavigation  →  receives lambda, mutates backStack
- * ```
- *
- * ## Serialization (CMP requirement)
- * iOS and WASM cannot use JVM reflection. Navigation 3 requires kotlinx.serialization
- * via [SavedStateConfiguration]. `subclassesOfSealed<Route>()` registers every
- * `@Serializable` subclass of [Route] automatically — no manual upkeep.
- *
- * ## Key import paths for Navigation 3 CMP v1.1.1
- * - `SavedStateConfiguration`        → `androidx.navigation3.ui`
- * - `rememberNavBackStack`            → `androidx.navigation3.ui`
- * - `NavKey`                          → `androidx.navigation3.runtime`
- * - `entry`, `entryProvider`          → `androidx.navigation3.runtime`
- * - `rememberViewModelStoreNavEntryDecorator` → `androidx.lifecycle.viewmodel.navigation3`
- *
- * ## Adding a new screen
- * 1. Add `@Serializable data object/class YourRoute : Route` in [Routes.kt]
- * 2. Add `entry<YourRoute> { YourScreen() }` in [entryProvider] below
- */
-
-/** Serialization config for all [Route] subclasses — registered via sealed hierarchy. */
 @OptIn(ExperimentalSerializationApi::class)
 private val navConfig = SavedStateConfiguration {
     serializersModule = SerializersModule {
@@ -70,12 +36,6 @@ private val navConfig = SavedStateConfiguration {
     }
 }
 
-/**
- * Root composable that owns the app back stack and displays the correct screen
- * for each [Route].
- *
- * **Start destination**: [SplashRoute] — validates session & routes to [PropertyListRoute] or [PhoneOtpLoginRoute].
- */
 @Composable
 fun AppNavigation() {
     val sessionManager: SessionManager = koinInject()
@@ -87,12 +47,9 @@ fun AppNavigation() {
         backStack = backStack,
         onBack = { backStack.removeLastOrNull() },
         entryDecorators = listOf(
-            // Scopes a ViewModel per navigation entry (cleared when entry is popped)
             rememberViewModelStoreNavEntryDecorator()
         ),
         entryProvider = entryProvider {
-
-            // ── Splash & Startup ──────────────────────────────────────────────
 
             entry<SplashRoute> {
                 SplashScreen(
@@ -102,12 +59,10 @@ fun AppNavigation() {
                     },
                     onNavigateToLogin = {
                         backStack.clear()
-                        backStack.add(PhoneOtpLoginRoute)
+                        backStack.add(LoginRoute)
                     }
                 )
             }
-
-            // ── Dashboard Shell ───────────────────────────────────────────────
 
             entry<MainDashboardRoute> {
                 MainDashboardScreen(
@@ -120,10 +75,7 @@ fun AppNavigation() {
                 )
             }
 
-            // ── Property ──────────────────────────────────────────────────────
-
             entry<PropertyListRoute> {
-                // Now hosted inside MainDashboardScreen as a tab, but can still be pushed directly if ever needed.
                 PropertyListScreen(
                     onNavigateToDetails = { propertyId ->
                         backStack.add(PropertyDetailRoute(propertyId))
@@ -135,7 +87,6 @@ fun AppNavigation() {
             }
 
             entry<PropertyDetailRoute> { route ->
-                // TODO: Replace with PropertyDetailScreen(propertyId = route.propertyId)
                 PlaceholderScreen("Property Detail\n${route.propertyId}")
             }
 
@@ -146,39 +97,18 @@ fun AppNavigation() {
             }
 
             entry<EditPropertyRoute> { route ->
-                // TODO: Replace with EditPropertyScreen(propertyId = route.propertyId)
                 PlaceholderScreen("Edit Property\n${route.propertyId}")
             }
 
             entry<UnitListRoute> { route ->
-                // TODO: Replace with UnitListScreen(propertyId = route.propertyId)
                 PlaceholderScreen("Units for\n${route.propertyId}")
             }
 
-            // ── Auth (Phone OTP & Dual Role) ──────────────────────────────────
-
-            entry<PhoneOtpLoginRoute> {
-                PhoneOtpLoginScreen(
-                    onNavigateToVerifyOtp = { phone, role ->
-                        backStack.add(VerifyOtpRoute(phone, role))
-                    },
+            entry<LoginRoute> {
+                LoginScreen(
                     onNavigateToHome = {
                         backStack.clear()
                         backStack.add(MainDashboardRoute)
-                    }
-                )
-            }
-
-            entry<VerifyOtpRoute> { route ->
-                VerifyOtpScreen(
-                    phoneNumber = route.phoneNumber,
-                    selectedRole = route.selectedRole,
-                    onNavigateToHome = {
-                        backStack.clear()
-                        backStack.add(MainDashboardRoute)
-                    },
-                    onBack = {
-                        backStack.removeLastOrNull()
                     }
                 )
             }
