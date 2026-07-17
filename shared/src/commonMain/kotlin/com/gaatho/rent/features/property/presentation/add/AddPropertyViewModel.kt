@@ -29,18 +29,38 @@ class AddPropertyViewModel(
 
     override fun onAction(action: AddPropertyAction) {
         when (action) {
-            is AddPropertyAction.OnNameChanged -> handleNameChanged(action.name)
-            is AddPropertyAction.OnAddressChanged -> handleAddressChanged(action.address)
+            is AddPropertyAction.OnNameChanged -> intent {
+                reduce { state.copy(name = action.name, nameError = null) }
+            }
+            is AddPropertyAction.OnStreetAddressChanged -> intent {
+                reduce { state.copy(streetAddress = action.address, addressError = null) }
+            }
+            is AddPropertyAction.OnCityChanged -> intent {
+                reduce { state.copy(city = action.city) }
+            }
+            is AddPropertyAction.OnZipCodeChanged -> intent {
+                reduce { state.copy(zipCode = action.zip) }
+            }
+            is AddPropertyAction.OnTypeChanged -> intent {
+                reduce { state.copy(propertyType = action.type) }
+            }
+            is AddPropertyAction.OnTotalUnitsChanged -> intent {
+                reduce { state.copy(totalUnits = action.units) }
+            }
+            is AddPropertyAction.OnBillingCycleChanged -> intent {
+                reduce { state.copy(billingCycle = action.cycle) }
+            }
+            is AddPropertyAction.OnAmenityToggled -> intent {
+                val amenities = state.selectedAmenities.toMutableSet()
+                if (amenities.contains(action.amenity)) {
+                    amenities.remove(action.amenity)
+                } else {
+                    amenities.add(action.amenity)
+                }
+                reduce { state.copy(selectedAmenities = amenities) }
+            }
             is AddPropertyAction.OnSaveClicked -> handleSave()
         }
-    }
-
-    private fun handleNameChanged(name: String) = intent {
-        reduce { state.copy(name = name, nameError = null) }
-    }
-
-    private fun handleAddressChanged(address: String) = intent {
-        reduce { state.copy(address = address, addressError = null) }
     }
 
     private fun handleSave() = intent {
@@ -52,8 +72,8 @@ class AddPropertyViewModel(
             hasError = true
         }
         
-        if (currentState.address.isBlank()) {
-            reduce { state.copy(addressError = "Property address is required") }
+        if (currentState.streetAddress.isBlank()) {
+            reduce { state.copy(addressError = "Street address is required") }
             hasError = true
         }
 
@@ -65,7 +85,7 @@ class AddPropertyViewModel(
             id = UuidUtil.generateV7String(), 
             ownerId = ownerId,
             name = currentState.name.trim(),
-            address = currentState.address.trim(),
+            address = "${currentState.streetAddress.trim()}, ${currentState.city.trim()} ${currentState.zipCode.trim()}".trim(',' , ' '),
             propertyType = currentState.propertyType
         )
 

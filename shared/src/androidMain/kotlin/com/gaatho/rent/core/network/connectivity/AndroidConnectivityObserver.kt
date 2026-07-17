@@ -1,6 +1,7 @@
 package com.gaatho.rent.core.network.connectivity
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
@@ -20,8 +21,12 @@ class AndroidConnectivityObserver(
     private val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
+    @SuppressLint("MissingPermission")
     @get:RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
-    override val isConnected: Flow<Boolean> = callbackFlow {
+    override val isConnected: Flow<Boolean> = callbackFlow @androidx.annotation.RequiresPermission(
+        android.Manifest.permission.ACCESS_NETWORK_STATE
+    ) {
+        @SuppressLint("MissingPermission")
         @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
         fun hasRealInternet(): Boolean {
             val caps = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)

@@ -16,7 +16,7 @@ class RentManagerApplication : Application() {
         // Initialize RevenueCat — must be done before any Purchases API call
         Purchases.logLevel = LogLevel.DEBUG
         Purchases.configure(
-            PurchasesConfiguration.Builder(this, BuildConfig.REVENUECAT_API_KEY).build()
+            PurchasesConfiguration.Builder(BuildConfig.REVENUECAT_API_KEY).build()
         )
 
         initKoin(

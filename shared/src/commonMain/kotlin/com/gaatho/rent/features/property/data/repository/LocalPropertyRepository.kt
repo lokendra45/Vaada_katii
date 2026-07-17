@@ -10,6 +10,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import com.gaatho.rent.database.Property_ as PropertyEntity
+import com.gaatho.rent.core.utils.DateTimeUtil
 
 class LocalPropertyRepository(
     private val database: RentManagerDatabase
@@ -35,8 +36,8 @@ class LocalPropertyRepository(
                     address = property.address,
                     image_url = property.imageUrl,
                     property_type = property.propertyType,
-                    created_at = property.createdAt,
-                    updated_at = property.updatedAt
+                    created_at = property.createdAt ?: DateTimeUtil.nowIsoString(),
+                    updated_at = property.updatedAt ?: DateTimeUtil.nowIsoString()
                 )
             }
         }.let { ApiResponse.Success(Unit) }
@@ -51,8 +52,8 @@ class LocalPropertyRepository(
                     address = property.address,
                     image_url = property.imageUrl,
                     property_type = property.propertyType,
-                    created_at = property.createdAt,
-                    updated_at = property.updatedAt
+                    created_at = property.createdAt ?: DateTimeUtil.nowIsoString(),
+                    updated_at = property.updatedAt ?: DateTimeUtil.nowIsoString()
                 )
             }
         }.let { ApiResponse.Success(Unit) }

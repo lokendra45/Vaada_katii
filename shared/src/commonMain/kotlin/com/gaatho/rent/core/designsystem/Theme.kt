@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 
 private val EmeraldDarkColorScheme = darkColorScheme(
     primary = EmeraldDarkPrimary,
@@ -34,6 +35,7 @@ private val EmeraldDarkColorScheme = darkColorScheme(
     inverseOnSurface = EmeraldDarkInverseOnSurface,
     outline = EmeraldDarkOutline,
     outlineVariant = EmeraldDarkOutlineVariant,
+    scrim = Color(0xFF000000),
 )
 
 private val EmeraldLightColorScheme = lightColorScheme(
@@ -64,6 +66,7 @@ private val EmeraldLightColorScheme = lightColorScheme(
     inverseOnSurface = EmeraldLightInverseOnSurface,
     outline = EmeraldLightOutline,
     outlineVariant = EmeraldLightOutlineVariant,
+    scrim = Color(0xFF000000),
 )
 
 @Composable

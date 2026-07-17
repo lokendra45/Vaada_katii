@@ -11,8 +11,13 @@ import kotlinx.serialization.Serializable
 @Immutable
 data class AddPropertyState(
     val name: String = "",
-    val address: String = "",
-    val propertyType: String = "HOUSE", // Hardcoded for now as per plan
+    val streetAddress: String = "",
+    val city: String = "",
+    val zipCode: String = "",
+    val propertyType: String = "HOUSE",
+    val totalUnits: String = "1",
+    val billingCycle: String = "1st of the month",
+    val selectedAmenities: Set<String> = setOf("Water", "Electricity"),
     val isSaving: Boolean = false,
     val nameError: String? = null,
     val addressError: String? = null
@@ -34,6 +39,12 @@ sealed interface AddPropertySideEffect {
  */
 sealed interface AddPropertyAction {
     data class OnNameChanged(val name: String) : AddPropertyAction
-    data class OnAddressChanged(val address: String) : AddPropertyAction
+    data class OnStreetAddressChanged(val address: String) : AddPropertyAction
+    data class OnCityChanged(val city: String) : AddPropertyAction
+    data class OnZipCodeChanged(val zip: String) : AddPropertyAction
+    data class OnTypeChanged(val type: String) : AddPropertyAction
+    data class OnTotalUnitsChanged(val units: String) : AddPropertyAction
+    data class OnBillingCycleChanged(val cycle: String) : AddPropertyAction
+    data class OnAmenityToggled(val amenity: String) : AddPropertyAction
     data object OnSaveClicked : AddPropertyAction
 }

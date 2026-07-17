@@ -18,10 +18,50 @@ import kotlinx.serialization.Serializable
  * @property propertiesState The loading/success/error state of the property list.
  */
 @Serializable
+data class PropertyDisplayModel(
+    val id: String,
+    val name: String,
+    val address: String,
+    val totalUnits: Int,
+    val occUnits: Int,
+    val statusBadge: String,
+    val isVacant: Boolean,
+    val pendingText: String,
+    val isPending: Boolean
+)
+
+@Serializable
 @Immutable
 data class PropertyListState(
-    val propertiesState: UiState<List<Property>> = UiState.Idle
-)
+    // We map raw Property to PropertyDisplayModel so the UI does zero logic
+    val propertiesState: UiState<List<PropertyDisplayModel>> = UiState.Idle,
+    val searchQuery: String = "",
+    val selectedLocation: String = "All properties"
+) {
+    val allProperties: List<PropertyDisplayModel>
+        get() = (propertiesState as? UiState.Success)?.data ?: emptyList()
+
+    val filteredProperties: List<PropertyDisplayModel>
+        get() {
+            val raw = allProperties
+            return raw.filter { prop ->
+                val matchesSearch = if (searchQuery.isBlank()) {
+                    true
+                } else {
+                    val q = searchQuery.trim().lowercase()
+                    prop.name.lowercase().contains(q) ||
+                        prop.address.lowercase().contains(q)
+                }
+                val matchesLocation = if (selectedLocation == "All properties" || selectedLocation.isBlank()) {
+                    true
+                } else {
+                    prop.address.lowercase().contains(selectedLocation.lowercase()) ||
+                        prop.name.lowercase().contains(selectedLocation.lowercase())
+                }
+                matchesSearch && matchesLocation
+            }
+        }
+}
 
 /**
  * One-time side effects for the Property List screen.
@@ -68,8 +108,14 @@ sealed interface PropertyListAction {
      */
     data class OnPropertyClicked(val propertyId: String) : PropertyListAction
 
-    /** The "Add Property" FAB was tapped. */
+    /** The "Add Property" button was tapped. */
     data object OnAddPropertyClicked : PropertyListAction
+
+    /** Search query changed inside AppSearchBar. */
+    data class OnSearchQueryChanged(val query: String) : PropertyListAction
+
+    /** A location filter pill was clicked. */
+    data class OnLocationFilterSelected(val location: String) : PropertyListAction
 
     /** A quick action pill was clicked. */
     data class OnQuickActionClicked(val message: String) : PropertyListAction

@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import com.gaatho.rent.features.dashboard.presentation.home.HomeScreen
 import com.gaatho.rent.features.dashboard.presentation.model.DashboardTab
 import com.gaatho.rent.features.property.presentation.list.PropertyListScreen
+import com.gaatho.rent.features.tenant.presentation.list.TenantsListScreen
 
 /**
  * Handles the switching of active tabs in the Main Dashboard.
@@ -23,6 +24,8 @@ fun DashboardContent(
     onNavigateToPropertiesTab: () -> Unit,
     onNavigateToPropertyDetails: (String) -> Unit,
     onNavigateToAddProperty: () -> Unit,
+    onNavigateToTenantDetails: (String) -> Unit = {},
+    onNavigateToAddTenant: () -> Unit = {},
 ) {
     Box(
         modifier = modifier.fillMaxSize()
@@ -41,7 +44,10 @@ fun DashboardContent(
                 )
             }
             DashboardTab.TENANTS -> {
-                PlaceholderTab("Tenants Management")
+                TenantsListScreen(
+                    onNavigateToDetails = onNavigateToTenantDetails,
+                    onNavigateToAddTenant = onNavigateToAddTenant
+                )
             }
             DashboardTab.SETTINGS -> {
                 PlaceholderTab("App Settings & Profile")

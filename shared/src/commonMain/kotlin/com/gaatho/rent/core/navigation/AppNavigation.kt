@@ -18,7 +18,6 @@ import androidx.savedstate.serialization.SavedStateConfiguration
 import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.features.auth.presentation.LoginScreen
 import com.gaatho.rent.features.property.presentation.list.PropertyListScreen
-import com.gaatho.rent.features.property.presentation.add.AddPropertyScreen
 import com.gaatho.rent.features.splash.presentation.SplashScreen
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json.Default.serializersModule
@@ -26,6 +25,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import com.gaatho.rent.features.dashboard.presentation.MainDashboardScreen
 import com.gaatho.rent.features.paywall.presentation.PaywallScreen
+import com.gaatho.rent.features.tenant.presentation.list.TenantsListScreen
 import org.koin.compose.koinInject
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -72,6 +72,12 @@ fun AppNavigation() {
                     },
                     onNavigateToAddProperty = {
                         backStack.add(AddPropertyRoute)
+                    },
+                    onNavigateToTenantDetails = { tenantId ->
+                        backStack.add(TenantDetailRoute(tenantId))
+                    },
+                    onNavigateToAddTenant = {
+                        backStack.add(AddTenantRoute)
                     }
                 )
             }
@@ -92,9 +98,8 @@ fun AppNavigation() {
             }
 
             entry<AddPropertyRoute> {
-                AddPropertyScreen(
-                    onNavigateBack = { backStack.removeLastOrNull() }
-                )
+                // Now handled as a bottom sheet inside PropertyListScreen
+                // No-op for navigation, but keeping route for type safety if needed.
             }
 
             entry<EditPropertyRoute> { route ->
@@ -121,6 +126,25 @@ fun AppNavigation() {
                         backStack.add(MainDashboardRoute)
                     }
                 )
+            }
+
+            entry<TenantListRoute> {
+                TenantsListScreen(
+                    onNavigateToDetails = { tenantId ->
+                        backStack.add(TenantDetailRoute(tenantId))
+                    },
+                    onNavigateToAddTenant = {
+                        backStack.add(AddTenantRoute)
+                    }
+                )
+            }
+
+            entry<TenantDetailRoute> {
+                PlaceholderScreen("Tenant Details Screen")
+            }
+
+            entry<AddTenantRoute> {
+                PlaceholderScreen("Add Tenant Screen")
             }
         }
     )

@@ -9,6 +9,7 @@ import com.gaatho.rent.features.dashboard.di.dashboardModule
 import com.gaatho.rent.features.paywall.di.paywallModule
 import com.gaatho.rent.features.property.di.propertyModule
 import com.gaatho.rent.features.splash.di.splashModule
+import com.gaatho.rent.features.tenant.di.tenantModule
 import org.koin.core.context.startKoin
 import org.koin.dsl.KoinAppDeclaration
 
@@ -35,9 +36,11 @@ fun initKoin(supabaseConfig: SupabaseConfig, appDeclaration: KoinAppDeclaration 
             propertyModule,
             dashboardModule,
             paywallModule,
+            tenantModule,
             // Add feature modules here as they are built
         )
     }
+
 
 /** Convenience overload for iOS entry point — supply real keys from Xcode build settings. */
 fun initKoin(

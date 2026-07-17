@@ -31,12 +31,40 @@ CREATE TABLE IF NOT EXISTS app_settings (
 );
 
 upsertSetting:
-INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?);
+INSERT OR REPLACE INTO app_settings (key, value) VALUES (:key, :settingValue);
 
 selectSetting:
 SELECT value FROM app_settings WHERE key = ?;
 
 deleteSetting:
 DELETE FROM app_settings WHERE key = ?;
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Tenant: represents a tenant renting a property / room
+-- ─────────────────────────────────────────────────────────────────────────────
+CREATE TABLE tenant (
+    id TEXT NOT NULL PRIMARY KEY,
+    owner_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    email TEXT,
+    phone TEXT,
+    property_id TEXT,
+    property_name TEXT,
+    room_number TEXT,
+    status TEXT NOT NULL DEFAULT 'Active',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+insertTenant:
+INSERT OR REPLACE INTO tenant (id, owner_id, name, email, phone, property_id, property_name, room_number, status, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectTenantsByOwner:
+SELECT * FROM tenant WHERE owner_id = ?;
+
+deleteTenant:
+DELETE FROM tenant WHERE id = ?;
+
 
 

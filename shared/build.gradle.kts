@@ -100,7 +100,7 @@ kotlin {
 
 
             // RevenueCat
-            implementation(libs.purchases.core)
+            api(libs.purchases.core)
             implementation(libs.purchases.result)
             implementation(libs.purchases.ui)
 

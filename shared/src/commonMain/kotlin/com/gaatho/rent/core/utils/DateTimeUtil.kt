@@ -1,6 +1,5 @@
 package com.gaatho.rent.core.utils
 
-import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -19,12 +18,12 @@ object DateTimeUtil {
      * Returns the current UTC timestamp as an ISO-8601 string (e.g., `2026-07-17T12:30:00.123Z`).
      * Use this for database `created_at` and `updated_at` columns.
      */
-    fun nowIsoString(): String = Clock.System.now().toString()
+    fun nowIsoString(): String = kotlin.time.Clock.System.now().toString()
 
     /**
      * Returns the current system time in milliseconds since the UNIX epoch.
      */
-    fun nowEpochMillis(): Long = Clock.System.now().toEpochMilliseconds()
+    fun nowEpochMillis(): Long = kotlin.time.Clock.System.now().toEpochMilliseconds()
 
     /**
      * Formats an ISO-8601 timestamp (`2026-07-17T12:30:00Z` or `2026-07-17`) into a readable UI date (`17 Jul 2026`).

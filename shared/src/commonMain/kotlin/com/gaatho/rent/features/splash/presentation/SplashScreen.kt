@@ -137,10 +137,9 @@ fun SplashContent() {
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            CircularProgressIndicator(
+            com.gaatho.rent.core.ui.components.AppExpressiveLoadingIndicator(
                 modifier = Modifier.size(36.dp),
-                color = MaterialTheme.colorScheme.onPrimary,
-                strokeWidth = 3.dp
+                color = MaterialTheme.colorScheme.onPrimary
             )
         }
     }

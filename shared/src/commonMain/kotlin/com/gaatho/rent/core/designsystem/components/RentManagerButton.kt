@@ -47,10 +47,11 @@ fun RentManagerPrimaryButton(
         enabled = enabled && !isLoading
     ) {
         if (isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(24.dp),
+            com.gaatho.rent.core.ui.components.AppExpressiveLoadingIndicator(
+                modifier = Modifier.size(26.dp),
                 color = MaterialTheme.colorScheme.onPrimary,
-                strokeWidth = 2.5.dp
+                contained = true,
+                containerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
             )
         } else {
             Text(

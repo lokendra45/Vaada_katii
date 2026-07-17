@@ -1,0 +1,139 @@
+package com.gaatho.rent.features.tenant.presentation.list
+
+import androidx.lifecycle.SavedStateHandle
+import com.gaatho.rent.core.auth.UserIdentityProvider
+import com.gaatho.rent.core.mvi.MviViewModel
+import com.gaatho.rent.core.ui.ErrorMessageExtractor
+import com.gaatho.rent.core.ui.UiState
+import com.gaatho.rent.core.utils.DateTimeUtil
+import com.gaatho.rent.core.utils.UuidUtil
+import com.gaatho.rent.features.property.data.repository.PropertyRepository
+import com.gaatho.rent.features.tenant.data.repository.TenantRepository
+import com.gaatho.rent.features.tenant.domain.model.Tenant
+import kotlinx.coroutines.flow.catch
+import org.orbitmvi.orbit.viewmodel.orbitContainer
+
+class TenantsListViewModel(
+    private val tenantRepository: TenantRepository,
+    private val propertyRepository: PropertyRepository,
+    private val userIdentityProvider: UserIdentityProvider,
+    savedStateHandle: SavedStateHandle
+) : MviViewModel<TenantsListState, TenantsListSideEffect, TenantsListAction>() {
+
+    private val ownerId: String
+        get() = userIdentityProvider.currentUserId()
+
+    override val container = orbitContainer<TenantsListState, TenantsListSideEffect>(
+        initialState = TenantsListState(),
+        savedStateHandle = savedStateHandle,
+        serializer = TenantsListState.serializer()
+    ) {
+        observeTenants()
+        observeProperties()
+    }
+
+    override fun onAction(action: TenantsListAction) {
+        when (action) {
+            is TenantsListAction.OnSearchQueryChanged -> intent {
+                reduce { state.copy(searchQuery = action.query) }
+            }
+            is TenantsListAction.OnStatusFilterChanged -> intent {
+                reduce { state.copy(selectedStatus = action.status) }
+            }
+            is TenantsListAction.OnPropertyFilterChanged -> intent {
+                reduce { state.copy(selectedProperty = action.propertyName) }
+            }
+            is TenantsListAction.OnTenantClicked -> intent {
+                postSideEffect(TenantsListSideEffect.NavigateToTenantDetails(action.tenantId))
+            }
+            is TenantsListAction.OnRetry -> {
+                observeTenants()
+                observeProperties()
+            }
+        }
+    }
+
+    private fun observeTenants() = intent(registerIdling = false) {
+        reduce { state.copy(tenantsState = UiState.Loading) }
+        tenantRepository.getTenants(ownerId)
+            .catch { e ->
+                val msg = ErrorMessageExtractor.extract(e, "Could not load tenants. Please try again.")
+                reduce { state.copy(tenantsState = UiState.Error(msg)) }
+                postSideEffect(TenantsListSideEffect.ShowError(msg))
+            }
+            .collect { tenants ->
+                if (tenants.isEmpty()) {
+                    seedInitialTenantsIfEmpty()
+                } else {
+                    val displayModels = tenants.map { tenant ->
+                        val isActive = tenant.status.equals("Active", ignoreCase = true)
+                        
+                        // Harmonious Avatar Colors
+                        val colors = com.gaatho.rent.core.designsystem.ExtendedColorHex.AvatarPairs
+                        val index = kotlin.math.abs(tenant.name.hashCode()) % colors.size
+                        val (bgColor, textColor) = colors[index]
+                        
+                        // Initials (e.g. "John Doe" -> "JD")
+                        val parts = tenant.name.trim().split(Regex("\\s+"))
+                        val initials = if (parts.size >= 2) {
+                            "${parts[0].firstOrNull()?.uppercaseChar() ?: ""}${parts[1].firstOrNull()?.uppercaseChar() ?: ""}"
+                        } else {
+                            tenant.name.take(2).uppercase()
+                        }
+                        
+                        // Subtitle
+                        val subtitle = buildString {
+                            append(tenant.propertyName ?: "Assigned Room")
+                            if (!tenant.roomNumber.isNullOrBlank()) {
+                                append(" · ${tenant.roomNumber}")
+                            }
+                        }
+                        
+                        TenantDisplayModel(
+                            id = tenant.id,
+                            name = tenant.name,
+                            initials = initials,
+                            subtitle = subtitle,
+                            status = tenant.status,
+                            isActive = isActive,
+                            avatarBgColorHex = bgColor,
+                            avatarTextColorHex = textColor,
+                            propertyName = tenant.propertyName,
+                            roomNumber = tenant.roomNumber,
+                            email = tenant.email,
+                            phone = tenant.phone
+                        )
+                    }
+                    reduce { state.copy(tenantsState = UiState.Success(displayModels)) }
+                }
+            }
+    }
+
+    private fun observeProperties() = intent(registerIdling = false) {
+        propertyRepository.getProperties(ownerId)
+            .catch { e ->
+                reduce { state.copy(propertiesState = UiState.Error("Failed to load properties")) }
+            }
+            .collect { properties ->
+                reduce { state.copy(propertiesState = UiState.Success(properties)) }
+            }
+    }
+
+    private suspend fun seedInitialTenantsIfEmpty() {
+        val now = DateTimeUtil.nowIsoString()
+        val sampleTenants = listOf(
+            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Anita Basnet", propertyName = "Sunrise Residency", roomNumber = "Room 4A", status = "Active", createdAt = now, updatedAt = now),
+            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Bikash Lama", propertyName = "Ganga Nivas", roomNumber = "Room 5", status = "Active", createdAt = now, updatedAt = now),
+            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Bipin Karki", propertyName = "Sunrise Residency", roomNumber = "Room 1A", status = "Active", createdAt = now, updatedAt = now),
+            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Deepak Thapa", propertyName = "Ganga Nivas", roomNumber = "Room 1", status = "Active", createdAt = now, updatedAt = now),
+            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Kamala Shrestha", propertyName = "Ganga Nivas", roomNumber = "Room 4", status = "Active", createdAt = now, updatedAt = now),
+            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Manoj Poudel", propertyName = "Ganga Nivas", roomNumber = "Room 3", status = "Active", createdAt = now, updatedAt = now),
+            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Nisha Tamang", propertyName = "Sunrise Residency", roomNumber = "Room 3A", status = "Active", createdAt = now, updatedAt = now),
+            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Prakash Adhikari", propertyName = "Sunrise Residency", roomNumber = "Room 2A", status = "Active", createdAt = now, updatedAt = now),
+            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Ramesh Koirala", propertyName = "Sunrise Residency", roomNumber = "Room 1B", status = "Active", createdAt = now, updatedAt = now),
+            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Sita Gurung", propertyName = "Ganga Nivas", roomNumber = "Room 2", status = "Active", createdAt = now, updatedAt = now),
+            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Suresh Shrestha", propertyName = "Sunrise Residency", roomNumber = "Room 5B", status = "Inactive", createdAt = now, updatedAt = now)
+        )
+        sampleTenants.forEach { tenantRepository.createTenant(it) }
+    }
+}

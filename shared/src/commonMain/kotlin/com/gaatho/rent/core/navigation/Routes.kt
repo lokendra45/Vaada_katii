@@ -93,3 +93,19 @@ data class UnitListRoute(val propertyId: String) : Route
 /** Full-screen paywall shown to free/guest users who attempt to enable cloud sync. */
 @Serializable
 data object PaywallRoute : Route
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Tenant Routes
+// ──────────────────────────────────────────────────────────────────────────────
+
+/** List of tenants across portfolio. */
+@Serializable
+data object TenantListRoute : Route
+
+/** Detail view for a single tenant. */
+@Serializable
+data class TenantDetailRoute(val tenantId: String) : Route
+
+/** Form for adding/assigning a new tenant. */
+@Serializable
+data object AddTenantRoute : Route

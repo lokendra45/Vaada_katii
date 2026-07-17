@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.gaatho.rent.features.property.presentation.list
 
 import androidx.compose.foundation.background
@@ -5,12 +7,15 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,7 +23,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -26,10 +35,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import com.gaatho.rent.core.designsystem.AppDimensions
 import com.gaatho.rent.core.designsystem.RentManagerTheme
+import com.gaatho.rent.core.designsystem.ExtendedColorHex
 import com.gaatho.rent.core.ui.ErrorMessageExtractor
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.features.property.domain.model.Property
+import com.gaatho.rent.features.property.presentation.add.AddPropertyViewModel
+import com.gaatho.rent.features.property.presentation.add.AddPropertySideEffect
+import com.gaatho.rent.features.property.presentation.add.components.AddPropertyBottomSheet
 import com.gaatho.rent.features.property.presentation.list.PropertyListAction.*
 
 import org.koin.compose.viewmodel.koinViewModel
@@ -46,24 +60,39 @@ import kotlinx.coroutines.launch
  * Fix: [PropertyListSideEffect.ShowError] now shows a real Snackbar instead of
  * being silently ignored.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PropertyListScreen(
     onNavigateToDetails: (String) -> Unit,
     onNavigateToAddProperty: () -> Unit,
 ) {
     val viewModel: PropertyListViewModel = koinViewModel()
+    val addPropertyViewModel: AddPropertyViewModel = koinViewModel()
+    
     val state by viewModel.collectAsState()
+    val addPropertyState by addPropertyViewModel.collectAsState()
+    
     val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    
+    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = rememberStandardBottomSheetState(
+            initialValue = SheetValue.Hidden,
+            skipHiddenState = false
+        )
+    )
 
     // Orbit's collectSideEffect uses LaunchedEffect + repeatOnLifecycle(STARTED) internally.
-    // It is already a suspend context — no scope.launch wrapper needed.
     viewModel.collectSideEffect { sideEffect ->
         when (sideEffect) {
             is PropertyListSideEffect.NavigateToDetails ->
                 onNavigateToDetails(sideEffect.propertyId)
 
-            is PropertyListSideEffect.NavigateToAddProperty ->
-                onNavigateToAddProperty()
+            is PropertyListSideEffect.NavigateToAddProperty -> {
+                coroutineScope.launch {
+                    bottomSheetScaffoldState.bottomSheetState.expand()
+                }
+            }
 
             is PropertyListSideEffect.ShowError ->
                 snackbarHostState.showSnackbar(sideEffect.message)
@@ -73,10 +102,39 @@ fun PropertyListScreen(
         }
     }
 
+    addPropertyViewModel.collectSideEffect { sideEffect ->
+        when (sideEffect) {
+            is AddPropertySideEffect.NavigateBack -> {
+                coroutineScope.launch {
+                    bottomSheetScaffoldState.bottomSheetState.hide()
+                }
+            }
+            is AddPropertySideEffect.ShowSnackbar -> {
+                snackbarHostState.showSnackbar(sideEffect.message)
+            }
+        }
+    }
+
+    // Calculate blur and scrim opacity based on sheet state
+    val isSheetVisible = bottomSheetScaffoldState.bottomSheetState.targetValue != SheetValue.Hidden
+    val blurRadius by animateDpAsState(
+        targetValue = if (isSheetVisible) AppDimensions.RadiusMedium else 0.dp,
+        animationSpec = tween(durationMillis = 300)
+    )
+    val scrimAlpha by animateFloatAsState(
+        targetValue = if (isSheetVisible) 0.45f else 0f,
+        animationSpec = tween(durationMillis = 300)
+    )
+
     PropertyListContent(
         state = state,
+        addPropertyState = addPropertyState,
+        scaffoldState = bottomSheetScaffoldState,
         snackbarHostState = snackbarHostState,
-        onAction = viewModel::onAction
+        blurRadius = blurRadius,
+        scrimAlpha = scrimAlpha,
+        onAction = viewModel::onAction,
+        onAddPropertyAction = addPropertyViewModel::onAction
     )
 }
 
@@ -94,62 +152,70 @@ fun PropertyListScreen(
 @Composable
 fun PropertyListContent(
     state: PropertyListState,
+    addPropertyState: com.gaatho.rent.features.property.presentation.add.AddPropertyState,
+    scaffoldState: BottomSheetScaffoldState,
     onAction: (PropertyListAction) -> Unit,
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
+    onAddPropertyAction: (com.gaatho.rent.features.property.presentation.add.AddPropertyAction) -> Unit,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    blurRadius: androidx.compose.ui.unit.Dp = 0.dp,
+    scrimAlpha: Float = 0f
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = "Rent Manager Nepal 🙏",
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        )
-                        Text(
-                            text = "Landlord Productivity Center",
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+    val coroutineScope = rememberCoroutineScope()
+
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        sheetPeekHeight = 0.dp,
+        sheetDragHandle = null,
+        sheetContainerColor = Color.Transparent,
+        sheetContent = {
+            AddPropertyBottomSheet(
+                state = addPropertyState,
+                onAction = onAddPropertyAction,
+                onDismiss = { coroutineScope.launch { scaffoldState.bottomSheetState.hide() } },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.92f)
+                    .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { onAction(PropertyListAction.OnAddPropertyClicked) },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Property")
-            }
+        topBar = {
+            com.gaatho.rent.core.ui.components.AppTopBar(
+                title = "Properties",
+                subtitle = "${state.allProperties.size} total properties",
+                actions = {
+                    com.gaatho.rent.core.ui.components.AppTopBarActionButton(
+                        text = "Add property",
+                        onClick = { onAction(OnAddPropertyClicked) }
+                    )
+                },
+                modifier = Modifier.blur(blurRadius)
+            )
         },
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
-        containerColor = MaterialTheme.colorScheme.surface
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
-            contentAlignment = Alignment.TopCenter
+                .padding(padding)
         ) {
-            Box(modifier = Modifier.fillMaxHeight().widthIn(max = 800.dp)) {
+            // Main Content with Blur
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .widthIn(max = 800.dp)
+                    .align(Alignment.TopCenter)
+                    .blur(blurRadius)
+            ) {
             when (val propertiesState = state.propertiesState) {
                 is UiState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    com.gaatho.rent.core.ui.components.AppExpressiveLoadingIndicator(modifier = Modifier.align(Alignment.Center))
                 }
 
                 is UiState.Success -> {
-                    if (propertiesState.data.isEmpty()) {
+                    if (propertiesState.data.isEmpty() && state.searchQuery.isEmpty() && state.selectedLocation == "All properties") {
                         EmptyPropertiesState(
                             onAddProperty = { onAction(PropertyListAction.OnAddPropertyClicked) },
                             modifier = Modifier.align(Alignment.Center)
@@ -157,76 +223,109 @@ fun PropertyListContent(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                            contentPadding = PaddingValues(bottom = 24.dp)
                         ) {
-                            // 1. Urgent Actions Status Bar
-                            item {
-                                UrgentActionBar()
-                            }
 
-                            // 2. Workflow First Quick Actions Grid
+                            // Pixel-Perfect Material 3 Expressive AppSearchBar
                             item {
-                                QuickActionsStrip(
-                                    onRecordRent = {
-                                        onAction(OnQuickActionClicked("Select a room to quickly record rent payment."))
-                                    },
-                                    onAddTenant = {
-                                        onAction(OnQuickActionClicked("Select a vacant room to assign a new tenant."))
-                                    },
-                                    onAddProperty = { onAction(PropertyListAction.OnAddPropertyClicked) },
-                                    onReceipts = {
-                                        onAction(OnQuickActionClicked("Viewing recent rent receipts history..."))
+                                val searchSuggestions = remember(state.allProperties) {
+                                    val nameSuggestions = state.allProperties.take(3).map { prop ->
+                                        com.gaatho.rent.core.ui.components.SearchSuggestionItem(
+                                            title = prop.name,
+                                            subtitle = prop.address,
+                                            category = "Property"
+                                        )
                                     }
+                                    val locationSuggestions = state.allProperties.map { it.address.substringBefore(",").trim() }.distinct().take(2).map { loc ->
+                                        com.gaatho.rent.core.ui.components.SearchSuggestionItem(
+                                            title = loc,
+                                            subtitle = "Filter by Location",
+                                            category = "Location"
+                                        )
+                                    }
+                                    (nameSuggestions + locationSuggestions).take(5)
+                                }
+
+                                com.gaatho.rent.core.ui.components.AppSearchBar(
+                                    query = state.searchQuery,
+                                    onQueryChange = { onAction(PropertyListAction.OnSearchQueryChanged(it)) },
+                                    placeholderText = "Search properties by name or location...",
+                                    suggestions = searchSuggestions,
+                                    onSuggestionSelected = { item ->
+                                        onAction(PropertyListAction.OnSearchQueryChanged(item.title))
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 4.dp, vertical = 4.dp)
                                 )
                             }
 
-                            // 3. Monthly Summary metrics (non-dominating)
+                            // Location Filter Pills Strip
                             item {
-                                MonthlySummaryStrip(totalProperties = propertiesState.data.size)
-                            }
+                                val locationFilters = remember(state.allProperties) {
+                                    listOf("All properties") + state.allProperties.map {
+                                        if (it.address.contains(",")) it.address.substringAfterLast(",").trim() else it.address.trim()
+                                    }.distinct().filter { it.isNotEmpty() }
+                                }
 
-                            // 4. Properties & Rooms Section Header
-                            item {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
+                                LazyRow(
+                                    horizontalArrangement = Arrangement.spacedBy(AppDimensions.PaddingSmall),
+                                    contentPadding = PaddingValues(horizontal = AppDimensions.ScreenHorizontalPadding),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 4.dp, bottom = 12.dp)
                                 ) {
-                                    Text(
-                                        text = "Your Properties & Rooms (${propertiesState.data.size})",
-                                        style = MaterialTheme.typography.titleMedium.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    )
-                                    Text(
-                                        text = "+ Add New",
-                                        style = MaterialTheme.typography.labelLarge.copy(
-                                            color = MaterialTheme.colorScheme.primary,
-                                            fontWeight = FontWeight.SemiBold
-                                        ),
-                                        modifier = Modifier.clickable {
-                                            onAction(PropertyListAction.OnAddPropertyClicked)
+                                    items(locationFilters) { location ->
+                                        val isSelected = state.selectedLocation == location
+                                        Surface(
+                                            shape = RoundedCornerShape(AppDimensions.RadiusPill),
+                                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                                            border = BorderStroke(
+                                                width = 1.dp,
+                                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                                            ),
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(AppDimensions.RadiusPill))
+                                                .clickable {
+                                                    onAction(PropertyListAction.OnLocationFilterSelected(location))
+                                                }
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                            ) {
+                                                if (!location.equals("All properties", ignoreCase = true)) {
+                                                    Icon(
+                                                        imageVector = Icons.Outlined.LocationOn,
+                                                        contentDescription = null,
+                                                        tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
+                                                        modifier = Modifier.size(15.dp)
+                                                    )
+                                                }
+                                                Text(
+                                                    text = if (location.equals("All properties", ignoreCase = true)) "All Properties" else location,
+                                                    style = MaterialTheme.typography.labelLarge.copy(
+                                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold
+                                                    )
+                                                )
+                                            }
                                         }
-                                    )
+                                    }
                                 }
                             }
 
-                            // 5. High Craftsmanship Properties List
+                            // High Craftsmanship Requirement Property Cards
                             items(
-                                items = propertiesState.data,
+                                items = state.filteredProperties,
                                 key = { it.id }
                             ) { property ->
-                                PropertyCard(
+                                RequirementPropertyCard(
                                     property = property,
-                                    onClick = { onAction(OnPropertyClicked(property.id)) }
+                                    onClick = { onAction(PropertyListAction.OnPropertyClicked(property.id)) },
+                                    modifier = Modifier.padding(horizontal = AppDimensions.ScreenHorizontalPadding, vertical = 6.dp)
                                 )
-                            }
-
-                            // Bottom spacing for FAB
-                            item {
-                                Spacer(modifier = Modifier.height(72.dp))
                             }
                         }
                     }
@@ -243,45 +342,14 @@ fun PropertyListContent(
                 UiState.Idle -> {}
             }
             }
-        }
-    }
-}
 
-/**
- * 1. Urgent Actions Status Banner.
- * Answers immediately: "What requires attention within three seconds?"
- */
-@Composable
-private fun UrgentActionBar() {
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.size(36.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text("⚡", fontSize = 16.sp)
-                }
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "All Rent Payments Up To Date",
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
-                )
-                Text(
-                    text = "0 urgent tasks required today. You are fully synced.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            // Scrim Overlay
+            if (scrimAlpha > 0f) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = scrimAlpha))
+                        .clickable(enabled = false) {} // Consume clicks
                 )
             }
         }
@@ -289,255 +357,134 @@ private fun UrgentActionBar() {
 }
 
 /**
- * 2. Workflow First Quick Actions Strip.
- * Answers immediately: "What does the user need to do next?"
+ * High-craftsmanship property card matching the user's exact design requirement mockup,
+ * while maintaining our official App standards.
  */
 @Composable
-private fun QuickActionsStrip(
-    onRecordRent: () -> Unit,
-    onAddTenant: () -> Unit,
-    onAddProperty: () -> Unit,
-    onReceipts: () -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text = "Quick Actions",
-            style = MaterialTheme.typography.labelMedium.copy(
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.Bold
-            )
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            QuickActionPill(
-                icon = "💰",
-                label = "Record Rent",
-                onClick = onRecordRent,
-                modifier = Modifier.weight(1f)
-            )
-            QuickActionPill(
-                icon = "👤",
-                label = "Add Tenant",
-                onClick = onAddTenant,
-                modifier = Modifier.weight(1f)
-            )
-            QuickActionPill(
-                icon = "🏠",
-                label = "Add House",
-                onClick = onAddProperty,
-                modifier = Modifier.weight(1f)
-            )
-            QuickActionPill(
-                icon = "📄",
-                label = "Receipts",
-                onClick = onReceipts,
-                modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
-
-@Composable
-private fun QuickActionPill(
-    icon: String,
-    label: String,
+private fun RequirementPropertyCard(
+    property: PropertyDisplayModel,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
-        modifier = modifier
-    ) {
-        Column(
-            modifier = Modifier.padding(vertical = 12.dp, horizontal = 6.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(text = icon, fontSize = 18.sp)
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                ),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
-}
-
-/**
- * 3. Monthly Summary metrics strip (Compact, non-dominating).
- */
-@Composable
-private fun MonthlySummaryStrip(totalProperties: Int) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        SummaryBox(
-            title = "Total Properties",
-            value = "$totalProperties",
-            subtitle = "Active houses/flats",
-            modifier = Modifier.weight(1f)
-        )
-        SummaryBox(
-            title = "Occupied Rooms",
-            value = if (totalProperties > 0) "${totalProperties * 3}" else "0",
-            subtitle = "Active tenants",
-            modifier = Modifier.weight(1f)
-        )
-        SummaryBox(
-            title = "Est. Monthly Rent",
-            value = if (totalProperties > 0) "NPR ${totalProperties * 45}k" else "NPR 0",
-            subtitle = "Target collection",
-            modifier = Modifier.weight(1f)
-        )
-    }
-}
-
-@Composable
-private fun SummaryBox(
-    title: String,
-    value: String,
-    subtitle: String,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
-        modifier = modifier
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-                )
-            )
-        }
-    }
-}
-
-/**
- * 4. High-Craftsmanship Property Card (Linear / Stripe / Airbnb Host quality).
- */
-@Composable
-private fun PropertyCard(
-    property: Property,
-    onClick: () -> Unit
-) {
-    val typeBadge = when (property.propertyType.uppercase()) {
-        "APARTMENT" -> "🏢 Apartment"
-        "COMMERCIAL" -> "🏪 Commercial"
-        else -> "🏠 House"
-    }
 
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
-        modifier = Modifier.fillMaxWidth()
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)),
+        modifier = modifier.fillMaxWidth()
     ) {
-        Row(
+        Column(
             modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Icon / Thumbnail badge
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
-                modifier = Modifier.size(48.dp)
+            // Top Row: Title + Address on left, Status Badge on right
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Default.Home,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
-
-            // Property details
-            Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                Column(
+                    modifier = Modifier.weight(1f).padding(end = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
                         text = property.name,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            color = MaterialTheme.colorScheme.onSurface
+                        ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
+                        Icon(
+                            imageVector = Icons.Outlined.LocationOn,
+                            contentDescription = "Location",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(14.dp)
+                        )
                         Text(
-                            text = typeBadge,
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                fontWeight = FontWeight.Medium
+                            text = property.address,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             ),
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(3.dp))
-                Text(
-                    text = property.address,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Active Portfolio • Tap to manage rooms & tenants",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
-                        fontWeight = FontWeight.Medium
+
+                // Status Pill Badge (• 2 Vacant / • Fully Occupied)
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = if (property.isVacant) Color(ExtendedColorHex.VacantBackground) else Color(ExtendedColorHex.OccupiedBackground),
+                    border = BorderStroke(1.dp, if (property.isVacant) Color(ExtendedColorHex.VacantBorder) else Color(ExtendedColorHex.OccupiedBorder))
+                ) {
+                    Text(
+                        text = property.statusBadge,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = if (property.isVacant) Color(ExtendedColorHex.VacantText) else Color(ExtendedColorHex.OccupiedText)
+                        ),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                     )
-                )
+                }
             }
 
-            // Right Chevron
-            Text(
-                text = "›",
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    color = MaterialTheme.colorScheme.outline,
-                    fontWeight = FontWeight.Light
-                )
+            // Subtle divider line
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                thickness = 1.dp
             )
+
+            // Bottom Row: UNITS column & PENDING column
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Left: UNITS
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        text = "UNITS",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                        )
+                    )
+                    Text(
+                        text = "${property.totalUnits} Total (${property.occUnits} Occ.)",
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    )
+                }
+
+                // Right: PENDING
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Text(
+                        text = "PENDING",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                        )
+                    )
+                    Text(
+                        text = property.pendingText,
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            color = if (property.isPending) MaterialTheme.colorScheme.onSurface else Color(ExtendedColorHex.ActiveText)
+                        )
+                    )
+                }
+            }
         }
     }
 }
+
+
 
 /**
  * World-Class Empty State shown when the landlord has no properties yet.
@@ -633,6 +580,7 @@ private fun ErrorState(
 
 /* --- Compose Previews --- */
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 private fun PropertyListContentSuccessPreview() {
@@ -641,50 +589,59 @@ private fun PropertyListContentSuccessPreview() {
             state = PropertyListState(
                 propertiesState = UiState.Success(
                     listOf(
-                        Property(
+                        PropertyDisplayModel(
                             id = "1",
-                            ownerId = "owner",
                             name = "Peaceful Villa",
                             address = "Koteshwor, Kathmandu",
-                            propertyType = "HOUSE"
-                        ),
-                        Property(
-                            id = "2",
-                            ownerId = "owner",
-                            name = "Sunshine Heights",
-                            address = "Lalitpur, Nepal",
-                            propertyType = "APARTMENT"
+                            totalUnits = 10,
+                            occUnits = 8,
+                            statusBadge = "• 2 Vacant",
+                            isVacant = true,
+                            pendingText = "Rs. 25,000",
+                            isPending = true
                         )
                     )
                 )
             ),
-            onAction = {}
+            addPropertyState = com.gaatho.rent.features.property.presentation.add.AddPropertyState(),
+            scaffoldState = rememberBottomSheetScaffoldState(),
+            onAction = {},
+            onAddPropertyAction = {}
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 private fun PropertyListContentEmptyPreview() {
     RentManagerTheme {
         PropertyListContent(
             state = PropertyListState(propertiesState = UiState.Success(emptyList())),
-            onAction = {}
+            addPropertyState = com.gaatho.rent.features.property.presentation.add.AddPropertyState(),
+            scaffoldState = rememberBottomSheetScaffoldState(),
+            onAction = {},
+            onAddPropertyAction = {}
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 private fun PropertyListContentLoadingPreview() {
     RentManagerTheme {
         PropertyListContent(
             state = PropertyListState(propertiesState = UiState.Loading),
-            onAction = {}
+            addPropertyState = com.gaatho.rent.features.property.presentation.add.AddPropertyState(),
+            scaffoldState = rememberBottomSheetScaffoldState(),
+            onAction = {},
+            onAddPropertyAction = {}
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 private fun PropertyListContentErrorPreview() {
@@ -693,7 +650,10 @@ private fun PropertyListContentErrorPreview() {
             state = PropertyListState(
                 propertiesState = UiState.Error("Unable to load properties. Check your internet connection.")
             ),
-            onAction = {}
+            addPropertyState = com.gaatho.rent.features.property.presentation.add.AddPropertyState(),
+            scaffoldState = rememberBottomSheetScaffoldState(),
+            onAction = {},
+            onAddPropertyAction = {}
         )
     }
 }

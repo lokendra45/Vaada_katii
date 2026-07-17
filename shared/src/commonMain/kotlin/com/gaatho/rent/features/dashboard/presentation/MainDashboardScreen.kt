@@ -1,6 +1,7 @@
 package com.gaatho.rent.features.dashboard.presentation
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -20,7 +21,9 @@ import org.orbitmvi.orbit.compose.collectAsState
 @Composable
 fun MainDashboardScreen(
     onNavigateToPropertyDetails: (String) -> Unit,
-    onNavigateToAddProperty: () -> Unit
+    onNavigateToAddProperty: () -> Unit,
+    onNavigateToTenantDetails: (String) -> Unit = {},
+    onNavigateToAddTenant: () -> Unit = {}
 ) {
     val viewModel: MainDashboardViewModel = koinViewModel()
     val state by viewModel.collectAsState()
@@ -33,7 +36,8 @@ fun MainDashboardScreen(
                     viewModel.onAction(MainDashboardAction.OnTabSelected(tab))
                 }
             )
-        }
+        },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
         DashboardContent(
             currentTab = state.selectedTab,
@@ -42,7 +46,9 @@ fun MainDashboardScreen(
                 viewModel.onAction(MainDashboardAction.OnTabSelected(com.gaatho.rent.features.dashboard.presentation.model.DashboardTab.PROPERTIES))
             },
             onNavigateToPropertyDetails = onNavigateToPropertyDetails,
-            onNavigateToAddProperty = onNavigateToAddProperty
+            onNavigateToAddProperty = onNavigateToAddProperty,
+            onNavigateToTenantDetails = onNavigateToTenantDetails,
+            onNavigateToAddTenant = onNavigateToAddTenant
         )
     }
 }

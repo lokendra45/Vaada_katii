@@ -28,7 +28,7 @@ class SqlDelightGuestSessionManager(
         }
 
         val newId = UuidUtil.randomGuestId()
-        queries.upsertSetting(key = GUEST_ID_KEY, value = newId)
+        queries.upsertSetting(key = GUEST_ID_KEY, settingValue = newId)
         AppLogger.auth.i { "Created new guest ID: $newId" }
         return newId
     }
