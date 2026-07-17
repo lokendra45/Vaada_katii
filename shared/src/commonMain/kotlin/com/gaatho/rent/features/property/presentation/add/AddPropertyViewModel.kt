@@ -1,25 +1,25 @@
 package com.gaatho.rent.features.property.presentation.add
 
 import androidx.lifecycle.SavedStateHandle
+import com.gaatho.rent.core.auth.UserIdentityProvider
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.ui.ErrorMessageExtractor
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
 import com.gaatho.rent.features.property.domain.model.Property
 import com.skydoves.sandwich.onFailure
 import com.skydoves.sandwich.onSuccess
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.auth.auth
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 import com.skydoves.sandwich.ApiResponse
+import com.gaatho.rent.core.utils.UuidUtil
 
 class AddPropertyViewModel(
     private val repository: PropertyRepository,
-    private val supabase: SupabaseClient,
+    private val userIdentityProvider: UserIdentityProvider,
     savedStateHandle: SavedStateHandle
 ) : MviViewModel<AddPropertyState, AddPropertySideEffect, AddPropertyAction>() {
 
     private val ownerId: String
-        get() = supabase.auth.currentUserOrNull()?.id ?: ""
+        get() = userIdentityProvider.currentUserId()
 
     override val container = orbitContainer<AddPropertyState, AddPropertySideEffect>(
         initialState = AddPropertyState(),
@@ -62,7 +62,7 @@ class AddPropertyViewModel(
         reduce { state.copy(isSaving = true) }
 
         val property = Property(
-            id = "temp-id", // Supabase handles ID generation server-side
+            id = UuidUtil.generateV7String(), 
             ownerId = ownerId,
             name = currentState.name.trim(),
             address = currentState.address.trim(),

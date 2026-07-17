@@ -41,6 +41,11 @@ android {
             "SUPABASE_KEY",
             "\"${localProps.getProperty("SUPABASE_KEY", "placeholder-anon-key")}\""
         )
+        buildConfigField(
+            "String",
+            "REVENUECAT_API_KEY",
+            "\"${localProps.getProperty("REVENUECAT_API_KEY", "")}\""
+        )
     }
 
     buildFeatures {

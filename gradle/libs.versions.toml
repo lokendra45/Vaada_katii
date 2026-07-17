@@ -1,7 +1,7 @@
 [versions]
 agp = "9.2.1"
 android-compileSdk = "37"
-android-minSdk = "24"
+android-minSdk = "28"
 android-targetSdk = "37"
 androidx-activity = "1.13.0"
 androidx-appcompat = "1.7.1"
@@ -19,11 +19,14 @@ supabase = "3.6.0"
 sqldelight = "2.3.2"
 ktor = "3.5.1"
 kotlinx-serialization = "1.11.0"
+kotlinx-datetime = "0.8.0"
 coil = "3.5.0"
-store = "5.0.0"
+purchases-kmp = "3.3.0"
 orbit = "12.0.0"
 sandwich = "2.3.0"
-kermit = "2.0.5"
+kermit = "2.1.0"
+sqlcipher = "4.17.0"
+androidx-sqlite = "2.6.2"
 
 # Navigation 3 — Compose Multiplatform (JetBrains dev repo: packages.jetbrains.team/maven/p/cmp/dev)
 multiplatform-nav3 = "1.1.1"
@@ -67,11 +70,13 @@ supabase-realtime = { module = "io.github.jan-tennert.supabase:realtime-kt", ver
 supabase-storage = { module = "io.github.jan-tennert.supabase:storage-kt", version.ref = "supabase" }
 supabase-compose-auth = { module = "io.github.jan-tennert.supabase:compose-auth-ui", version.ref = "supabase" }
 
-# SQLDelight
+# SQLDelight & SQLCipher Encryption
 sqldelight-android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
 sqldelight-native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqldelight" }
 sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
 sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqldelight" }
+sqlcipher-android = { module = "net.zetetic:sqlcipher-android", version.ref = "sqlcipher" }
+androidx-sqlite = { module = "androidx.sqlite:sqlite", version.ref = "androidx-sqlite" }
 
 # Ktor
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
@@ -81,15 +86,19 @@ ktor-client-contentnegotiation = { module = "io.ktor:ktor-client-content-negotia
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 
-# Kotlinx Serialization
+# Kotlinx Serialization & DateTime
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 # Coil
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 
-# Store5
-store5 = { module = "org.mobilenativefoundation.store:store5", version.ref = "store" }
+
+# RevenueCat
+purchases-core = { module = "com.revenuecat.purchases:purchases-kmp-core", version.ref = "purchases-kmp" }
+purchases-result = { module = "com.revenuecat.purchases:purchases-kmp-result", version.ref = "purchases-kmp" }
+purchases-ui = { module = "com.revenuecat.purchases:purchases-kmp-ui", version.ref = "purchases-kmp" }
 
 # Orbit MVI
 orbit-core = { module = "org.orbit-mvi:orbit-core", version.ref = "orbit" }

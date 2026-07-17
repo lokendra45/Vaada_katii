@@ -20,6 +20,13 @@ kotlin {
         }
     }
 
+    // Required for RevenueCat KMP SDK
+    sourceSets.named { it.lowercase().startsWith("ios") }.configureEach {
+        languageSettings {
+            optIn("kotlinx.cinterop.ExperimentalForeignApi")
+        }
+    }
+
     android {
        namespace = "com.gaatho.rent.shared"
        compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -41,6 +48,8 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.sqldelight.android.driver)
+            implementation(libs.sqlcipher.android)
+            implementation(libs.androidx.sqlite)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -80,15 +89,20 @@ kotlin {
             implementation(libs.ktor.serialization.json)
             implementation(libs.kermit)
 
-            // Kotlinx Serialization
+            // Kotlinx Serialization & DateTime
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.datetime)
 
             // Coil
             implementation(libs.coil.compose)
             implementation(libs.coil.network)
 
-            // Store5
-            implementation(libs.store5)
+
+
+            // RevenueCat
+            implementation(libs.purchases.core)
+            implementation(libs.purchases.result)
+            implementation(libs.purchases.ui)
 
             // Orbit MVI
             implementation(libs.orbit.core)

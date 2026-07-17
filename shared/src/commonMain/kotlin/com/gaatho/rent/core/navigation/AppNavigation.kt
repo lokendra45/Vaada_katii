@@ -25,6 +25,7 @@ import kotlinx.serialization.json.Json.Default.serializersModule
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import com.gaatho.rent.features.dashboard.presentation.MainDashboardScreen
+import com.gaatho.rent.features.paywall.presentation.PaywallScreen
 import org.koin.compose.koinInject
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -102,6 +103,15 @@ fun AppNavigation() {
 
             entry<UnitListRoute> { route ->
                 PlaceholderScreen("Units for\n${route.propertyId}")
+            }
+
+            entry<PaywallRoute> {
+                PaywallScreen(
+                    onDismiss = { backStack.removeLastOrNull() },
+                    onPurchaseSuccess = {
+                        backStack.removeLastOrNull() // pop paywall
+                    }
+                )
             }
 
             entry<LoginRoute> {

@@ -1,6 +1,7 @@
 package com.gaatho.rent.features.splash.presentation
 
 import androidx.lifecycle.ViewModel
+import com.gaatho.rent.core.auth.GuestSessionManager
 import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.core.logging.AppLogger
 import kotlinx.coroutines.delay
@@ -15,7 +16,8 @@ import kotlin.time.Duration.Companion.milliseconds
  * or [SplashSideEffect.NavigateToLogin]).
  */
 class SplashViewModel(
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val guestSessionManager: GuestSessionManager
 ) : ContainerHost<SplashState, SplashSideEffect>, ViewModel() {
 
     override val container = orbitContainer<SplashState, SplashSideEffect>(SplashState()) {
@@ -30,9 +32,10 @@ class SplashViewModel(
         delay(1200.milliseconds)
 
         val isLoggedIn = sessionManager.isLoggedIn.value
-        AppLogger.auth.i { "Session validation complete. IsLoggedIn = $isLoggedIn" }
+        val isGuest = guestSessionManager.hasActiveGuestSession()
+        AppLogger.auth.i { "Session validation complete. IsLoggedIn = $isLoggedIn, IsGuest = $isGuest" }
 
-        if (isLoggedIn) {
+        if (isLoggedIn || isGuest) {
             postSideEffect(SplashSideEffect.NavigateToHome)
         } else {
             postSideEffect(SplashSideEffect.NavigateToLogin)

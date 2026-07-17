@@ -85,3 +85,11 @@ data class EditPropertyRoute(val propertyId: String) : Route
  */
 @Serializable
 data class UnitListRoute(val propertyId: String) : Route
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Paywall Route
+// ──────────────────────────────────────────────────────────────────────────────
+
+/** Full-screen paywall shown to free/guest users who attempt to enable cloud sync. */
+@Serializable
+data object PaywallRoute : Route

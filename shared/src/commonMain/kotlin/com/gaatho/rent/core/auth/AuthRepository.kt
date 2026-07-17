@@ -32,9 +32,4 @@ interface AuthRepository {
      * Initiates Google OAuth Sign-In.
      */
     suspend fun signInWithGoogle(): ApiResponse<Unit>
-
-    /**
-     * Signs in anonymously (Guest Mode).
-     */
-    suspend fun signInAnonymously(): ApiResponse<Unit>
 }

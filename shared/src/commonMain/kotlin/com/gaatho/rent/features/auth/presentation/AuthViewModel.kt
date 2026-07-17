@@ -2,6 +2,7 @@ package com.gaatho.rent.features.auth.presentation
 
 import androidx.lifecycle.SavedStateHandle
 import com.gaatho.rent.core.auth.AuthRepository
+import com.gaatho.rent.core.auth.GuestSessionManager
 import com.gaatho.rent.core.auth.UserRole
 import com.gaatho.rent.core.logging.AppLogger
 import com.gaatho.rent.core.mvi.MviViewModel
@@ -12,6 +13,7 @@ import org.orbitmvi.orbit.viewmodel.orbitContainer
 
 class AuthViewModel(
     private val authRepository: AuthRepository,
+    private val guestSessionManager: GuestSessionManager,
     savedStateHandle: SavedStateHandle
 ) : MviViewModel<AuthState, AuthSideEffect, AuthAction>() {
 
@@ -94,21 +96,9 @@ class AuthViewModel(
 
     private fun handleGuestAuth() = intent {
         reduce { state.copy(authUiState = UiState.Loading) }
-        when (val response = authRepository.signInAnonymously()) {
-            is ApiResponse.Success -> {
-                reduce { state.copy(authUiState = UiState.Success(Unit)) }
-                postSideEffect(AuthSideEffect.NavigateToHome)
-            }
-            is ApiResponse.Failure.Error -> {
-                val errorMsg = ErrorMessageExtractor.extract(response, "Guest sign-in failed.")
-                reduce { state.copy(authUiState = UiState.Error(errorMsg)) }
-                postSideEffect(AuthSideEffect.ShowError(errorMsg))
-            }
-            is ApiResponse.Failure.Exception -> {
-                val errorMsg = ErrorMessageExtractor.extract(response.throwable, "Network error during Guest sign-in.")
-                reduce { state.copy(authUiState = UiState.Error(errorMsg)) }
-                postSideEffect(AuthSideEffect.ShowError(errorMsg))
-            }
-        }
+        val guestId = guestSessionManager.getOrCreateGuestId()
+        AppLogger.auth.i { "Continued as local Guest with ID: $guestId" }
+        reduce { state.copy(authUiState = UiState.Success(Unit)) }
+        postSideEffect(AuthSideEffect.NavigateToHome)
     }
 }

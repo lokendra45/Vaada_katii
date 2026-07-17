@@ -22,28 +22,21 @@ SELECT * FROM property WHERE owner_id = ?;
 deleteProperty:
 DELETE FROM property WHERE id = ?;
 
--- Store5 Bookkeeper metadata
-CREATE TABLE store_bookkeeper (
-    `key` TEXT NOT NULL PRIMARY KEY,
-    timestamp INTEGER NOT NULL
+-- ─────────────────────────────────────────────────────────────────────────────
+-- App Settings: generic key-value store for local app state (e.g. guest_id)
+-- ─────────────────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS app_settings (
+    key   TEXT NOT NULL PRIMARY KEY,
+    value TEXT NOT NULL
 );
 
-insertBookkeeper:
-INSERT OR REPLACE INTO store_bookkeeper (`key`, timestamp)
-VALUES (?, ?);
+upsertSetting:
+INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?);
 
-selectBookkeeper:
-SELECT timestamp FROM store_bookkeeper WHERE `key` = ?;
+selectSetting:
+SELECT value FROM app_settings WHERE key = ?;
 
-deleteBookkeeper:
-DELETE FROM store_bookkeeper WHERE `key` = ?;
+deleteSetting:
+DELETE FROM app_settings WHERE key = ?;
 
-deleteAllBookkeeper:
-DELETE FROM store_bookkeeper;
 
--- Sync Queue for Store5 Updaters
-CREATE TABLE sync_errors (
-    `key` TEXT NOT NULL PRIMARY KEY,
-    error_message TEXT,
-    timestamp INTEGER NOT NULL
-);

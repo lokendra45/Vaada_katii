@@ -46,9 +46,4 @@ class AuthRepositoryImpl(
         ApiResponse.suspendOf {
             supabase.auth.signInWith(Google)
         }.mapSuccess { Unit }
-
-    override suspend fun signInAnonymously(): ApiResponse<Unit> =
-        ApiResponse.suspendOf {
-            supabase.auth.signInAnonymously()
-        }.mapSuccess { Unit }
 }
