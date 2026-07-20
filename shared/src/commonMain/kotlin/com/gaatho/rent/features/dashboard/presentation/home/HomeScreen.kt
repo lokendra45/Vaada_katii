@@ -1,520 +1,599 @@
 package com.gaatho.rent.features.dashboard.presentation.home
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.AddHome
+import androidx.compose.material.icons.outlined.Domain
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Payments
+import androidx.compose.material.icons.outlined.PersonAdd
+import androidx.compose.material.icons.outlined.Receipt
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gaatho.rent.core.designsystem.AppColors
-import com.gaatho.rent.core.designsystem.monoDataTextStyle
+import com.gaatho.rent.core.designsystem.Radius
+import com.gaatho.rent.core.designsystem.RentManagerTheme
+import com.gaatho.rent.core.designsystem.Spacing
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Root Screen
+// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 fun HomeScreen(
-    onNavigateToProperties: () -> Unit
+    onNavigateToProperties: () -> Unit = {}
 ) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        topBar = { HomeTopBar() }
+        topBar = { HomeDashboardTopBar() }
     ) { innerPadding ->
-        Box(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(innerPadding),
+            contentPadding = PaddingValues(
+                start = Spacing.ScreenPadding,
+                end = Spacing.ScreenPadding,
+                top = Spacing.StackLoose,
+                bottom = 32.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(Spacing.SectionGap)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .widthIn(max = 800.dp) // iPad/Tablet friendly max width
-                    .align(Alignment.TopCenter)
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
-            ) {
-            WelcomeSection()
-            Spacer(modifier = Modifier.height(24.dp))
-            RevenueCard()
-            Spacer(modifier = Modifier.height(24.dp))
-            QuickActionsSection()
-            Spacer(modifier = Modifier.height(24.dp))
-            PropertiesSection(onNavigateToProperties = onNavigateToProperties)
-            Spacer(modifier = Modifier.height(24.dp))
-        }
+            item { WelcomeSection() }
+            item { MonthlyOverviewCard() }
+            item { QuickActionsSection() }
+            item { PropertiesOverviewSection(onSeeAll = onNavigateToProperties) }
+            item { RecentPaymentsSection() }
         }
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Top Bar
+// ─────────────────────────────────────────────────────────────────────────────
+
 @Composable
-private fun HomeTopBar() {
-    Box(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.Center
-    ) {
-        Row(
-            modifier = Modifier
-                .widthIn(max = 800.dp)
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 16.dp),
+private fun HomeDashboardTopBar() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
+            .statusBarsPadding()
+            .padding(horizontal = Spacing.ScreenPadding, vertical = 14.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        // Avatar + App Name
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            // Profile Avatar
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(36.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                    .background(MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Profile",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                // Active session green dot
-                Box(
-                    modifier = Modifier
-                        .size(10.dp)
-                        .clip(CircleShape)
-                        .background(AppColors.Success)
-                        .align(Alignment.BottomEnd)
-                        .offset(x = (-2).dp, y = (-2).dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            Column {
                 Text(
-                    text = "Portfolio",
+                    text = "S",
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Text(
-                    text = "ACTIVE SESSION",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
+            Text(
+                text = "Rent Manager",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground
+            )
         }
-        
-        Box(contentAlignment = Alignment.TopEnd) {
-            IconButton(onClick = { /* TODO */ }) {
-                Icon(
-                    imageVector = Icons.Default.NotificationsNone,
-                    contentDescription = "Notifications",
-                    tint = MaterialTheme.colorScheme.onBackground
-                )
-            }
-            // Notification red dot
-            Box(
-                modifier = Modifier
-                    .padding(10.dp)
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(AppColors.Error)
+
+        // Search Icon
+        IconButton(
+            onClick = { /* TODO: Search */ },
+            modifier = Modifier.size(36.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = "Search",
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.onBackground
             )
         }
     }
-    }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 1. Welcome Section — "Good morning, Sarah"
+// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun WelcomeSection() {
-    Column {
-        Text(
-            text = "WELCOME BACK",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "Good morning,",
-            style = MaterialTheme.typography.displayMedium,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-        Text(
-            text = "Mr. Adhikari",
-            style = MaterialTheme.typography.displayMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = "MAY 2024",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = "Good morning,",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = "Sarah",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+        
+        // Add button from Screenshot 1
+        IconButton(
+            onClick = { /* TODO */ },
+            modifier = Modifier
+                .size(48.dp)
+                .background(MaterialTheme.colorScheme.primary, CircleShape)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Add",
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 2. Monthly Overview Card
+// ─────────────────────────────────────────────────────────────────────────────
+
 @Composable
-private fun RevenueCard() {
-    Card(
+private fun MonthlyOverviewCard() {
+    Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column(
+            modifier = Modifier.padding(Spacing.ItemGap),
+            verticalArrangement = Arrangement.spacedBy(Spacing.ItemGap)
+        ) {
+            // Label
+            Text(
+                text = "Collected Rent",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            // Amount row
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "MONTHLY REVENUE • OCT 2023",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Box(
-                    modifier = Modifier
-                        .background(
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = "ON TRACK",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text(
-                    text = "Rs. 1,45,000",
-                    style = MaterialTheme.typography.displayLarge.merge(monoDataTextStyle()),
+                    text = "Rs. 1,24,500",
+                    style = MaterialTheme.typography.headlineLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(modifier = Modifier.width(12.dp))
-                Box(
-                    modifier = Modifier
-                        .padding(bottom = 6.dp)
-                        .background(
-                            color = AppColors.Success.copy(alpha = 0.1f),
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.TrendingUp,
-                            contentDescription = "Up",
-                            tint = AppColors.Success,
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Spacer(modifier = Modifier.width(2.dp))
-                        Text(
-                            text = "12%",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = AppColors.Success
-                        )
-                    }
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(20.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
                 Text(
-                    text = "85% Collected",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = "Last updated 2m ago",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.outline
+                    text = "/ Rs. 4,50,000 Expected",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 3.dp)
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
+
+            // Progress bar — Indigo accent
             LinearProgressIndicator(
-                progress = 0.85f,
+                progress = { 124500f / 450000f },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp)),
                 color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant
+                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                strokeCap = StrokeCap.Round
             )
+
+            // Stats row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                OverviewStatItem(label = "Outstanding", value = "Rs. 3,25,500")
+                OverviewStatItem(label = "Properties", value = "24")
+                OverviewStatItem(label = "Tenants", value = "23")
+            }
         }
     }
 }
 
 @Composable
-private fun QuickActionsSection() {
-    Column {
+private fun OverviewStatItem(label: String, value: String) {
+    Column(horizontalAlignment = Alignment.Start) {
         Text(
-            text = "QUICK ACTIONS",
+            text = label,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
+    // Removed divider for cleaner look matching screenshot 1
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3. Quick Actions — 4 circular tap targets
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun QuickActionsSection() {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.ItemGap)) {
+        Text(
+            text = "Quick Actions",
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onBackground
+        )
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            QuickActionCard(
-                title = "Record\nPayment",
-                icon = Icons.Default.Payments,
-                iconColor = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.weight(1f)
+            QuickActionItem(
+                label = "Add Tenant",
+                icon = Icons.Outlined.PersonAdd
             )
-            QuickActionCard(
-                title = "Manage\nProperties",
-                icon = Icons.Default.Domain,
-                iconColor = AppColors.Info,
-                modifier = Modifier.weight(1f)
+            QuickActionItem(
+                label = "Add Property",
+                icon = Icons.Outlined.AddHome
             )
-            QuickActionCard(
-                title = "Manage\nTenants",
-                icon = Icons.Default.Group,
-                iconColor = AppColors.Warning,
-                modifier = Modifier.weight(1f)
+            QuickActionItem(
+                label = "Record Pay",
+                icon = Icons.Outlined.Payments
+            )
+            QuickActionItem(
+                label = "Expense",
+                icon = Icons.Outlined.Receipt
             )
         }
     }
 }
 
 @Composable
-private fun QuickActionCard(
-    title: String,
-    icon: ImageVector,
-    iconColor: Color,
-    modifier: Modifier = Modifier
+private fun QuickActionItem(
+    label: String,
+    icon: ImageVector
 ) {
-    Card(
-        modifier = modifier.aspectRatio(1f),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Column(
+        // 56×56dp circle button
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .background(
-                        color = iconColor.copy(alpha = 0.1f),
-                        shape = RoundedCornerShape(10.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = title.replace("\n", " "),
-                    tint = iconColor,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                modifier = Modifier.size(22.dp),
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 4. Properties Overview Section
+// ─────────────────────────────────────────────────────────────────────────────
+
 @Composable
-private fun PropertiesSection(onNavigateToProperties: () -> Unit) {
-    Column {
+private fun PropertiesOverviewSection(onSeeAll: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        // Section header
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "YOUR PROPERTIES",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = "Properties Overview",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground
             )
             TextButton(
-                onClick = onNavigateToProperties,
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp),
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = MaterialTheme.colorScheme.primary,
-                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                ),
-                shape = CircleShape, // Pill-shaped as per spec
-                modifier = Modifier.height(28.dp)
+                onClick = onSeeAll,
+                contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "View All",
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = "View All",
-                        modifier = Modifier.size(12.dp)
-                    )
-                }
-            }
-        }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        PropertyMiniCard(
-            title = "Lalitpur Heights",
-            badgeText = "LALITPUR",
-            units = "12 Units",
-            statusText = "2 Vacant",
-            isStatusDanger = true
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        PropertyMiniCard(
-            title = "Baneshwor Complex",
-            badgeText = "BANESHWOR",
-            units = "8 Units",
-            statusText = "Full",
-            isStatusDanger = false
-        )
-    }
-}
-
-@Composable
-private fun PropertyMiniCard(
-    title: String,
-    badgeText: String,
-    units: String,
-    statusText: String,
-    isStatusDanger: Boolean
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Domain,
-                    contentDescription = title,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
+                Text(
+                    text = "See All",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
-            
-            Spacer(modifier = Modifier.width(12.dp))
-            
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Box(
-                        modifier = Modifier
-                            .background(
-                                color = MaterialTheme.colorScheme.surfaceVariant,
-                                shape = RoundedCornerShape(4.dp)
-                            )
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = badgeText,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(4.dp))
-                
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = units,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = " • ",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                    Text(
-                        text = statusText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (isStatusDanger) AppColors.Error else AppColors.Success
-                    )
-                }
+        }
+
+        // Property rows
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            shadowElevation = 0.dp
+        ) {
+            Column {
+                PropertyOverviewRow(
+                    name = "Downtown Lofts",
+                    detail = "100% Occupied • Rs. 25k/mo",
+                    icon = Icons.Outlined.Domain
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                PropertyOverviewRow(
+                    name = "Maple Estates",
+                    detail = "85% Occupied • Rs. 32k/mo",
+                    icon = Icons.Outlined.Home
+                )
             }
-            
-            Icon(
-                imageVector = Icons.Default.ChevronRight,
-                contentDescription = "Details",
-                tint = MaterialTheme.colorScheme.outline
-            )
         }
     }
 }
 
-@Preview
 @Composable
-fun HomeScreenPreview() {
-    com.gaatho.rent.core.designsystem.RentManagerTheme {
-        HomeScreen(onNavigateToProperties = {})
+private fun PropertyOverviewRow(
+    name: String,
+    detail: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Spacing.ItemGap, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.StackLoose)
+    ) {
+        // Property thumbnail icon
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(RoundedCornerShape(Radius.Md))
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        }
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = detail,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Icon(
+            imageVector = Icons.Default.ChevronRight,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp),
+            tint = MaterialTheme.colorScheme.outline
+        )
     }
 }
 
-@Preview
+// ─────────────────────────────────────────────────────────────────────────────
+// 5. Recent Payments Section — Financial ledger style
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun RecentPaymentsSection() {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        // Section header
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Recent Payments",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            TextButton(
+                onClick = { /* TODO: See all payments */ },
+                contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp)
+            ) {
+                Text(
+                    text = "See All",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+
+        // Payment rows
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            shadowElevation = 0.dp
+        ) {
+            Column {
+                PaymentLedgerRow(
+                    name = "John Doe",
+                    subtitle = "Unit 4B • May 12",
+                    amount = "+Rs. 24,500",
+                    status = "Paid",
+                    initials = "JD",
+                    avatarBg = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    avatarText = MaterialTheme.colorScheme.onSurface
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                PaymentLedgerRow(
+                    name = "Alice Smith",
+                    subtitle = "24 Maple St • May 10",
+                    amount = "+Rs. 18,000",
+                    status = "Paid",
+                    initials = "AS",
+                    avatarBg = MaterialTheme.colorScheme.tertiary,
+                    avatarText = MaterialTheme.colorScheme.onTertiary
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                PaymentLedgerRow(
+                    name = "Mike Wang",
+                    subtitle = "Unit 12A • May 08",
+                    amount = "+Rs. 31,000",
+                    status = "Paid",
+                    initials = "MW",
+                    avatarBg = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    avatarText = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PaymentLedgerRow(
+    name: String,
+    subtitle: String,
+    amount: String,
+    status: String,
+    initials: String,
+    avatarBg: Color,
+    avatarText: Color
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Avatar
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(avatarBg),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = initials,
+                style = MaterialTheme.typography.labelMedium,
+                color = avatarText
+            )
+        }
+
+        // Name + subtitle
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        // Amount + status badge
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                text = amount,
+                style = MaterialTheme.typography.titleSmall,
+                color = AppColors.Success
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Box(
+                modifier = Modifier
+                    .background(
+                        color = AppColors.SuccessContainer,
+                        shape = RoundedCornerShape(Radius.Sm)
+                    )
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+            ) {
+                Text(
+                    text = status,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = AppColors.OnSuccess
+                )
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Previews
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Preview(showBackground = true)
 @Composable
 fun HomeScreenLightPreview() {
-    com.gaatho.rent.core.designsystem.RentManagerTheme(darkTheme = false) {
-        HomeScreen(onNavigateToProperties = {})
+    RentManagerTheme(darkTheme = false) {
+        HomeScreen()
     }
 }
 
-@Preview
+@Preview(showBackground = true, backgroundColor = 0xFF0F172A)
 @Composable
 fun HomeScreenDarkPreview() {
-    com.gaatho.rent.core.designsystem.RentManagerTheme(darkTheme = true) {
-        HomeScreen(onNavigateToProperties = {})
+    RentManagerTheme(darkTheme = true) {
+        HomeScreen()
     }
 }

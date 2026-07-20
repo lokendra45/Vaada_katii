@@ -272,10 +272,10 @@ fun AddTenantBottomSheet(
 
         // Footer - Sticky
         Surface(
-            tonalElevation = 2.dp,
-            shadowElevation = 8.dp,
             color = MaterialTheme.colorScheme.surface
         ) {
+            Column {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -294,17 +294,12 @@ fun AddTenantBottomSheet(
                     Text("Cancel", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
                 }
 
-                Button(
+                com.gaatho.rent.core.designsystem.components.RentManagerPrimaryButton(
+                    text = "Add Tenant",
                     onClick = onSave,
-                    modifier = Modifier.weight(1.5f).height(AppDimensions.ButtonHeightMedium),
-                    shape = RoundedCornerShape(AppDimensions.RadiusPill),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Text("Add Tenant", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
-                }
+                    modifier = Modifier.weight(1.5f)
+                )
+            }
             }
         }
     }

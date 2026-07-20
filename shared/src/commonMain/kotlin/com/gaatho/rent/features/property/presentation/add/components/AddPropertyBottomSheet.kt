@@ -277,10 +277,10 @@ fun AddPropertyBottomSheet(
 
         // Footer
         Surface(
-            tonalElevation = 2.dp,
-            shadowElevation = 8.dp,
             color = MaterialTheme.colorScheme.surface
         ) {
+            Column {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -297,20 +297,16 @@ fun AddPropertyBottomSheet(
                     Text("Cancel", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
                 }
 
-                Button(
+                com.gaatho.rent.core.designsystem.components.RentManagerButton(
                     onClick = { onAction(AddPropertyAction.OnSaveClicked) },
-                    modifier = Modifier.weight(1.5f).height(AppDimensions.ButtonHeightMedium),
-                    shape = RoundedCornerShape(AppDimensions.RadiusPill),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
+                    modifier = Modifier.weight(1.5f)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                         Text("Create Property", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
                     }
                 }
+            }
             }
         }
     }

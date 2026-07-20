@@ -21,7 +21,7 @@ fun RentManagerButton(
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier.height(56.dp),
+        modifier = modifier.height(com.gaatho.rent.core.designsystem.AppDimensions.ButtonHeightMedium),
         enabled = enabled,
         shape = androidx.compose.foundation.shape.CircleShape,
         colors = ButtonDefaults.buttonColors(

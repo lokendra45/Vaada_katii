@@ -2,122 +2,187 @@ package com.gaatho.rent.core.designsystem
 
 import androidx.compose.ui.graphics.Color
 
-// ==========================================
-// LIGHT THEME COLORS
-// ==========================================
-val EmeraldLightPrimary = Color(0xFF0d7a5f)
-val EmeraldLightOnPrimary = Color(0xFFffffff)
-val EmeraldLightPrimaryContainer = Color(0xFF0d7a5f)
-val EmeraldLightOnPrimaryContainer = Color(0xFFe6f3ed)
-val EmeraldLightInversePrimary = Color(0xFF7cd8b8)
+// ══════════════════════════════════════════════════════════════════════════════
+// QUIET PREMIUM — LIGHT THEME
+// Source: design-tokens.yaml (exact values)
+// ══════════════════════════════════════════════════════════════════════════════
 
-val EmeraldLightSecondary = Color(0xFF575e70)
-val EmeraldLightOnSecondary = Color(0xFFffffff)
-val EmeraldLightSecondaryContainer = Color(0xFFd9dff5)
-val EmeraldLightOnSecondaryContainer = Color(0xFF5c6274)
+// Primary
+val Primary              = Color(0xFF4F46E5)
+val OnPrimary            = Color(0xFFFFFFFF)
+val PrimaryContainer     = Color(0xFFEEF2FF)
+val OnPrimaryContainer   = Color(0xFF4338CA)
+val InversePrimary       = Color(0xFFC3C0FF)
+val PrimaryFixed         = Color(0xFFE2DFFF)
+val PrimaryFixedDim      = Color(0xFFC3C0FF)
+val OnPrimaryFixed       = Color(0xFF0F0069)
+val OnPrimaryFixedVariant= Color(0xFF3323CC)
 
-val EmeraldLightTertiary = Color(0xFF4a5462)
-val EmeraldLightOnTertiary = Color(0xFFffffff)
-val EmeraldLightTertiaryContainer = Color(0xFF626c7b)
-val EmeraldLightOnTertiaryContainer = Color(0xFFe4eeff)
+// Secondary
+val Secondary              = Color(0xFF575E70)
+val OnSecondary            = Color(0xFFFFFFFF)
+val SecondaryContainer     = Color(0xFFD9DFF5)
+val OnSecondaryContainer   = Color(0xFF5C6274)
+val SecondaryFixed         = Color(0xFFDCE2F7)
+val SecondaryFixedDim      = Color(0xFFC0C6DB)
+val OnSecondaryFixed       = Color(0xFF141B2B)
+val OnSecondaryFixedVariant= Color(0xFF404758)
 
-val EmeraldLightError = Color(0xFFba1a1a)
-val EmeraldLightOnError = Color(0xFFffffff)
-val EmeraldLightErrorContainer = Color(0xFFffdad6)
-val EmeraldLightOnErrorContainer = Color(0xFF93000a)
+// Tertiary
+val Tertiary              = Color(0xFF7E3000)
+val OnTertiary            = Color(0xFFFFFFFF)
+val TertiaryContainer     = Color(0xFFA44100)
+val OnTertiaryContainer   = Color(0xFFFFD2BE)
+val TertiaryFixed         = Color(0xFFFFDBCC)
+val TertiaryFixedDim      = Color(0xFFFFB695)
+val OnTertiaryFixed       = Color(0xFF351000)
+val OnTertiaryFixedVariant= Color(0xFF7B2F00)
 
-val EmeraldLightBackground = Color(0xFFf9f9f9)
-val EmeraldLightOnBackground = Color(0xFF1a1c1e)
+// Error
+val Error              = Color(0xFFBA1A1A)
+val OnError            = Color(0xFFFFFFFF)
+val ErrorContainer     = Color(0xFFFFDAD6)
+val OnErrorContainer   = Color(0xFF93000A)
 
-val EmeraldLightSurface = Color(0xFFf9f9f9)
-val EmeraldLightOnSurface = Color(0xFF1a1c1e)
-val EmeraldLightSurfaceVariant = Color(0xFFf3f3f3) // Unfocused Background
-val EmeraldLightOnSurfaceVariant = Color(0xFF44474a) // Labels
+// Surface scale
+val Surface                 = Color(0xFFF9F9FF)
+val SurfaceDim              = Color(0xFFD3DAEA)
+val SurfaceBright           = Color(0xFFF9F9FF)
+val SurfaceContainerLowest  = Color(0xFFFFFFFF)
+val SurfaceContainerLow     = Color(0xFFF0F3FF)
+val SurfaceContainer        = Color(0xFFE7EEFE)
+val SurfaceContainerHigh    = Color(0xFFE2E8F8)
+val SurfaceContainerHighest = Color(0xFFDCE2F3)
+val SurfaceTint             = Color(0xFF4D44E3)
+val SurfaceVariant          = Color(0xFFDCE2F3)
 
-val EmeraldLightInverseSurface = Color(0xFF2f3131)
-val EmeraldLightInverseOnSurface = Color(0xFFf0f1f1)
+// On-surface
+val OnSurface        = Color(0xFF111827)
+val OnSurfaceVariant = Color(0xFF64748B)
+val InverseSurface   = Color(0xFF2A313D)
+val InverseOnSurface = Color(0xFFEBF1FF)
 
-val EmeraldLightOutline = Color(0xFF74777f) // Placeholders
-val EmeraldLightOutlineVariant = Color(0xFFbdc9c2)
+// Background
+val Background   = Color(0xFFF9F9FF)
+val OnBackground = Color(0xFF111827)
 
-// ==========================================
-// DARK THEME COLORS
-// ==========================================
-val EmeraldDarkPrimary = Color(0xFF7cd8b8)
-val EmeraldDarkOnPrimary = Color(0xFF00382a)
-val EmeraldDarkPrimaryContainer = Color(0xFF0d7a5f)
-val EmeraldDarkOnPrimaryContainer = Color(0xFFa8ffdf)
-val EmeraldDarkInversePrimary = Color(0xFF006c53)
+// Outline
+val Outline        = Color(0xFF9CA3AF) // Gray-400
+val OutlineVariant = Color(0xFFE5E7EB) // Gray-200 (from YAML specs)
 
-val EmeraldDarkSecondary = Color(0xFFc0c6db)
-val EmeraldDarkOnSecondary = Color(0xFF293040)
-val EmeraldDarkSecondaryContainer = Color(0xFF404758)
-val EmeraldDarkOnSecondaryContainer = Color(0xFFaeb5c9)
+// ══════════════════════════════════════════════════════════════════════════════
+// QUIET PREMIUM — DARK THEME
+// ══════════════════════════════════════════════════════════════════════════════
 
-val EmeraldDarkTertiary = Color(0xFFbdc7d8)
-val EmeraldDarkOnTertiary = Color(0xFF27313e)
-val EmeraldDarkTertiaryContainer = Color(0xFF626c7b)
-val EmeraldDarkOnTertiaryContainer = Color(0xFFe4eeff)
+val DarkPrimary              = Color(0xFF818CF8)
+val DarkOnPrimary            = Color(0xFF0F172A)
+val DarkPrimaryContainer     = Color(0x334F46E5)
+val DarkOnPrimaryContainer   = Color(0xFFE0E7FF)
+val DarkInversePrimary       = Color(0xFF4953BC)
+val DarkPrimaryFixed         = Color(0xFFE0E0FF)
+val DarkPrimaryFixedDim      = Color(0xFFBDC2FF)
+val DarkOnPrimaryFixed       = Color(0xFF000767)
+val DarkOnPrimaryFixedVariant= Color(0xFF2F3AA3)
 
-val EmeraldDarkError = Color(0xFFffb4ab)
-val EmeraldDarkOnError = Color(0xFF690005)
-val EmeraldDarkErrorContainer = Color(0xFF93000a)
-val EmeraldDarkOnErrorContainer = Color(0xFFffdad6)
+val DarkSecondary              = Color(0xFFB9C7E0)
+val DarkOnSecondary            = Color(0xFF233144)
+val DarkSecondaryContainer     = Color(0xFF3C4A5E)
+val DarkOnSecondaryContainer   = Color(0xFFABB9D2)
+val DarkSecondaryFixed         = Color(0xFFD5E3FD)
+val DarkSecondaryFixedDim      = Color(0xFFB9C7E0)
+val DarkOnSecondaryFixed       = Color(0xFF0D1C2F)
+val DarkOnSecondaryFixedVariant= Color(0xFF3A485C)
 
-val EmeraldDarkBackground = Color(0xFF121414)
-val EmeraldDarkOnBackground = Color(0xFFe2e2e2)
+val DarkTertiary              = Color(0xFFF7BD3E)
+val DarkOnTertiary            = Color(0xFF402D00)
+val DarkTertiaryContainer     = Color(0xFFC08D00)
+val DarkOnTertiaryContainer   = Color(0xFF3E2B00)
+val DarkTertiaryFixed         = Color(0xFFFFDEA3)
+val DarkTertiaryFixedDim      = Color(0xFFF7BD3E)
+val DarkOnTertiaryFixed       = Color(0xFF261900)
+val DarkOnTertiaryFixedVariant= Color(0xFF5D4200)
 
-val EmeraldDarkSurface = Color(0xFF121414)
-val EmeraldDarkOnSurface = Color(0xFFe2e2e2)
-val EmeraldDarkSurfaceVariant = Color(0xFF333535)
-val EmeraldDarkOnSurfaceVariant = Color(0xFFbdc9c2)
+val DarkError              = Color(0xFFFFB4AB)
+val DarkOnError            = Color(0xFF690005)
+val DarkErrorContainer     = Color(0xFF93000A)
+val DarkOnErrorContainer   = Color(0xFFFFDAD6)
 
-val EmeraldDarkInverseSurface = Color(0xFFe2e2e2)
-val EmeraldDarkInverseOnSurface = Color(0xFF2f3131)
+val DarkSurface                = Color(0xFF111827)
+val DarkSurfaceDim             = Color(0xFF111827)
+val DarkSurfaceBright          = Color(0xFF334155)
+val DarkSurfaceContainerLowest = Color(0xFF0B0F19)
+val DarkSurfaceContainerLow    = Color(0xFF1E293B)
+val DarkSurfaceContainer       = Color(0xFF1E293B)
+val DarkSurfaceContainerHigh   = Color(0xFF334155)
+val DarkSurfaceContainerHighest= Color(0xFF475569)
+val DarkSurfaceVariant         = Color(0xFF334155)
+val DarkSurfaceTint            = Color(0xFFBDC2FF)
 
-val EmeraldDarkOutline = Color(0xFF88938d)
-val EmeraldDarkOutlineVariant = Color(0xFF3e4944)
+val DarkOnSurface        = Color(0xFFF8FAFC)
+val DarkOnSurfaceVariant = Color(0xFFCBD5E1)
+val DarkInverseSurface   = Color(0xFFDAE2FD)
+val DarkInverseOnSurface = Color(0xFF283044)
 
-/**
- * Rent Manager Nepal Design System Core Color Tokens (Direct Access)
- * Using standard hardcoded names that map dynamically based on standard colors.
- * Note: AppColors is kept for compatibility, but material theme colorScheme is preferred.
- */
+val DarkBackground   = Color(0xFF111827)
+val DarkOnBackground = Color(0xFFF8FAFC)
+
+val DarkOutline        = Color(0xFF908F9E)
+val DarkOutlineVariant = Color(0xFF454653)
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SEMANTIC TOKENS — Safe to use from Compose UI
+// ══════════════════════════════════════════════════════════════════════════════
+
 object AppColors {
-    val Success = Color(0xFF005f49) // Using primary for success
-    val Warning = Color(0xFFD97706) // Keep as fallback
-    val Error = EmeraldLightError
-    val Info = EmeraldLightSecondary
+    /** Success — green 500 */
+    val Success           = Color(0xFF22C55E)
+    val SuccessContainer  = Color(0xFFF0FDF4)
+    val OnSuccess         = Color(0xFF14532D)
+
+    /** Warning — amber 500 */
+    val Warning           = Color(0xFFF59E0B)
+    val WarningContainer  = Color(0xFFFFFBEB)
+    val OnWarning         = Color(0xFF78350F)
+
+    /** Error — matches Material error token */
+    val Error             = Color(0xFFBA1A1A)
+    val ErrorContainer    = Color(0xFFFFDAD6)
+    val OnError           = Color(0xFFFFFFFF)
+
+    /** Info — same as primary accent */
+    val Info              = Color(0xFF3525CD)
+    val InfoContainer     = Color(0xFFE2DFFF)
+    val OnInfo            = Color(0xFFFFFFFF)
 }
 
-/**
- * Extended semantic colors for specific UI elements like status badges and avatars.
- * Values are stored as Longs so ViewModels can map to them without depending on Compose Color.
- */
+// ══════════════════════════════════════════════════════════════════════════════
+// EXTENDED SEMANTIC HEX — ViewModel-safe (Long constants, no Compose import)
+// ══════════════════════════════════════════════════════════════════════════════
+
 object ExtendedColorHex {
     // Property Status Badges
-    const val VacantBackground = 0xFFFFEBEE
-    const val VacantText = 0xFFC62828
-    const val VacantBorder = 0xFFFFCDD2
+    const val VacantBackground = 0xFFFFDAD6L
+    const val VacantText       = 0xFFBA1A1AL
+    const val VacantBorder     = 0xFFFFB4ABL
 
-    const val OccupiedBackground = 0xFFE8F5E9
-    const val OccupiedText = 0xFF2E7D32
-    const val OccupiedBorder = 0xFFC8E6C9
+    const val OccupiedBackground = 0xFFF0FDF4L
+    const val OccupiedText       = 0xFF22C55EL
+    const val OccupiedBorder     = 0xFFBBF7D0L
 
     // Tenant Status Badges
-    const val ActiveBackground = 0xFFD8F3E5
-    const val ActiveText = 0xFF0F6E4A
-    
-    const val InactiveBackground = 0xFFF1F3F5
-    const val InactiveText = 0xFF495057
+    const val ActiveBackground   = 0xFFF0FDF4L
+    const val ActiveText         = 0xFF16A34AL
 
-    // Avatar Color Pairs (Background to Text)
+    const val InactiveBackground = 0xFFF3F4F6L
+    const val InactiveText       = 0xFF6B7280L
+
+    // Avatar pairs: (background, text) as Long
     val AvatarPairs = listOf(
-        Pair(0xFFD8F3E5, 0xFF0D684D), // Teal / Mint
-        Pair(0xFFE0F2E9, 0xFF1B6342), // Soft Green
-        Pair(0xFFDAF0F2, 0xFF115C61), // Soft Cyan
-        Pair(0xFFE4E8F0, 0xFF2C3E50), // Slate
-        Pair(0xFFE8F0FE, 0xFF1A73E8), // Soft Blue
-        Pair(0xFFF3E8FF, 0xFF6B21A8)  // Soft Lavender
+        Pair(0xFFE2DFFFL, 0xFF3323CCL), // Indigo
+        Pair(0xFFF0FDF4L, 0xFF15803DL), // Green
+        Pair(0xFFE0F2FEL, 0xFF0369A1L), // Sky
+        Pair(0xFFFDF4FFL, 0xFF7E22CEL), // Purple
+        Pair(0xFFFFD2BEL, 0xFF7E3000L), // Terracotta (tertiary)
+        Pair(0xFFDCE2F7L, 0xFF404758L)  // Slate (secondary)
     )
 }
