@@ -212,7 +212,8 @@ fun PropertyListContent(
 
                             // Pixel-Perfect Material 3 Expressive AppSearchBar
                             item {
-                                val searchSuggestions = remember(state.allProperties) {
+                                val locationFilterText = stringResource(Res.string.filter_by_location)
+                                val searchSuggestions = remember(state.allProperties, locationFilterText) {
                                     val nameSuggestions = state.allProperties.take(3).map { prop ->
                                         com.gaatho.rent.core.ui.components.SearchSuggestionItem(
                                             title = prop.name,
@@ -223,8 +224,9 @@ fun PropertyListContent(
                                     val locationSuggestions = state.allProperties.map { it.address.substringBefore(",").trim() }.distinct().take(2).map { loc ->
                                         com.gaatho.rent.core.ui.components.SearchSuggestionItem(
                                             title = loc,
-                                            subtitle = stringResource(Res.string.filter_by_location),
+                                            subtitle = locationFilterText,
                                             category = "Location"
+
                                         )
                                     }
                                     (nameSuggestions + locationSuggestions).take(5)

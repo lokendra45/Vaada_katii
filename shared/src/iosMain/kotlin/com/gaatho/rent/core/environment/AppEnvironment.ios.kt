@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ProvidedValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.InternalComposeUiApi
-import org.jetbrains.compose.ui.window.LocalSystemTheme
-import org.jetbrains.compose.ui.window.SystemTheme
+import androidx.compose.ui.LocalSystemTheme
+import androidx.compose.ui.SystemTheme
 import platform.Foundation.NSLocale
 import platform.Foundation.NSUserDefaults
 import platform.Foundation.preferredLanguages
