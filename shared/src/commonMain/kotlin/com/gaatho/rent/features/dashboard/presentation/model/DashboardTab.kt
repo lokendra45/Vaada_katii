@@ -13,6 +13,11 @@ import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
+
+import org.jetbrains.compose.resources.StringResource
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.*
 
 /**
  * Defines the primary bottom navigation tabs for the landlord dashboard.
@@ -21,13 +26,13 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 enum class DashboardTab(
-    val title: String
+    @Transient val title: StringResource = Res.string.tab_home // Needs a default for serialization, though @Transient ignores it
 ) {
-    HOME(title = "Home"),
-    PROPERTIES(title = "Properties"),
-    PAYMENTS(title = "Payments"),
-    TENANTS(title = "Tenants"),
-    SETTINGS(title = "Settings");
+    HOME(title = Res.string.tab_home),
+    PROPERTIES(title = Res.string.tab_properties),
+    PAYMENTS(title = Res.string.tab_payments),
+    TENANTS(title = Res.string.tab_tenants),
+    SETTINGS(title = Res.string.tab_settings);
     
     // We do not serialize ImageVector inside the Enum to avoid serialization issues, 
     // so we expose them via extension properties.

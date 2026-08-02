@@ -2,6 +2,8 @@ package com.gaatho.rent.features.payment.presentation.add
 
 import com.gaatho.rent.core.ui.UiState
 import kotlinx.collections.immutable.ImmutableList
+import org.jetbrains.compose.resources.StringResource
+import rentmanagerapp.shared.generated.resources.Res
 
 data class AddPaymentState(
     val amount: String = "",
@@ -37,11 +39,12 @@ data class PropertySelectionModel(
     val name: String
 )
 
-enum class PaymentMethod(val label: String) {
-    CASH("Cash"),
-    BANK_TRANSFER("Bank Transfer"),
-    ESEWA("eSewa"),
-    KHALTI("Khalti")
+
+enum class PaymentMethod(val labelRes: StringResource) {
+    CASH(Res.string.payment_method_cash),
+    BANK_TRANSFER(Res.string.payment_method_bank_transfer),
+    ESEWA(Res.string.payment_method_esewa),
+    KHALTI(Res.string.payment_method_khalti)
 }
 
 sealed class AddPaymentAction {

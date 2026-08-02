@@ -331,7 +331,7 @@ private fun PaymentMethodSection(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = selectedMethod?.label ?: stringResource(Res.string.payment_method),
+                    text = selectedMethod?.let { stringResource(it.labelRes) } ?: stringResource(Res.string.payment_method),
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.Normal,
                         color = MaterialTheme.colorScheme.onSurface
@@ -387,7 +387,7 @@ private fun PaymentMethodSection(
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
-                                text = method.label,
+                                text = stringResource(method.labelRes),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )

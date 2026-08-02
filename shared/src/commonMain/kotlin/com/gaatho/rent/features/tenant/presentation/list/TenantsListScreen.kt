@@ -95,11 +95,11 @@ fun TenantsListContent(
         sheetSwipeEnabled = true,
         topBar = {
             com.gaatho.rent.core.ui.components.AppTopBar(
-                title = "Tenants",
+                title = stringResource(Res.string.tenants_title),
                 subtitle = "${state.totalCount} total · ${state.activeCount} active",
                 actions = {
                     com.gaatho.rent.core.ui.components.AppTopBarActionButton(
-                        text = "Add tenant",
+                        text = stringResource(Res.string.add_tenant),
                         onClick = {
                             coroutineScope.launch { scaffoldState.bottomSheetState.expand() }
                         }
@@ -161,7 +161,7 @@ fun TenantsListContent(
                     AppSearchBar(
                         query = state.searchQuery,
                         onQueryChange = { onAction(TenantsListAction.OnSearchQueryChanged(it)) },
-                        placeholderText = "Search name, email, phone or property",
+                        placeholderText = stringResource(Res.string.search_tenants),
                         suggestions = searchSuggestions,
                         onSuggestionSelected = { item ->
                             onAction(TenantsListAction.OnSearchQueryChanged(item.title))
@@ -210,11 +210,11 @@ fun TenantsListContent(
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     Text(
-                                        text = "No tenants found",
+                                        text = stringResource(Res.string.no_tenants_found),
                                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                                     )
                                     Text(
-                                        text = "Try adjusting your search or filter settings.",
+                                        text = stringResource(Res.string.no_tenants_found_subtitle),
                                         style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     )
                                 }
@@ -269,7 +269,7 @@ private fun TenantsFilterStrip(
     ) {
         // Segmented Control for Status
         val options = listOf("All statuses", "Active", "Inactive")
-        val displayOptions = listOf("All", "Active", "Inactive")
+        val displayOptions = listOf(stringResource(Res.string.filter_all), stringResource(Res.string.filter_active), stringResource(Res.string.filter_past))
         val selectedIndex = options.indexOf(state.selectedStatus).coerceAtLeast(0)
 
         AppSegmentedControl(
@@ -295,7 +295,7 @@ private fun TenantsFilterStrip(
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    text = if (isPropertyFiltered) state.selectedProperty else "Property",
+                    text = if (isPropertyFiltered) state.selectedProperty else stringResource(Res.string.properties_label),
                     style = MaterialTheme.typography.labelMedium.copy(
                         fontWeight = if (isPropertyFiltered) FontWeight.Bold else FontWeight.Medium,
                         color = if (isPropertyFiltered) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant

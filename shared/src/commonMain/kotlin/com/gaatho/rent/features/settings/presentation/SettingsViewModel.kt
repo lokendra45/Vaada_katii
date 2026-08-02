@@ -14,6 +14,7 @@ private const val KEY_NOTIFICATIONS = "pref_notifications"
 private const val KEY_EMAIL_ALERTS   = "pref_email_alerts"
 private const val KEY_BIOMETRICS     = "pref_biometrics"
 private const val KEY_DARK_MODE      = "pref_dark_mode"
+private const val KEY_LANGUAGE       = "pref_language"
 
 class SettingsViewModel(
     private val authRepository: AuthRepository,
@@ -46,6 +47,10 @@ class SettingsViewModel(
             queries.selectSetting(KEY_DARK_MODE).executeAsOneOrNull()
         }?.toBooleanStrictOrNull() ?: false
 
+        val languageCode = withContext(Dispatchers.IO) {
+            queries.selectSetting(KEY_LANGUAGE).executeAsOneOrNull()
+        }
+
         val user = sessionManager.currentUser.value
         val email = user?.email ?: ""
         val displayName = user?.displayName
@@ -57,6 +62,7 @@ class SettingsViewModel(
                 emailAlertsEnabled   = emailAlerts,
                 biometricsEnabled    = biometrics,
                 darkModeEnabled      = darkMode,
+                languageCode         = languageCode,
                 userEmail            = email,
                 userName             = displayName,
             )
@@ -80,6 +86,14 @@ class SettingsViewModel(
             is SettingsAction.OnDarkModeToggled -> persistToggle(
                 KEY_DARK_MODE, action.enabled
             ) { copy(darkModeEnabled = action.enabled) }
+
+            is SettingsAction.OnLanguageChanged -> intent {
+                val newCode = action.code
+                reduce { state.copy(languageCode = newCode) }
+                withContext(Dispatchers.IO) {
+                    queries.upsertSetting(key = KEY_LANGUAGE, settingValue = newCode)
+                }
+            }
 
             is SettingsAction.OnUpgradeClicked -> { /* TODO: navigate to paywall */ }
 

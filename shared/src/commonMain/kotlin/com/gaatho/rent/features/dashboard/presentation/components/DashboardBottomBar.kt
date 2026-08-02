@@ -18,6 +18,8 @@ import com.gaatho.rent.features.dashboard.presentation.model.unselectedIcon
  * Extracts the Material 3 NavigationBar styling out of the main screen to adhere to
  * separation of concerns.
  */
+import org.jetbrains.compose.resources.stringResource
+
 @Composable
 fun DashboardBottomBar(
     currentTab: DashboardTab,
@@ -35,12 +37,12 @@ fun DashboardBottomBar(
                 icon = {
                     Icon(
                         imageVector = if (isSelected) tab.selectedIcon else tab.unselectedIcon,
-                        contentDescription = tab.title
+                        contentDescription = stringResource(tab.title)
                     )
                 },
                 label = {
                     Text(
-                        text = tab.title,
+                        text = stringResource(tab.title),
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                     )
                 },

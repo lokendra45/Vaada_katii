@@ -166,11 +166,11 @@ fun PropertyListContent(
         },
         topBar = {
             com.gaatho.rent.core.ui.components.AppTopBar(
-                title = "Properties",
-                subtitle = "${state.allProperties.size} total properties",
+                title = stringResource(Res.string.properties_title),
+                subtitle = stringResource(Res.string.total_properties_subtitle, state.allProperties.size),
                 actions = {
                     com.gaatho.rent.core.ui.components.AppTopBarActionButton(
-                        text = "Add property",
+                        text = stringResource(Res.string.add_property),
                         onClick = { onAction(PropertyListAction.OnAddPropertyClicked) }
                     )
                 }
@@ -223,7 +223,7 @@ fun PropertyListContent(
                                     val locationSuggestions = state.allProperties.map { it.address.substringBefore(",").trim() }.distinct().take(2).map { loc ->
                                         com.gaatho.rent.core.ui.components.SearchSuggestionItem(
                                             title = loc,
-                                            subtitle = "Filter by Location",
+                                            subtitle = stringResource(Res.string.filter_by_location),
                                             category = "Location"
                                         )
                                     }
@@ -233,7 +233,7 @@ fun PropertyListContent(
                                 com.gaatho.rent.core.ui.components.AppSearchBar(
                                     query = state.searchQuery,
                                     onQueryChange = { onAction(PropertyListAction.OnSearchQueryChanged(it)) },
-                                    placeholderText = "Search properties by name or location...",
+                                    placeholderText = stringResource(Res.string.search_properties_hint),
                                     suggestions = searchSuggestions,
                                     onSuggestionSelected = { item ->
                                         onAction(PropertyListAction.OnSearchQueryChanged(item.title))
@@ -254,8 +254,9 @@ fun PropertyListContent(
 
                                 // Animated Segmented Control for Location Filter
                                 val selectedIndex = locationFilters.indexOf(state.selectedLocation).coerceAtLeast(0)
+                                val allLocationsText = stringResource(Res.string.filter_all_locations)
                                 val displayOptions = locationFilters.map { 
-                                    if (it.equals("All properties", ignoreCase = true)) "All Locations" else it 
+                                    if (it.equals("All properties", ignoreCase = true)) allLocationsText else it 
                                 }
 
                                 com.gaatho.rent.core.ui.components.AppSegmentedControl(
@@ -360,7 +361,7 @@ private fun PropertyRowItem(
 
             // Address and Units
             Text(
-                text = "${property.address} • ${property.totalUnits} Units",
+                text = "${property.address} • ${stringResource(Res.string.units_label, property.totalUnits)}",
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
@@ -385,7 +386,7 @@ private fun PropertyRowItem(
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             Text(
-                text = "Pending",
+                text = stringResource(Res.string.pending_label),
                 style = MaterialTheme.typography.labelSmall.copy(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -433,7 +434,7 @@ private fun EmptyPropertiesState(
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    text = "Welcome to Rent Manager Nepal 🙏",
+                    text = stringResource(Res.string.welcome_property_empty_title),
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -441,7 +442,7 @@ private fun EmptyPropertiesState(
                     textAlign = TextAlign.Center
                 )
                 Text(
-                    text = "Your daily landlord productivity center. Add your first house, flat, or room to start recording rent and managing tenants.",
+                    text = stringResource(Res.string.welcome_property_empty_desc),
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
@@ -460,7 +461,7 @@ private fun EmptyPropertiesState(
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(20.dp))
                     Text(
-                        text = "Add Your First Property",
+                        text = stringResource(Res.string.add_first_property_btn),
                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
                     )
                 }

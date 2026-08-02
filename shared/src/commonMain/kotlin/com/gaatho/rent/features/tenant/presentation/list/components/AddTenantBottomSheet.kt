@@ -83,7 +83,7 @@ fun AddTenantBottomSheet(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Add Tenant",
+                    text = stringResource(Res.string.add_tenant),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -146,13 +146,13 @@ fun AddTenantBottomSheet(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.AddAPhoto,
-                                contentDescription = "Add Photo",
+                                contentDescription = stringResource(Res.string.add_photo),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                                 modifier = Modifier.size(24.dp)
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "Add Photo",
+                                text = stringResource(Res.string.add_photo),
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                                     fontWeight = FontWeight.Medium
@@ -169,7 +169,7 @@ fun AddTenantBottomSheet(
             AppTextField(
                 value = fullName,
                 onValueChange = { fullName = it },
-                label = "Full Name",
+                label = stringResource(Res.string.tenant_name_label),
                 placeholder = "e.g. Ram Bahadur Thapa",
                 leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp)) }
             )
@@ -179,7 +179,7 @@ fun AddTenantBottomSheet(
             AppTextField(
                 value = phone,
                 onValueChange = { phone = it },
-                label = "Phone Number",
+                label = stringResource(Res.string.tenant_phone_label),
                 placeholder = "98XXXXXXXX",
                 prefix = "+977",
                 leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp)) }
@@ -190,8 +190,8 @@ fun AddTenantBottomSheet(
             AppTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = "Email Address",
-                topRightLabel = "Optional",
+                label = stringResource(Res.string.tenant_email_label),
+                topRightLabel = stringResource(Res.string.optional),
                 placeholder = "ram@example.com",
                 leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp)) }
             )
@@ -201,7 +201,7 @@ fun AddTenantBottomSheet(
             AppTextField(
                 value = address,
                 onValueChange = { address = it },
-                label = "Permanent Address",
+                label = stringResource(Res.string.tenant_address_label),
                 placeholder = "e.g. Pokhara-8, Kaski",
                 leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp)) }
             )
@@ -211,7 +211,7 @@ fun AddTenantBottomSheet(
             AppTextField(
                 value = occupation,
                 onValueChange = { occupation = it },
-                label = "Occupation",
+                label = stringResource(Res.string.tenant_occupation_label),
                 placeholder = "e.g. Software Engineer",
                 leadingIcon = { Icon(Icons.Default.Work, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp)) }
             )
@@ -227,7 +227,7 @@ fun AddTenantBottomSheet(
                 options = roomOptions,
                 selectedItem = room.ifEmpty { null },
                 onItemSelected = { room = it },
-                label = "Select Room/Unit",
+                label = stringResource(Res.string.tenant_room_label),
                 placeholder = "Select a vacant room...",
                 leadingIcon = { Icon(Icons.Default.Apartment, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp)) }
             )
@@ -241,7 +241,7 @@ fun AddTenantBottomSheet(
                 AppTextField(
                     value = startDate,
                     onValueChange = { startDate = it },
-                    label = "Start Date",
+                    label = stringResource(Res.string.tenant_start_date_label),
                     placeholder = "dd-mm-yyyy",
                     modifier = Modifier.weight(1f),
                     leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null, tint = iconTint, modifier = Modifier.size(18.dp)) },
@@ -251,8 +251,8 @@ fun AddTenantBottomSheet(
                 AppTextField(
                     value = endDate,
                     onValueChange = { endDate = it },
-                    label = "End Date",
-                    topRightLabel = "Optional",
+                    label = stringResource(Res.string.tenant_end_date_label),
+                    topRightLabel = stringResource(Res.string.optional),
                     placeholder = "dd-mm-yyyy",
                     modifier = Modifier.weight(1f),
                     leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null, tint = iconTint, modifier = Modifier.size(18.dp)) },
@@ -265,7 +265,7 @@ fun AddTenantBottomSheet(
             AppTextField(
                 value = deposit,
                 onValueChange = { deposit = it },
-                label = "Security Deposit",
+                label = stringResource(Res.string.tenant_deposit_label),
                 placeholder = "0.00",
                 prefix = "Rs.",
                 leadingIcon = { Icon(Icons.Default.AccountBalanceWallet, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp)) }

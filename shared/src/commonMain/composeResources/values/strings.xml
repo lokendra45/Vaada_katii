@@ -5,9 +5,166 @@
     <string name="cancel">Cancel</string>
     <string name="retry">Retry</string>
     <string name="continue_action">Continue</string>
+    <string name="tab_home">Home</string>
+    <string name="tab_properties">Properties</string>
+    <string name="tab_payments">Payments</string>
+    <string name="tab_tenants">Tenants</string>
+    <string name="tab_settings">Settings</string>
+
+    <!-- Dashboard -->
+    <string name="app_name_dashboard">Rent Manager</string>
+    <string name="search">Search</string>
+    <string name="mock_date">MAY 2024</string>
+    <string name="good_morning">Good morning,</string>
+    <string name="mock_user_name">Sarah</string>
+    <string name="add">Add</string>
+    <string name="collected_rent">Collected Rent</string>
+    <string name="mock_collected_amount">Rs. 1,24,500</string>
+    <string name="mock_expected_amount">/ Rs. 4,50,000 Expected</string>
+    <string name="outstanding">Outstanding</string>
+    <string name="mock_outstanding_amount">Rs. 3,25,500</string>
+    <string name="properties_label">Properties</string>
+    <string name="tenants_label">Tenants</string>
+    <string name="quick_actions">Quick Actions</string>
+    <string name="add_tenant_action">Add Tenant</string>
+    <string name="add_property_action">Add Property</string>
+    <string name="record_pay_action">Record Pay</string>
+    <string name="expense_action">Expense</string>
+    <string name="see_all">See all</string>
+    <string name="see_all_action">See All</string>
+    <string name="occupied">Occupied</string>
+    <string name="available">Available</string>
+    <string name="recent_payments">Recent Payments</string>
+    <string name="recent_payments_title">Recent Payments</string>
+    <string name="properties_overview">Properties Overview</string>
+    <string name="today">Today</string>
+
+    <!-- Tenant -->
+    <string name="tenants_title">Tenants</string>
+    <string name="search_tenants">Search tenants...</string>
+    <string name="add_tenant">Add Tenant</string>
+    <string name="filter_all">All</string>
+    <string name="filter_active">Active</string>
+    <string name="filter_past">Past</string>
+    <string name="no_tenants_found">No tenants found</string>
+    <string name="no_tenants_found_subtitle">Try adjusting your search or filter settings.</string>
+    <string name="tenant_verified">Verified</string>
+    <string name="add_photo">Add Photo</string>
+    <string name="optional">Optional</string>
+    <string name="tenant_add_button">Save Tenant</string>
+    <string name="lease_details">Lease Details</string>
+    <string name="lease_term">Lease Term</string>
+    <string name="renewable">Renewable</string>
+    <string name="recent_transactions">Recent Transactions</string>
+    <string name="view_all_action">View All</string>
+
+    <!-- Property -->
+    <string name="properties_title">Properties</string>
+    <string name="total_properties_subtitle">%1$d total properties</string>
+    <string name="add_property">Add property</string>
+    <string name="search_properties_hint">Search properties by name or location...</string>
+    <string name="filter_by_location">Filter by Location</string>
+    <string name="filter_all_locations">All Locations</string>
+    <string name="units_label">%1$d Units</string>
+    <string name="pending_label">Pending</string>
+    <string name="welcome_property_empty_title">Welcome to Rent Manager Nepal 🙏</string>
+    <string name="welcome_property_empty_desc">Your daily landlord productivity center. Add your first house, flat, or room to start recording rent and managing tenants.</string>
+    <string name="add_first_property_btn">Add Your First Property</string>
+    <string name="delete_property_title">Delete Property?</string>
+    <string name="delete_property_desc">This will permanently delete this property and all associated data. This cannot be undone.</string>
+    <string name="delete_action">Delete</string>
+    <string name="cancel_action">Cancel</string>
+    <string name="property_details">Property Details</string>
+    <string name="edit_action">Edit</string>
+    <string name="monthly_income_label">Monthly Income</string>
+    <string name="occupancy_label">Occupancy</string>
+    <string name="property_overview">Property Overview</string>
+    <string name="property_type_label">Property Type</string>
+    <string name="total_units_label">Total Units</string>
+    <string name="added_on_label">Added On</string>
+    <string name="financial_summary">Financial Summary</string>
+    <string name="total_collected_label">Total Collected</string>
+    <string name="outstanding_dues_label">Outstanding Dues</string>
+    <string name="units_title">Units</string>
+    <string name="paid_label">Paid</string>
+    <string name="overdue_label">Overdue</string>
+    <string name="vacant_label">Vacant</string>
+    <string name="no_units_title">No units yet</string>
+    <string name="no_units_desc">Add tenants from the Tenants tab to populate units.</string>
+    
+    <!-- Settings -->
+    <string name="logout_title">Log Out?</string>
+    <string name="logout_desc">You will be returned to the login screen. Your local data remains safe.</string>
+    <string name="logout_action">Log Out</string>
+    <string name="delete_account_title">Delete Account?</string>
+    <string name="delete_account_desc">This permanently removes all your data. This action cannot be undone.</string>
+    <string name="delete_forever_action">Delete Forever</string>
+    <string name="settings_title">Settings</string>
+    <string name="account_section">Account</string>
+    <string name="guest">Guest</string>
+    <string name="not_signed_in">Not signed in</string>
+    <string name="subscription">Subscription</string>
+    <string name="premium">Premium</string>
+    <string name="free">Free</string>
+    <string name="notifications_section">Notifications</string>
+    <string name="push_notifications">Push Notifications</string>
+    <string name="email_alerts">Email Alerts</string>
+    <string name="security_section">Security</string>
+    <string name="change_password">Change Password</string>
+    <string name="biometrics">Biometrics</string>
+    <string name="face_id_touch_id">Face ID / Touch ID</string>
+    <string name="preferences_section">Preferences</string>
+    <string name="currency">Currency</string>
+    <string name="language">Language</string>
+    <string name="help_support_section">Help &amp; Support</string>
+    <string name="faq">FAQ</string>
+    <string name="contact_us">Contact Us</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    
+    <!-- Payment Methods -->
+    <string name="payment_method_cash">Cash</string>
+    <string name="payment_method_bank_transfer">Bank Transfer</string>
+    <string name="payment_method_esewa">eSewa</string>
+    <string name="payment_method_khalti">Khalti</string>
+    
+    <string name="tenant_name_label">Full Name</string>
+    <string name="tenant_phone_label">Phone Number</string>
+    <string name="tenant_email_label">Email Address</string>
+    <string name="tenant_address_label">Permanent Address</string>
+    <string name="tenant_occupation_label">Occupation</string>
+    <string name="tenant_room_label">Select Room/Unit</string>
+    <string name="tenant_start_date_label">Start Date</string>
+    <string name="tenant_end_date_label">End Date</string>
+    <string name="tenant_deposit_label">Security Deposit</string>
+    <string name="save_tenant">Save Tenant</string>
+    <string name="call_action">Call</string>
+    <string name="message_action">Message</string>
+    <string name="maintenance_action">Maintenance</string>
+    <string name="monthly_rent_label">Monthly Rent</string>
+    <string name="status_label">Status</string>
+    <string name="payment_action">Payment</string>
+    <string name="email_action">Email</string>
+    <string name="tenant_failed_load">Failed to load tenants</string>
 
     <!-- Auth -->
-    <string name="privacy_policy">PRIVACY POLICY</string>
+    <string name="login_title">Rent Manager Nepal</string>
+    <string name="login_subtitle">Premium property management for the modern Nepalese landlord.</string>
+    <string name="role_landlord">Landlord</string>
+    <string name="role_tenant">Tenant</string>
+    <string name="continue_with_google">Continue with Google</string>
+    <string name="google_g">G</string>
+    <string name="or_divider">OR</string>
+    <string name="email_address_label">Email Address</string>
+    <string name="email_placeholder">name@example.com</string>
+    <string name="password_label">Password</string>
+    <string name="password_placeholder">••••••••</string>
+    <string name="continue_with_email">Continue with Email</string>
+    <string name="sign_up_with_email">Sign Up with Email</string>
+    <string name="forgot_password_question">Forgot your password?</string>
+    <string name="dont_have_account">Don\'t have an account?</string>
+    <string name="already_have_account">Already have an account?</string>
+    <string name="create_account_action">Create Account</string>
+    <string name="sign_in_action">Sign In</string>
     <string name="terms_of_service">TERMS OF SERVICE</string>
     <string name="help_center">HELP CENTER</string>
 
@@ -27,17 +184,9 @@
     <string name="payment_remarks_placeholder">Reference ID or month...</string>
     <string name="payment_record_button">Record Payment</string>
     <string name="payment_total_due">TOTAL DUE: NPR %s</string>
-    <string name="payment_method_cash">Cash</string>
-    <string name="payment_method_bank">Bank</string>
-    <string name="payment_method_esewa">eSewa</string>
-    <string name="payment_method_khalti">Khalti</string>
     <string name="payment_info_banner">A digital receipt and confirmation SMS will be sent to the tenant immediately.</string>
 
     <!-- Property -->
     <string name="property_create_button">Create Property</string>
-
-    <!-- Tenant -->
-    <string name="tenant_failed_load">Failed to load tenants</string>
-    <string name="tenant_add_button">Add Tenant</string>
 
 </resources>

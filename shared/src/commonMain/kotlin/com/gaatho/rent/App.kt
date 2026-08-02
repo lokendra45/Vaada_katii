@@ -4,12 +4,15 @@ import androidx.compose.runtime.Composable
 import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.navigation.AppNavigation
 
+import com.gaatho.rent.core.environment.AppEnvironment
+
 /**
  * Root composable entry point for the entire application.
  *
  * Responsibilities:
- * 1. Apply the app-wide [RentManagerTheme]
- * 2. Delegate all navigation to [AppNavigation]
+ * 1. Apply the app-wide [AppEnvironment] to manage locale and theme overriding
+ * 2. Apply the app-wide [RentManagerTheme]
+ * 3. Delegate all navigation to [AppNavigation]
  *
  * [AppNavigation] owns the Navigation 3 back stack and routes to the
  * correct screen for each destination. It is completely decoupled from
@@ -17,7 +20,9 @@ import com.gaatho.rent.core.navigation.AppNavigation
  */
 @Composable
 fun App() {
-    RentManagerTheme {
-        AppNavigation()
+    AppEnvironment {
+        RentManagerTheme {
+            AppNavigation()
+        }
     }
 }

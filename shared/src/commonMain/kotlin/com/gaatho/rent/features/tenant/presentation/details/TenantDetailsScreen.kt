@@ -32,6 +32,9 @@ import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
 
 import com.gaatho.rent.core.designsystem.AppColors
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.*
 
 // ─── Entry point ─────────────────────────────────────────────────────────────
 
@@ -119,7 +122,7 @@ private fun TenantTopBar(onAction: (TenantDetailsAction) -> Unit) {
     TopAppBar(
         title = {
             Text(
-                text = "Rent Manager",
+                text = stringResource(Res.string.app_name_dashboard),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -137,7 +140,7 @@ private fun TenantTopBar(onAction: (TenantDetailsAction) -> Unit) {
             IconButton(onClick = {}) {
                 Icon(
                     Icons.Outlined.Search,
-                    contentDescription = "Search",
+                    contentDescription = stringResource(Res.string.search),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -214,7 +217,7 @@ private fun ProfileHeaderSection(
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
-                        text = "Verified",
+                        text = stringResource(Res.string.tenant_verified),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -231,19 +234,19 @@ private fun ProfileHeaderSection(
         ) {
             TenantQuickAction(
                 icon = Icons.Outlined.AddCard,
-                label = "Payment",
+                label = stringResource(Res.string.payment_action),
                 modifier = Modifier.weight(1f),
                 onClick = { onAction(TenantDetailsAction.OnPaymentClicked) }
             )
             TenantQuickAction(
                 icon = Icons.Outlined.Mail,
-                label = "Email",
+                label = stringResource(Res.string.email_action),
                 modifier = Modifier.weight(1f),
                 onClick = { onAction(TenantDetailsAction.OnEmailClicked) }
             )
             TenantQuickAction(
                 icon = Icons.Outlined.Call,
-                label = "Call",
+                label = stringResource(Res.string.call_action),
                 modifier = Modifier.weight(1f),
                 onClick = { onAction(TenantDetailsAction.OnCallClicked) }
             )
@@ -348,7 +351,7 @@ private fun TenantSecondaryAction(
 private fun LeaseDetailsSection(lease: TenantLeaseDisplayModel) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Lease Details",
+            text = stringResource(Res.string.lease_details),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 16.dp)
@@ -367,13 +370,13 @@ private fun LeaseDetailsSection(lease: TenantLeaseDisplayModel) {
             Column(modifier = Modifier.padding(20.dp)) {
                 Row(modifier = Modifier.fillMaxWidth()) {
                     LeaseCell(
-                        label = "Monthly Rent",
+                        label = stringResource(Res.string.monthly_rent_label),
                         value = lease.monthlyRent,
                         valueColor = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f)
                     )
                     LeaseCell(
-                        label = "Status",
+                        label = stringResource(Res.string.status_label),
                         value = lease.status,
                         valueColor = if (lease.isActive) MaterialTheme.colorScheme.primary
                                      else MaterialTheme.colorScheme.error,
@@ -385,13 +388,13 @@ private fun LeaseDetailsSection(lease: TenantLeaseDisplayModel) {
 
                 Row(modifier = Modifier.fillMaxWidth()) {
                     LeaseCell(
-                        label = "Start Date",
+                        label = stringResource(Res.string.tenant_start_date_label),
                         value = lease.startDate,
                         valueColor = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f)
                     )
                     LeaseCell(
-                        label = "End Date",
+                        label = stringResource(Res.string.tenant_end_date_label),
                         value = lease.endDate,
                         valueColor = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f)
@@ -403,7 +406,7 @@ private fun LeaseDetailsSection(lease: TenantLeaseDisplayModel) {
                 Spacer(Modifier.height(16.dp))
 
                 Text(
-                    text = "Lease Term".uppercase(),
+                    text = stringResource(Res.string.lease_term).uppercase(),
                     style = MaterialTheme.typography.labelSmall.copy(
                         fontWeight = FontWeight.SemiBold,
                         letterSpacing = 0.5.sp
@@ -426,7 +429,7 @@ private fun LeaseDetailsSection(lease: TenantLeaseDisplayModel) {
                             color = MaterialTheme.colorScheme.surfaceContainerHigh
                         ) {
                             Text(
-                                text = "Renewable",
+                                text = stringResource(Res.string.renewable),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -478,12 +481,12 @@ private fun TransactionsSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Recent Transactions",
+                text = stringResource(Res.string.recent_transactions),
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "View All",
+                text = stringResource(Res.string.view_all_action),
                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier

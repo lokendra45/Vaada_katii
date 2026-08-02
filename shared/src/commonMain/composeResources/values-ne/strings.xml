@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common -->
+    <string name="app_name">कोठा</string>
+    <string name="cancel">रद्द गर्नुहोस्</string>
+    <string name="retry">पुनः प्रयास गर्नुहोस्</string>
+    <string name="continue_action">जारी राख्नुहोस्</string>
+    <string name="tab_home">गृह</string>
+    <string name="tab_properties">सम्पत्ति</string>
+    <string name="tab_payments">भुक्तानी</string>
+    <string name="tab_tenants">भाडावालहरू</string>
+    <string name="tab_settings">सेटिङ्स</string>
+
+    <!-- Dashboard -->
+    <string name="app_name_dashboard">रेन्ट म्यानेजर</string>
+    <string name="search">खोज्नुहोस्</string>
+    <string name="mock_date">मे २०२४</string>
+    <string name="good_morning">शुभ प्रभात,</string>
+    <string name="mock_user_name">सारा</string>
+    <string name="add">थप्नुहोस्</string>
+    <string name="collected_rent">उठाइएको भाडा</string>
+    <string name="mock_collected_amount">रु. १,२४,५००</string>
+    <string name="mock_expected_amount">/ रु. ४,५०,००० अनुमानित</string>
+    <string name="outstanding">बाँकी</string>
+    <string name="mock_outstanding_amount">रु. ३,२५,५००</string>
+    <string name="properties_label">सम्पत्तिहरू</string>
+    <string name="tenants_label">भाडावालहरू</string>
+    <string name="quick_actions">द्रुत कार्यहरू</string>
+    <string name="add_tenant_action">भाडावाल थप्नुहोस्</string>
+    <string name="add_property_action">सम्पत्ति थप्नुहोस्</string>
+    <string name="record_pay_action">भुक्तानी रेकर्ड</string>
+    <string name="expense_action">खर्च</string>
+    <string name="see_all">सबै हेर्नुहोस्</string>
+    <string name="see_all_action">सबै हेर्नुहोस्</string>
+    <string name="occupied">भरिएको</string>
+    <string name="available">खाली</string>
+    <string name="recent_payments">भर्खरका भुक्तानीहरू</string>
+    <string name="recent_payments_title">भर्खरका भुक्तानीहरू</string>
+    <string name="properties_overview">सम्पत्ति अवलोकन</string>
+    <string name="today">आज</string>
+
+    <!-- Tenant -->
+    <string name="tenants_title">भाडावालहरू</string>
+    <string name="search_tenants">भाडावाल खोज्नुहोस्...</string>
+    <string name="add_tenant">भाडावाल थप्नुहोस्</string>
+    <string name="filter_all">सबै</string>
+    <string name="filter_active">सक्रिय</string>
+    <string name="filter_past">पहिलेको</string>
+    <string name="no_tenants_found">कुनै भाडावाल भेटिएन</string>
+    <string name="no_tenants_found_subtitle">तपाईंको खोज वा फिल्टर सेटिङहरू समायोजन गर्ने प्रयास गर्नुहोस्।</string>
+    <string name="tenant_verified">प्रमाणित</string>
+    <string name="add_photo">फोटो थप्नुहोस्</string>
+    <string name="optional">ऐच्छिक</string>
+    <string name="tenant_add_button">भाडावाल सेभ गर्नुहोस्</string>
+    <string name="lease_details">लीज विवरण</string>
+    <string name="lease_term">लीज अवधि</string>
+    <string name="renewable">नवीकरण योग्य</string>
+    <string name="recent_transactions">भर्खरका कारोबारहरू</string>
+    <string name="view_all_action">सबै हेर्नुहोस्</string>
+
+    <!-- Property -->
+    <string name="properties_title">सम्पत्तिहरू</string>
+    <string name="total_properties_subtitle">जम्मा %1$d सम्पत्तिहरू</string>
+    <string name="add_property">सम्पत्ति थप्नुहोस्</string>
+    <string name="search_properties_hint">नाम वा स्थानद्वारा सम्पत्ति खोज्नुहोस्...</string>
+    <string name="filter_by_location">स्थानद्वारा फिल्टर गर्नुहोस्</string>
+    <string name="filter_all_locations">सबै स्थानहरू</string>
+    <string name="units_label">%1$d एकाइहरू</string>
+    <string name="pending_label">बाँकी</string>
+    <string name="welcome_property_empty_title">रेन्ट म्यानेजर नेपालमा स्वागत छ 🙏</string>
+    <string name="welcome_property_empty_desc">तपाईंको दैनिक घरधनी उत्पादकता केन्द्र। भाडा रेकर्ड गर्न र भाडावालहरू व्यवस्थापन गर्न सुरु गर्न तपाईंको पहिलो घर, फ्ल्याट वा कोठा थप्नुहोस्।</string>
+    <string name="add_first_property_btn">तपाईंको पहिलो सम्पत्ति थप्नुहोस्</string>
+    <string name="delete_property_title">सम्पत्ति मेटाउनुहोस्?</string>
+    <string name="delete_property_desc">यसले स्थायी रूपमा यो सम्पत्ति र सबै सम्बन्धित डाटा मेटाउनेछ। यसलाई पूर्ववत गर्न सकिँदैन।</string>
+    <string name="delete_action">मेटाउनुहोस्</string>
+    <string name="cancel_action">रद्द गर्नुहोस्</string>
+    <string name="property_details">सम्पत्ति विवरण</string>
+    <string name="edit_action">सम्पादन गर्नुहोस्</string>
+    <string name="monthly_income_label">मासिक आय</string>
+    <string name="occupancy_label">ओक्युपेन्सी</string>
+    <string name="property_overview">सम्पत्ति अवलोकन</string>
+    <string name="property_type_label">सम्पत्ति प्रकार</string>
+    <string name="total_units_label">कुल एकाइहरू</string>
+    <string name="added_on_label">थपिएको मिति</string>
+    <string name="financial_summary">वित्तीय सारांश</string>
+    <string name="total_collected_label">कुल सङ्कलन</string>
+    <string name="outstanding_dues_label">बाँकी बक्यौता</string>
+    <string name="units_title">एकाइहरू</string>
+    <string name="paid_label">भुक्तान गरिएको</string>
+    <string name="overdue_label">म्याद नाघेको</string>
+    <string name="vacant_label">खाली</string>
+    <string name="no_units_title">अहिलेसम्म कुनै एकाइहरू छैनन्</string>
+    <string name="no_units_desc">एकाइहरू भर्नका लागि भाडावालहरू ट्याबबाट भाडावालहरू थप्नुहोस्।</string>
+    
+    <!-- Settings -->
+    <string name="logout_title">लगआउट गर्नुहुन्छ?</string>
+    <string name="logout_desc">तपाईंलाई लगइन स्क्रिनमा फर्काइनेछ। तपाईंको स्थानीय डाटा सुरक्षित रहनेछ।</string>
+    <string name="logout_action">लगआउट गर्नुहोस्</string>
+    <string name="delete_account_title">खाता मेटाउनुहुन्छ?</string>
+    <string name="delete_account_desc">यसले तपाईंको सबै डाटा स्थायी रूपमा हटाउँछ। यो कार्य पूर्ववत गर्न सकिँदैन।</string>
+    <string name="delete_forever_action">सधैंका लागि मेटाउनुहोस्</string>
+    <string name="settings_title">सेटिङहरू</string>
+    <string name="account_section">खाता</string>
+    <string name="guest">अतिथि</string>
+    <string name="not_signed_in">साइन इन गरिएको छैन</string>
+    <string name="subscription">सदस्यता</string>
+    <string name="premium">प्रिमियम</string>
+    <string name="free">नि:शुल्क</string>
+    <string name="notifications_section">सूचनाहरू</string>
+    <string name="push_notifications">पुश सूचनाहरू</string>
+    <string name="email_alerts">इमेल अलर्टहरू</string>
+    <string name="security_section">सुरक्षा</string>
+    <string name="change_password">पासवर्ड परिवर्तन गर्नुहोस्</string>
+    <string name="biometrics">बायोमेट्रिक्स</string>
+    <string name="face_id_touch_id">फेस आईडी / टच आईडी</string>
+    <string name="preferences_section">प्राथमिकताहरू</string>
+    <string name="currency">मुद्रा</string>
+    <string name="language">भाषा</string>
+    <string name="help_support_section">सहयोग र समर्थन</string>
+    <string name="faq">प्राय: सोधिने प्रश्नहरू</string>
+    <string name="contact_us">हामीलाई सम्पर्क गर्नुहोस्</string>
+    <string name="privacy_policy">गोपनीयता नीति</string>
+
+    <!-- Payment Methods -->
+    <string name="payment_method_cash">नगद</string>
+    <string name="payment_method_bank_transfer">बैंक ट्रान्सफर</string>
+    <string name="payment_method_esewa">eSewa</string>
+    <string name="payment_method_khalti">Khalti</string>
+
+    <string name="tenant_name_label">पूरा नाम</string>
+    <string name="tenant_phone_label">फोन नम्बर</string>
+    <string name="tenant_email_label">इमेल ठेगाना</string>
+    <string name="tenant_address_label">स्थायी ठेगाना</string>
+    <string name="tenant_occupation_label">पेशा</string>
+    <string name="tenant_room_label">कोठा/एकाइ चयन गर्नुहोस्</string>
+    <string name="tenant_start_date_label">सुरु मिति</string>
+    <string name="tenant_end_date_label">अन्त्य मिति</string>
+    <string name="tenant_deposit_label">धरौटी रकम</string>
+    <string name="save_tenant">भाडावाल सेभ गर्नुहोस्</string>
+    <string name="call_action">कल गर्नुहोस्</string>
+    <string name="message_action">म्यासेज पठाउनुहोस्</string>
+    <string name="maintenance_action">मर्मतसम्भार</string>
+    <string name="monthly_rent_label">मासिक भाडा</string>
+    <string name="status_label">अवस्था</string>
+    <string name="payment_action">भुक्तानी</string>
+    <string name="email_action">इमेल</string>
+    <string name="tenant_failed_load">भाडावाल लोड गर्न असफल</string>
+
+    <!-- Auth -->
+    <string name="login_title">Rent Manager Nepal</string>
+    <string name="login_subtitle">आधुनिक नेपाली घरबेटीको लागि प्रिमियम घरभाडा व्यवस्थापन।</string>
+    <string name="role_landlord">घरबेटी</string>
+    <string name="role_tenant">भाडावाल</string>
+    <string name="continue_with_google">गुगलबाट अगाडि बढ्नुहोस्</string>
+    <string name="google_g">G</string>
+    <string name="or_divider">वा</string>
+    <string name="email_address_label">इमेल ठेगाना</string>
+    <string name="email_placeholder">name@example.com</string>
+    <string name="password_label">पासवर्ड</string>
+    <string name="password_placeholder">••••••••</string>
+    <string name="continue_with_email">इमेलबाट अगाडि बढ्नुहोस्</string>
+    <string name="sign_up_with_email">इमेलबाट साइन अप गर्नुहोस्</string>
+    <string name="forgot_password_question">पासवर्ड बिर्सनुभयो?</string>
+    <string name="dont_have_account">खाता छैन?</string>
+    <string name="already_have_account">पहिले नै खाता छ?</string>
+    <string name="create_account_action">खाता खोल्नुहोस्</string>
+    <string name="sign_in_action">साइन इन</string>
+    <string name="terms_of_service">सेवाका सर्तहरू</string>
+    <string name="help_center">मद्दत केन्द्र</string>
+
+    <!-- Payment -->
+    <string name="payment_add_title">भुक्तानी थप्नुहोस्</string>
+    <string name="payment_currency">NPR </string>
+    <string name="payment_amount_placeholder">०</string>
+    <string name="payment_details">भुक्तानी विवरण</string>
+    <string name="payment_tenant_label">भाडावाला र एकाइ</string>
+    <string name="payment_tenant_placeholder">भाडावाला चयन गर्नुहोस्</string>
+    <string name="payment_property_label">सम्पत्ति</string>
+    <string name="payment_property_placeholder">सम्पत्ति चयन गर्नुहोस्</string>
+    <string name="payment_date_label">भुक्तानी मिति</string>
+    <string name="payment_date_placeholder">DD-MMM-YYYY</string>
+    <string name="payment_method">भुक्तानी विधि</string>
+    <string name="payment_remarks_label">कैफियत (वैकल्पिक)</string>
+    <string name="payment_remarks_placeholder">सन्दर्भ आइडी वा महिना...</string>
+    <string name="payment_record_button">भुक्तानी रेकर्ड गर्नुहोस्</string>
+    <string name="payment_total_due">कुल बाँकी: NPR %s</string>
+    <string name="payment_info_banner">डिजिटल रसिद र पुष्टिकरण एसएमएस तुरुन्तै भाडावालालाई पठाइनेछ।</string>
+
+    <!-- Property -->
+    <string name="property_create_button">सम्पत्ति सिर्जना गर्नुहोस्</string>
+
+</resources>

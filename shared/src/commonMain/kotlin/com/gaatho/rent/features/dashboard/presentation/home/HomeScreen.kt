@@ -34,6 +34,9 @@ import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.Radius
 import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.designsystem.Spacing
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.*
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Root Screen
@@ -103,7 +106,7 @@ private fun HomeDashboardTopBar() {
                 )
             }
             Text(
-                text = "Rent Manager",
+                text = stringResource(Res.string.app_name_dashboard),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -116,7 +119,7 @@ private fun HomeDashboardTopBar() {
         ) {
             Icon(
                 imageVector = Icons.Default.Search,
-                contentDescription = "Search",
+                contentDescription = stringResource(Res.string.search),
                 modifier = Modifier.size(24.dp),
                 tint = MaterialTheme.colorScheme.onBackground
             )
@@ -137,17 +140,17 @@ private fun WelcomeSection() {
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
-                text = "MAY 2024",
+                text = stringResource(Res.string.mock_date),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "Good morning,",
+                text = stringResource(Res.string.good_morning),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onBackground
             )
             Text(
-                text = "Sarah",
+                text = stringResource(Res.string.mock_user_name),
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -162,7 +165,7 @@ private fun WelcomeSection() {
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
-                contentDescription = "Add",
+                contentDescription = stringResource(Res.string.add),
                 tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(24.dp)
             )
@@ -188,7 +191,7 @@ private fun MonthlyOverviewCard() {
         ) {
             // Label
             Text(
-                text = "Collected Rent",
+                text = stringResource(Res.string.collected_rent),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -199,12 +202,12 @@ private fun MonthlyOverviewCard() {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Rs. 1,24,500",
+                    text = stringResource(Res.string.mock_collected_amount),
                     style = MaterialTheme.typography.headlineLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "/ Rs. 4,50,000 Expected",
+                    text = stringResource(Res.string.mock_expected_amount),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 3.dp)
@@ -228,9 +231,9 @@ private fun MonthlyOverviewCard() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                OverviewStatItem(label = "Outstanding", value = "Rs. 3,25,500")
-                OverviewStatItem(label = "Properties", value = "24")
-                OverviewStatItem(label = "Tenants", value = "23")
+                OverviewStatItem(label = stringResource(Res.string.outstanding), value = stringResource(Res.string.mock_outstanding_amount))
+                OverviewStatItem(label = stringResource(Res.string.properties_label), value = "24")
+                OverviewStatItem(label = stringResource(Res.string.tenants_label), value = "23")
             }
         }
     }
@@ -263,7 +266,7 @@ private fun OverviewStatItem(label: String, value: String) {
 private fun QuickActionsSection() {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.ItemGap)) {
         Text(
-            text = "Quick Actions",
+            text = stringResource(Res.string.quick_actions),
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onBackground
         )
@@ -272,19 +275,19 @@ private fun QuickActionsSection() {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             QuickActionItem(
-                label = "Add Tenant",
+                label = stringResource(Res.string.add_tenant_action),
                 icon = Icons.Outlined.PersonAdd
             )
             QuickActionItem(
-                label = "Add Property",
+                label = stringResource(Res.string.add_property_action),
                 icon = Icons.Outlined.AddHome
             )
             QuickActionItem(
-                label = "Record Pay",
+                label = stringResource(Res.string.record_pay_action),
                 icon = Icons.Outlined.Payments
             )
             QuickActionItem(
-                label = "Expense",
+                label = stringResource(Res.string.expense_action),
                 icon = Icons.Outlined.Receipt
             )
         }
@@ -339,7 +342,7 @@ private fun PropertiesOverviewSection(onSeeAll: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Properties Overview",
+                text = stringResource(Res.string.properties_overview),
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -348,7 +351,7 @@ private fun PropertiesOverviewSection(onSeeAll: () -> Unit) {
                 contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp)
             ) {
                 Text(
-                    text = "See All",
+                    text = stringResource(Res.string.see_all_action),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -366,13 +369,13 @@ private fun PropertiesOverviewSection(onSeeAll: () -> Unit) {
             Column {
                 PropertyOverviewRow(
                     name = "Downtown Lofts",
-                    detail = "100% Occupied • Rs. 25k/mo",
+                    detail = "100% ${stringResource(Res.string.occupied)} • Rs. 25k/mo",
                     icon = Icons.Outlined.Domain
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 PropertyOverviewRow(
                     name = "Maple Estates",
-                    detail = "85% Occupied • Rs. 32k/mo",
+                    detail = "85% ${stringResource(Res.string.occupied)} • Rs. 32k/mo",
                     icon = Icons.Outlined.Home
                 )
             }
@@ -447,7 +450,7 @@ private fun RecentPaymentsSection() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Recent Payments",
+                text = stringResource(Res.string.recent_payments_title),
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -456,7 +459,7 @@ private fun RecentPaymentsSection() {
                 contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp)
             ) {
                 Text(
-                    text = "See All",
+                    text = stringResource(Res.string.see_all_action),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )

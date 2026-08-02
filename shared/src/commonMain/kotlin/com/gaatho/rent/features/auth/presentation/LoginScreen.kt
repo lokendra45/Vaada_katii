@@ -116,7 +116,7 @@ fun LoginContent(
 
                 // Title
                 Text(
-                    text = "Rent Manager Nepal",
+                    text = stringResource(Res.string.login_title),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -125,7 +125,7 @@ fun LoginContent(
 
                 // Subtitle
                 Text(
-                    text = "Premium property management for the modern Nepalese landlord.",
+                    text = stringResource(Res.string.login_subtitle),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -136,7 +136,7 @@ fun LoginContent(
 
                 // Role Segmented Control (Always visible in the design)
                 RentManagerSegmentedControl(
-                    items = listOf("Landlord", "Tenant"),
+                    items = listOf(stringResource(Res.string.role_landlord), stringResource(Res.string.role_tenant)),
                     selectedIndex = if (state.selectedRole == UserRole.LANDLORD) 0 else 1,
                     onItemSelected = { index ->
                         val role = if (index == 0) UserRole.LANDLORD else UserRole.TENANT
@@ -161,11 +161,11 @@ fun LoginContent(
                     ) {
                         // Google Button
                         RentManagerSocialButton(
-                            text = "Continue with Google",
+                            text = stringResource(Res.string.continue_with_google),
                             onClick = { onAction(AuthAction.OnGoogleAuthClicked) },
                             icon = {
                                 Text(
-                                    text = "G",
+                                    text = stringResource(Res.string.google_g),
                                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black),
                                     color = androidx.compose.ui.graphics.Color(0xFF4285F4), // Keep Google logo colored
                                     modifier = Modifier.padding(end = 12.dp)
@@ -179,7 +179,7 @@ fun LoginContent(
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                             HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
                             Text(
-                                text = "OR",
+                                text = stringResource(Res.string.or_divider),
                                 modifier = Modifier.padding(horizontal = 16.dp),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -193,7 +193,7 @@ fun LoginContent(
                         // Email Field
                         Column(modifier = Modifier.fillMaxWidth()) {
                             Text(
-                                text = "Email Address",
+                                text = stringResource(Res.string.email_address_label),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontWeight = FontWeight.Bold,
@@ -202,7 +202,7 @@ fun LoginContent(
                             RentManagerTextField(
                                 value = state.emailInput,
                                 onValueChange = { onAction(AuthAction.OnEmailChanged(it)) },
-                                placeholder = "name@example.com",
+                                placeholder = stringResource(Res.string.email_placeholder),
                                 enabled = state.authUiState !is UiState.Loading
                             )
                         }
@@ -211,7 +211,7 @@ fun LoginContent(
                         Spacer(modifier = Modifier.height(16.dp))
                         Column(modifier = Modifier.fillMaxWidth()) {
                             Text(
-                                text = "Password",
+                                text = stringResource(Res.string.password_label),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontWeight = FontWeight.Bold,
@@ -220,7 +220,7 @@ fun LoginContent(
                             RentManagerTextField(
                                 value = state.passwordInput,
                                 onValueChange = { onAction(AuthAction.OnPasswordChanged(it)) },
-                                placeholder = "••••••••",
+                                placeholder = stringResource(Res.string.password_placeholder),
                                 visualTransformation = PasswordVisualTransformation(),
                                 enabled = state.authUiState !is UiState.Loading
                             )
@@ -230,7 +230,7 @@ fun LoginContent(
 
                         // Continue with Email Button
                         RentManagerPrimaryButton(
-                            text = if (state.isLoginMode) "Continue with Email" else "Sign Up with Email",
+                            text = if (state.isLoginMode) stringResource(Res.string.continue_with_email) else stringResource(Res.string.sign_up_with_email),
                             onClick = { onAction(AuthAction.OnSubmitEmailAuthClicked) },
                             enabled = state.isSubmitEnabled,
                             isLoading = state.authUiState is UiState.Loading,
@@ -243,7 +243,7 @@ fun LoginContent(
                         if (state.isLoginMode) {
                             TextButton(onClick = { /* TODO: Forgot Password */ }) {
                                 Text(
-                                    text = "Forgot your password?",
+                                    text = stringResource(Res.string.forgot_password_question),
                                     color = MaterialTheme.colorScheme.primary,
                                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
                                 )
@@ -261,13 +261,13 @@ fun LoginContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (state.isLoginMode) "Don't have an account?" else "Already have an account?",
+                        text = if (state.isLoginMode) stringResource(Res.string.dont_have_account) else stringResource(Res.string.already_have_account),
                         color = MaterialTheme.colorScheme.onBackground,
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (state.isLoginMode) "Create Account" else "Sign In",
+                        text = if (state.isLoginMode) stringResource(Res.string.create_account_action) else stringResource(Res.string.sign_in_action),
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier.clickable { onAction(AuthAction.OnToggleAuthMode) }.padding(4.dp)

@@ -35,6 +35,10 @@ import org.koin.core.parameter.parametersOf
 import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
 
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.*
+
 // ─── Entry point ──────────────────────────────────────────────────────────────
 
 @Composable
@@ -74,10 +78,10 @@ private fun PropertyDetailsContent(
             variant     = AppDialog.Variant.Destructive,
             layout      = AppDialog.Layout.Center,
             icon        = Icons.Default.Delete,
-            title       = "Delete Property?",
-            body        = "This will permanently delete this property and all associated data. This cannot be undone.",
-            confirmText = "Delete",
-            dismissText = "Cancel",
+            title       = stringResource(Res.string.delete_property_title),
+            body        = stringResource(Res.string.delete_property_desc),
+            confirmText = stringResource(Res.string.delete_action),
+            dismissText = stringResource(Res.string.cancel_action),
             onConfirm   = { onAction(PropertyDetailsAction.OnDeleteConfirmed) },
             onDismiss   = { onAction(PropertyDetailsAction.OnDeleteDismissed) },
         )
@@ -88,7 +92,7 @@ private fun PropertyDetailsContent(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Property Details",
+                        text = stringResource(Res.string.property_details),
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.SemiBold
                         )
@@ -107,7 +111,7 @@ private fun PropertyDetailsContent(
                         onClick = { onAction(PropertyDetailsAction.OnEditClicked) }
                     ) {
                         Text(
-                            text = "Edit",
+                            text = stringResource(Res.string.edit_action),
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Medium,
                             fontSize = 15.sp
@@ -233,7 +237,7 @@ private fun KeyMetricsSection(
     ) {
         MetricCard(
             modifier = Modifier.weight(1f),
-            label = "Monthly Income"
+            label = stringResource(Res.string.monthly_income_label)
         ) {
             Text(
                 text = "NPR",
@@ -252,7 +256,7 @@ private fun KeyMetricsSection(
         }
         MetricCard(
             modifier = Modifier.weight(1f),
-            label = "Occupancy"
+            label = stringResource(Res.string.occupancy_label)
         ) {
             Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
@@ -312,13 +316,13 @@ private fun MetricCard(
 
 @Composable
 private fun PropertyOverviewCard(property: Property, totalUnits: Int) {
-    SectionCard(title = "Property Overview") {
-        OverviewRow(label = "Property Type", value = property.propertyType.replace("_", " ").titleCase())
+    SectionCard(title = stringResource(Res.string.property_overview)) {
+        OverviewRow(label = stringResource(Res.string.property_type_label), value = property.propertyType.replace("_", " ").titleCase())
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-        OverviewRow(label = "Total Units", value = if (totalUnits > 0) totalUnits.toString() else "—")
+        OverviewRow(label = stringResource(Res.string.total_units_label), value = if (totalUnits > 0) totalUnits.toString() else "—")
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
         OverviewRow(
-            label = "Added On",
+            label = stringResource(Res.string.added_on_label),
             value = property.createdAt ?: "—"
         )
     }
@@ -383,7 +387,7 @@ private fun FinancialSummaryCard(summary: FinancialSummary) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Financial Summary",
+                    text = stringResource(Res.string.financial_summary),
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -424,7 +428,7 @@ private fun FinancialSummaryCard(summary: FinancialSummary) {
                         )
                     }
                     Text(
-                        text = "Total Collected",
+                        text = stringResource(Res.string.total_collected_label),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -452,7 +456,7 @@ private fun FinancialSummaryCard(summary: FinancialSummary) {
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
-                        text = "Outstanding Dues",
+                        text = stringResource(Res.string.outstanding_dues_label),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(start = 2.dp)
@@ -485,13 +489,13 @@ private fun UnitsSection(
             verticalAlignment = Alignment.Bottom
         ) {
             Text(
-                text = "Units",
+                text = stringResource(Res.string.units_title),
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )
             TextButton(onClick = onViewAll) {
                 Text(
-                    text = "View All",
+                    text = stringResource(Res.string.view_all_action),
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Medium,
                     fontSize = 14.sp
@@ -585,7 +589,7 @@ private fun UnitRow(unit: UnitDisplayModel, onClick: () -> Unit) {
                 )
             } else {
                 Text(
-                    text = "Vacant",
+                    text = stringResource(Res.string.vacant_label),
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = FontWeight.SemiBold,
                         fontStyle = FontStyle.Italic
@@ -617,15 +621,15 @@ private fun UnitRow(unit: UnitDisplayModel, onClick: () -> Unit) {
 private fun UnitStatusChip(status: UnitPaymentStatus) {
     val (label, bgColor, textColor, borderColor) = when (status) {
         UnitPaymentStatus.PAID -> ChipStyle(
-            "Paid",
+            stringResource(Res.string.paid_label),
             Color(0xFFF0FFF4), Color(0xFF15803D), Color(0xFFDCFCE7)
         )
         UnitPaymentStatus.OVERDUE -> ChipStyle(
-            "Overdue",
+            stringResource(Res.string.overdue_label),
             Color(0xFFFFF5F5), Color(0xFFDC2626), Color(0xFFFEE2E2)
         )
         UnitPaymentStatus.VACANT -> ChipStyle(
-            "Vacant",
+            stringResource(Res.string.vacant_label),
             Color(0xFFF3F4F6), Color(0xFF6B7280), Color(0xFFE5E7EB)
         )
     }
@@ -677,12 +681,12 @@ private fun EmptyUnitsCard() {
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "No units yet",
+                text = stringResource(Res.string.no_units_title),
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "Add tenants from the Tenants tab to populate units.",
+                text = stringResource(Res.string.no_units_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

@@ -66,6 +66,9 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.compose.materialIconsExtended)
 
+            implementation(libs.androidx.datastore)
+            implementation(libs.androidx.datastore.preferences)
+
             // Koin
             implementation(libs.koin.core)
             implementation(libs.koin.compose)

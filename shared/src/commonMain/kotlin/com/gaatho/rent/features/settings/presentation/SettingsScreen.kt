@@ -3,6 +3,7 @@ package com.gaatho.rent.features.settings.presentation
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,13 +37,22 @@ import org.koin.compose.koinInject
 import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
 
-// ─── Entry point ──────────────────────────────────────────────────────────────
+import org.koin.compose.viewmodel.koinViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gaatho.rent.core.environment.LanguageViewModel
+
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.*
 
 @Composable
 fun SettingsScreen(
     onNavigateToLogin: () -> Unit = {},
     viewModel: SettingsViewModel = koinInject()
 ) {
+    val languageViewModel = koinViewModel<LanguageViewModel>()
+    val currentLanguageCode by languageViewModel.languageCode.collectAsStateWithLifecycle()
+    
     val state by viewModel.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -58,9 +68,9 @@ fun SettingsScreen(
     if (state.showLogoutConfirm) {
         AppConfirmDialog(
             icon        = Icons.AutoMirrored.Outlined.Logout,
-            title       = "Log Out?",
-            body        = "You will be returned to the login screen. Your local data remains safe.",
-            confirmText = "Log Out",
+            title       = stringResource(Res.string.logout_title),
+            body        = stringResource(Res.string.logout_desc),
+            confirmText = stringResource(Res.string.logout_action),
             onConfirm   = { viewModel.onAction(SettingsAction.OnSignOutConfirmed) },
             onDismiss   = { viewModel.onAction(SettingsAction.OnSignOutDismissed) },
             variant     = AppConfirmDialog.Variant.Danger
@@ -71,9 +81,9 @@ fun SettingsScreen(
     if (state.showDeleteConfirm) {
         AppConfirmDialog(
             icon        = Icons.Outlined.DeleteForever,
-            title       = "Delete Account?",
-            body        = "This permanently removes all your data. This action cannot be undone.",
-            confirmText = "Delete Forever",
+            title       = stringResource(Res.string.delete_account_title),
+            body        = stringResource(Res.string.delete_account_desc),
+            confirmText = stringResource(Res.string.delete_forever_action),
             onConfirm   = { viewModel.onAction(SettingsAction.OnDeleteAccountConfirmed) },
             onDismiss   = { viewModel.onAction(SettingsAction.OnDeleteAccountDismissed) },
             variant     = AppConfirmDialog.Variant.Danger
@@ -87,7 +97,7 @@ fun SettingsScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Settings",
+                        text = stringResource(Res.string.settings_title),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.SemiBold
                         ),
@@ -113,7 +123,9 @@ fun SettingsScreen(
     ) { padding ->
         SettingsContent(
             state = state,
+            currentLanguageCode = currentLanguageCode,
             onAction = viewModel::onAction,
+            onLanguageChanged = languageViewModel::switchLanguage,
             modifier = Modifier.padding(padding)
         )
     }
@@ -124,7 +136,9 @@ fun SettingsScreen(
 @Composable
 private fun SettingsContent(
     state: SettingsState,
+    currentLanguageCode: String?,
     onAction: (SettingsAction) -> Unit,
+    onLanguageChanged: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -136,7 +150,7 @@ private fun SettingsContent(
     ) {
 
         // ── 1. Account ────────────────────────────────────────────────────────
-        SectionLabel("Account")
+        SectionLabel(stringResource(Res.string.account_section))
         SettingsCard {
             // Profile row
             SettingsNavRow(
@@ -147,8 +161,8 @@ private fun SettingsContent(
                         modifier = Modifier.size(48.dp)
                     )
                 },
-                title = state.userName.ifEmpty { "Guest" },
-                subtitle = state.userEmail.ifEmpty { "Not signed in" },
+                title = state.userName.ifEmpty { stringResource(Res.string.guest) },
+                subtitle = state.userEmail.ifEmpty { stringResource(Res.string.not_signed_in) },
                 showDivider = true,
                 onClick = {}
             )
@@ -157,14 +171,14 @@ private fun SettingsContent(
                 leading = {
                     IconCircle(icon = Icons.Outlined.Stars, tint = MaterialTheme.colorScheme.primary)
                 },
-                title = "Subscription",
+                title = stringResource(Res.string.subscription),
                 trailing = {
                     Surface(
                         shape = RoundedCornerShape(6.dp),
                         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
                     ) {
                         Text(
-                            text = if (state.isPremium) "Premium" else "Free",
+                            text = if (state.isPremium) stringResource(Res.string.premium) else stringResource(Res.string.free),
                             style = MaterialTheme.typography.bodySmall.copy(
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.primary
@@ -178,18 +192,18 @@ private fun SettingsContent(
         }
 
         // ── 2. Notifications ──────────────────────────────────────────────────
-        SectionLabel("Notifications")
+        SectionLabel(stringResource(Res.string.notifications_section))
         SettingsCard {
             SettingsToggleRow(
                 icon = Icons.Outlined.Notifications,
-                title = "Push Notifications",
+                title = stringResource(Res.string.push_notifications),
                 checked = state.notificationsEnabled,
                 showDivider = true,
                 onCheckedChange = { onAction(SettingsAction.OnNotificationsToggled(it)) }
             )
             SettingsToggleRow(
                 icon = Icons.Outlined.Email,
-                title = "Email Alerts",
+                title = stringResource(Res.string.email_alerts),
                 checked = state.emailAlertsEnabled,
                 showDivider = false,
                 onCheckedChange = { onAction(SettingsAction.OnEmailAlertsToggled(it)) }
@@ -197,18 +211,18 @@ private fun SettingsContent(
         }
 
         // ── 3. Security ───────────────────────────────────────────────────────
-        SectionLabel("Security")
+        SectionLabel(stringResource(Res.string.security_section))
         SettingsCard {
             SettingsNavRow(
                 leading = { IconCircle(icon = Icons.Outlined.Lock) },
-                title = "Change Password",
+                title = stringResource(Res.string.change_password),
                 showDivider = true,
                 onClick = {}
             )
             SettingsToggleRow(
                 icon = Icons.Outlined.Fingerprint,
-                title = "Biometrics",
-                subtitle = "Face ID / Touch ID",
+                title = stringResource(Res.string.biometrics),
+                subtitle = stringResource(Res.string.face_id_touch_id),
                 checked = state.biometricsEnabled,
                 showDivider = false,
                 onCheckedChange = { onAction(SettingsAction.OnBiometricsToggled(it)) }
@@ -216,42 +230,66 @@ private fun SettingsContent(
         }
 
         // ── 4. Preferences ────────────────────────────────────────────────────
-        SectionLabel("Preferences")
+        SectionLabel(stringResource(Res.string.preferences_section))
         SettingsCard {
             SettingsNavRow(
                 leading = { IconCircle(icon = Icons.Outlined.CurrencyRupee) },
-                title = "Currency",
+                title = stringResource(Res.string.currency),
                 trailingLabel = "NPR",
                 showDivider = true,
                 onClick = {}
             )
-            SettingsNavRow(
-                leading = { IconCircle(icon = Icons.Outlined.Language) },
-                title = "Language",
-                trailingLabel = "English",
-                showDivider = false,
-                onClick = {}
-            )
+            Box {
+                var languageDropDownVisible by remember { mutableStateOf(false) }
+                SettingsNavRow(
+                    leading = { IconCircle(icon = Icons.Outlined.Language) },
+                    title = stringResource(Res.string.language),
+                    trailingLabel = if (currentLanguageCode == "ne") "नेपाली" else "English",
+                    showDivider = false,
+                    onClick = { 
+                        languageDropDownVisible = true
+                    }
+                )
+                DropdownMenu(
+                    expanded = languageDropDownVisible,
+                    onDismissRequest = { languageDropDownVisible = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("English") },
+                        onClick = {
+                            onLanguageChanged("en")
+                            languageDropDownVisible = false
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("नेपाली") },
+                        onClick = {
+                            onLanguageChanged("ne")
+                            languageDropDownVisible = false
+                        }
+                    )
+                }
+            }
         }
 
         // ── 5. Help & Support ─────────────────────────────────────────────────
-        SectionLabel("Help & Support")
+        SectionLabel(stringResource(Res.string.help_support_section))
         SettingsCard {
             SettingsNavRow(
                 leading = { IconCircle(icon = Icons.AutoMirrored.Outlined.HelpOutline) },
-                title = "FAQ",
+                title = stringResource(Res.string.faq),
                 showDivider = true,
                 onClick = {}
             )
             SettingsNavRow(
                 leading = { IconCircle(icon = Icons.Outlined.SupportAgent) },
-                title = "Contact Us",
+                title = stringResource(Res.string.contact_us),
                 showDivider = true,
                 onClick = {}
             )
             SettingsNavRow(
                 leading = { IconCircle(icon = Icons.Outlined.Policy) },
-                title = "Privacy Policy",
+                title = stringResource(Res.string.privacy_policy),
                 showDivider = false,
                 onClick = {}
             )
@@ -294,7 +332,7 @@ private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = androidx.compose.foundation.BorderStroke(
+        border = BorderStroke(
             1.dp,
             MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
         ),
@@ -525,7 +563,7 @@ private fun LogoutButton(onClick: () -> Unit) {
         )
         Spacer(Modifier.width(8.dp))
         Text(
-            text = "Log Out",
+            text = stringResource(Res.string.logout_action),
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
         )
     }
@@ -546,7 +584,9 @@ private fun SettingsScreenPreview() {
                 biometricsEnabled = true,
                 isPremium = true
             ),
-            onAction = {}
+            onAction = {},
+            currentLanguageCode = "en",
+            onLanguageChanged = {},
         )
     }
 }
@@ -561,7 +601,9 @@ private fun SettingsLogoutPreview() {
                 userEmail = "alex.morgan@example.com",
                 showLogoutConfirm = true
             ),
-            onAction = {}
+            onAction = {},
+            currentLanguageCode = "en",
+            onLanguageChanged = {},
         )
     }
 }
