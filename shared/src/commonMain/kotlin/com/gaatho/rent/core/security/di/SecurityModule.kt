@@ -8,7 +8,8 @@ val securityModule = module {
     viewModel {
         SecurityViewModel(
             dataStore = get(),
-            authenticator = get()
+            authenticator = get(),
+            authRepository = get()
         )
     }
 }

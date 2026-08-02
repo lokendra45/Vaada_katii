@@ -123,6 +123,10 @@ class SettingsViewModel(
                 postSideEffect(SettingsSideEffect.ShowSnackbar("Biometrics not enrolled. Please set it up in system settings."))
                 authenticator.openEnrollmentSettings()
             }
+            is BiometricResult.SecurityUpdateRequired -> {
+                // Should not happen during initial enablement, but handle for exhaustiveness
+                postSideEffect(SettingsSideEffect.ShowSnackbar("Biometric settings changed. Please try again."))
+            }
             is BiometricResult.NotAvailable -> {
                 postSideEffect(SettingsSideEffect.ShowSnackbar("Biometrics not available."))
             }

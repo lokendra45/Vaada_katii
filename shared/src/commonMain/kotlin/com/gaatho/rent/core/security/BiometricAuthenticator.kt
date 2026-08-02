@@ -30,4 +30,9 @@ sealed class BiometricResult {
     object Cancelled : BiometricResult()
     object NotAvailable : BiometricResult()
     object NotEnrolled : BiometricResult()
+    /**
+     * Signal that biometric enrollment has changed on the device (e.g. new fingerprint added).
+     * Production apps should invalidate the local session for security.
+     */
+    object SecurityUpdateRequired : BiometricResult()
 }

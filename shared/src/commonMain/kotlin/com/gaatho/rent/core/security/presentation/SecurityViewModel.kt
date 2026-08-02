@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gaatho.rent.core.security.BiometricAuthenticator
 import com.gaatho.rent.core.security.BiometricResult
+import com.gaatho.rent.core.auth.AuthRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -15,7 +16,8 @@ import kotlinx.coroutines.launch
  */
 class SecurityViewModel(
     private val dataStore: DataStore<Preferences>,
-    private val authenticator: BiometricAuthenticator
+    private val authenticator: BiometricAuthenticator,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val KEY_BIOMETRICS = booleanPreferencesKey("pref_biometrics")
@@ -70,6 +72,11 @@ class SecurityViewModel(
                 }
                 is BiometricResult.Cancelled -> {
                     // Do nothing
+                }
+                is BiometricResult.SecurityUpdateRequired -> {
+                    _authError.emit("Biometric settings changed. For your security, please sign in again.")
+                    authRepository.signOut()
+                    _isLocked.value = false // Dismiss gate to allow re-login
                 }
                 is BiometricResult.NotAvailable -> {
                     _isLocked.value = false
