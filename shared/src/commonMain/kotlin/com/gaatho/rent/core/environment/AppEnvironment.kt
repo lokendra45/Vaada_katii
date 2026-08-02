@@ -19,6 +19,10 @@ import kotlinx.coroutines.withContext
 import org.koin.compose.koinInject
 import com.gaatho.rent.database.RentManagerDatabase
 import androidx.compose.runtime.LaunchedEffect
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import kotlinx.coroutines.flow.map
 
 expect object LocalAppLocale {
     val current: String @Composable get
@@ -35,15 +39,14 @@ fun AppEnvironment(content: @Composable () -> Unit) {
     val viewModel = koinViewModel<LanguageViewModel>()
     val languageCode by viewModel.languageCode.collectAsStateWithLifecycle()
 
-    // Observe theme directly from SQLDelight Database
-    val database: RentManagerDatabase = koinInject()
-    val darkModeDbValue by database.rentManagerQueries
-        .selectSetting("pref_dark_mode")
-        .asFlow()
-        .mapToOneOrNull(Dispatchers.IO)
+    // Observe theme directly from DataStore
+    val dataStore: DataStore<Preferences> = koinInject()
+    val darkModeKey = booleanPreferencesKey("pref_dark_mode")
+    val darkModeValue by dataStore.data
+        .map { it[darkModeKey] }
         .collectAsState(initial = null)
         
-    val customAppThemeIsDark = darkModeDbValue?.toBooleanStrictOrNull()
+    val customAppThemeIsDark = darkModeValue
 
     CompositionLocalProvider(
         LocalAppLocale provides languageCode,

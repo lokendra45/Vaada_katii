@@ -116,8 +116,11 @@ jetbrains-lifecycle-viewmodelNavigation3 = { module = "org.jetbrains.androidx.li
 navigation3-browser = { module = "com.github.terrakok:navigation3-browser", version.ref = "compose-multiplatform-navigation3-browser" }
 
 # DataStore
-androidx-datastore = { module = "androidx.datastore:datastore", version = "1.1.1" }
+androidx-datastore = { module = "androidx.datastore:datastore", version = "1.2.1" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version = "1.1.1" }
+
+# Biometric
+androidx-biometric = { module = "androidx.biometric:biometric", version = "1.2.0-alpha05" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

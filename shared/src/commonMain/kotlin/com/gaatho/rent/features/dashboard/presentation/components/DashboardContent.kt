@@ -29,7 +29,6 @@ import com.gaatho.rent.features.tenant.presentation.list.TenantsListScreen
 fun DashboardContent(
     currentTab: DashboardTab,
     modifier: Modifier = Modifier,
-    onNavigateToPropertiesTab: () -> Unit,
     onNavigateToPropertyDetails: (String) -> Unit,
     onNavigateToAddProperty: () -> Unit,
     onNavigateToTenantDetails: (String) -> Unit = {},
@@ -53,9 +52,7 @@ fun DashboardContent(
             // when switching away from a tab and coming back.
             saveableStateHolder.SaveableStateProvider(key = tab.ordinal) {
                 when (tab) {
-                    DashboardTab.HOME -> HomeScreen(
-                        onNavigateToProperties = onNavigateToPropertiesTab
-                    )
+                    DashboardTab.HOME -> HomeScreen()
                     DashboardTab.PROPERTIES -> PropertyListScreen(
                         onNavigateToDetails = onNavigateToPropertyDetails,
                         onNavigateToAddProperty = onNavigateToAddProperty

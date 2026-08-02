@@ -50,6 +50,7 @@ kotlin {
             implementation(libs.sqldelight.android.driver)
             implementation(libs.sqlcipher.android)
             implementation(libs.androidx.sqlite)
+            implementation(libs.androidx.biometric)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

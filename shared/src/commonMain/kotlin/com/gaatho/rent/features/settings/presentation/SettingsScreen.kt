@@ -232,6 +232,13 @@ private fun SettingsContent(
         // ── 4. Preferences ────────────────────────────────────────────────────
         SectionLabel(stringResource(Res.string.preferences_section))
         SettingsCard {
+            SettingsToggleRow(
+                icon = Icons.Outlined.DarkMode,
+                title = stringResource(Res.string.dark_mode),
+                checked = state.darkModeEnabled,
+                showDivider = true,
+                onCheckedChange = { onAction(SettingsAction.OnDarkModeToggled(it)) }
+            )
             SettingsNavRow(
                 leading = { IconCircle(icon = Icons.Outlined.CurrencyRupee) },
                 title = stringResource(Res.string.currency),

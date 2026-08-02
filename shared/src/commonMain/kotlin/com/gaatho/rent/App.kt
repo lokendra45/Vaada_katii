@@ -5,6 +5,7 @@ import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.navigation.AppNavigation
 
 import com.gaatho.rent.core.environment.AppEnvironment
+import com.gaatho.rent.core.security.presentation.components.BiometricGate
 
 /**
  * Root composable entry point for the entire application.
@@ -22,7 +23,9 @@ import com.gaatho.rent.core.environment.AppEnvironment
 fun App() {
     AppEnvironment {
         RentManagerTheme {
-            AppNavigation()
+            BiometricGate {
+                AppNavigation()
+            }
         }
     }
 }

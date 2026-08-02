@@ -1,56 +1,41 @@
 package com.gaatho.rent.features.settings.presentation
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.gaatho.rent.core.auth.AuthRepository
 import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.core.mvi.MviViewModel
-import com.gaatho.rent.database.RentManagerDatabase
+import com.gaatho.rent.core.security.BiometricAuthenticator
+import com.gaatho.rent.core.security.BiometricResult
 import com.skydoves.sandwich.ApiResponse
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import org.orbitmvi.orbit.viewmodel.orbitContainer
-
-private const val KEY_NOTIFICATIONS = "pref_notifications"
-private const val KEY_EMAIL_ALERTS   = "pref_email_alerts"
-private const val KEY_BIOMETRICS     = "pref_biometrics"
-private const val KEY_DARK_MODE      = "pref_dark_mode"
-private const val KEY_LANGUAGE       = "pref_language"
 
 class SettingsViewModel(
     private val authRepository: AuthRepository,
     private val sessionManager: SessionManager,
-    private val database: RentManagerDatabase,
+    private val dataStore: DataStore<Preferences>,
+    private val authenticator: BiometricAuthenticator,
 ) : MviViewModel<SettingsState, SettingsSideEffect, SettingsAction>() {
 
-    private val queries get() = database.rentManagerQueries
+    private val KEY_NOTIFICATIONS = booleanPreferencesKey("pref_notifications")
+    private val KEY_EMAIL_ALERTS = booleanPreferencesKey("pref_email_alerts")
+    private val KEY_BIOMETRICS = booleanPreferencesKey("pref_biometrics")
+    private val KEY_DARK_MODE = booleanPreferencesKey("pref_dark_mode")
+    private val KEY_LANGUAGE = stringPreferencesKey("pref_language")
 
     override val container = orbitContainer<SettingsState, SettingsSideEffect>(
         initialState = SettingsState()
     ) {
-        loadPreferences()
+        observePreferences()
     }
 
-    private fun loadPreferences() = intent {
-        val notifications = withContext(Dispatchers.IO) {
-            queries.selectSetting(KEY_NOTIFICATIONS).executeAsOneOrNull()
-        }?.toBooleanStrictOrNull() ?: true
-
-        val emailAlerts = withContext(Dispatchers.IO) {
-            queries.selectSetting(KEY_EMAIL_ALERTS).executeAsOneOrNull()
-        }?.toBooleanStrictOrNull() ?: false
-
-        val biometrics = withContext(Dispatchers.IO) {
-            queries.selectSetting(KEY_BIOMETRICS).executeAsOneOrNull()
-        }?.toBooleanStrictOrNull() ?: true
-
-        val darkMode = withContext(Dispatchers.IO) {
-            queries.selectSetting(KEY_DARK_MODE).executeAsOneOrNull()
-        }?.toBooleanStrictOrNull() ?: false
-
-        val languageCode = withContext(Dispatchers.IO) {
-            queries.selectSetting(KEY_LANGUAGE).executeAsOneOrNull()
-        }
-
+    private fun observePreferences() = intent {
+        // Collect user info
         val user = sessionManager.currentUser.value
         val email = user?.email ?: ""
         val displayName = user?.displayName
@@ -58,41 +43,39 @@ class SettingsViewModel(
 
         reduce {
             state.copy(
-                notificationsEnabled = notifications,
-                emailAlertsEnabled   = emailAlerts,
-                biometricsEnabled    = biometrics,
-                darkModeEnabled      = darkMode,
-                languageCode         = languageCode,
-                userEmail            = email,
-                userName             = displayName,
+                userEmail = email,
+                userName = displayName,
             )
+        }
+
+        // Reactively observe all preferences
+        dataStore.data.collectLatest { prefs ->
+            reduce {
+                state.copy(
+                    notificationsEnabled = prefs[KEY_NOTIFICATIONS] ?: true,
+                    emailAlertsEnabled = prefs[KEY_EMAIL_ALERTS] ?: false,
+                    biometricsEnabled = prefs[KEY_BIOMETRICS] ?: true,
+                    darkModeEnabled = prefs[KEY_DARK_MODE] ?: false,
+                    languageCode = prefs[KEY_LANGUAGE]
+                )
+            }
         }
     }
 
     override fun onAction(action: SettingsAction) {
         when (action) {
-            is SettingsAction.OnNotificationsToggled -> persistToggle(
-                KEY_NOTIFICATIONS, action.enabled
-            ) { copy(notificationsEnabled = action.enabled) }
-
-            is SettingsAction.OnEmailAlertsToggled -> persistToggle(
-                KEY_EMAIL_ALERTS, action.enabled
-            ) { copy(emailAlertsEnabled = action.enabled) }
-
-            is SettingsAction.OnBiometricsToggled -> persistToggle(
-                KEY_BIOMETRICS, action.enabled
-            ) { copy(biometricsEnabled = action.enabled) }
-
-            is SettingsAction.OnDarkModeToggled -> persistToggle(
-                KEY_DARK_MODE, action.enabled
-            ) { copy(darkModeEnabled = action.enabled) }
-
-            is SettingsAction.OnLanguageChanged -> intent {
-                val newCode = action.code
-                reduce { state.copy(languageCode = newCode) }
-                withContext(Dispatchers.IO) {
-                    queries.upsertSetting(key = KEY_LANGUAGE, settingValue = newCode)
+            is SettingsAction.OnNotificationsToggled -> togglePreference(KEY_NOTIFICATIONS, action.enabled)
+            is SettingsAction.OnEmailAlertsToggled -> togglePreference(KEY_EMAIL_ALERTS, action.enabled)
+            is SettingsAction.OnBiometricsToggled -> {
+                if (action.enabled) {
+                    verifyAndEnableBiometrics()
+                } else {
+                    togglePreference(KEY_BIOMETRICS, false)
                 }
+            }
+            is SettingsAction.OnDarkModeToggled -> togglePreference(KEY_DARK_MODE, action.enabled)
+            is SettingsAction.OnLanguageChanged -> intent {
+                dataStore.edit { it[KEY_LANGUAGE] = action.code }
             }
 
             is SettingsAction.OnUpgradeClicked -> { /* TODO: navigate to paywall */ }
@@ -111,14 +94,38 @@ class SettingsViewModel(
         }
     }
 
-    private fun persistToggle(
-        key: String,
-        value: Boolean,
-        stateReducer: SettingsState.() -> SettingsState
-    ) = intent {
-        reduce { stateReducer(state) }
-        withContext(Dispatchers.IO) {
-            queries.upsertSetting(key = key, settingValue = value.toString())
+    private fun <T> togglePreference(key: Preferences.Key<T>, value: T) = intent {
+        dataStore.edit { it[key] = value }
+    }
+
+    private fun verifyAndEnableBiometrics() = intent {
+        if (!authenticator.canAuthenticate()) {
+            postSideEffect(SettingsSideEffect.ShowSnackbar("Biometrics not available or not enrolled on this device."))
+            return@intent
+        }
+
+        val result = authenticator.authenticate(
+            title = "Enable Biometrics",
+            subtitle = "Verify your identity to enable fingerprint login"
+        )
+
+        when (result) {
+            is BiometricResult.Success -> {
+                dataStore.edit { it[KEY_BIOMETRICS] = true }
+            }
+            is BiometricResult.Failure -> {
+                postSideEffect(SettingsSideEffect.ShowSnackbar("Authentication failed: ${result.message}"))
+            }
+            is BiometricResult.Cancelled -> {
+                // Do nothing
+            }
+            is BiometricResult.NotEnrolled -> {
+                postSideEffect(SettingsSideEffect.ShowSnackbar("Biometrics not enrolled. Please set it up in system settings."))
+                authenticator.openEnrollmentSettings()
+            }
+            is BiometricResult.NotAvailable -> {
+                postSideEffect(SettingsSideEffect.ShowSnackbar("Biometrics not available."))
+            }
         }
     }
 

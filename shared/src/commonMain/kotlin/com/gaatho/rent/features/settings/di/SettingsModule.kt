@@ -10,7 +10,8 @@ val settingsModule = module {
         SettingsViewModel(
             authRepository = get(),
             sessionManager = get(),
-            database = get()
+            dataStore = get(),
+            authenticator = get()
         )
     }
     viewModel {

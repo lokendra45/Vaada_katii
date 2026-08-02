@@ -43,9 +43,7 @@ import rentmanagerapp.shared.generated.resources.*
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-fun HomeScreen(
-    onNavigateToProperties: () -> Unit = {}
-) {
+fun HomeScreen() {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = { HomeDashboardTopBar() }
@@ -65,7 +63,6 @@ fun HomeScreen(
             item { WelcomeSection() }
             item { MonthlyOverviewCard() }
             item { QuickActionsSection() }
-            item { PropertiesOverviewSection(onSeeAll = onNavigateToProperties) }
             item { RecentPaymentsSection() }
         }
     }
@@ -324,114 +321,6 @@ private fun QuickActionItem(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
-        )
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 4. Properties Overview Section
-// ─────────────────────────────────────────────────────────────────────────────
-
-@Composable
-private fun PropertiesOverviewSection(onSeeAll: () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        // Section header
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(Res.string.properties_overview),
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            TextButton(
-                onClick = onSeeAll,
-                contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp)
-            ) {
-                Text(
-                    text = stringResource(Res.string.see_all_action),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-
-        // Property rows
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-            shadowElevation = 0.dp
-        ) {
-            Column {
-                PropertyOverviewRow(
-                    name = "Downtown Lofts",
-                    detail = "100% ${stringResource(Res.string.occupied)} • Rs. 25k/mo",
-                    icon = Icons.Outlined.Domain
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                PropertyOverviewRow(
-                    name = "Maple Estates",
-                    detail = "85% ${stringResource(Res.string.occupied)} • Rs. 32k/mo",
-                    icon = Icons.Outlined.Home
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun PropertyOverviewRow(
-    name: String,
-    detail: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Spacing.ItemGap, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.StackLoose)
-    ) {
-        // Property thumbnail icon
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .clip(RoundedCornerShape(Radius.Md))
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-        }
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = name,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = detail,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
-        Icon(
-            imageVector = Icons.Default.ChevronRight,
-            contentDescription = null,
-            modifier = Modifier.size(20.dp),
-            tint = MaterialTheme.colorScheme.outline
         )
     }
 }
