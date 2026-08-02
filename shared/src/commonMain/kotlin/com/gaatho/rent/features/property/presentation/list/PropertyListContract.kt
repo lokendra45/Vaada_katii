@@ -4,6 +4,9 @@ import androidx.compose.runtime.Immutable
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.features.property.domain.model.Property
 import kotlinx.serialization.Serializable
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 
 /**
  * Represents the immutable UI state for the Property List screen.
@@ -18,6 +21,7 @@ import kotlinx.serialization.Serializable
  * @property propertiesState The loading/success/error state of the property list.
  */
 @Serializable
+@Immutable
 data class PropertyDisplayModel(
     val id: String,
     val name: String,
@@ -34,33 +38,14 @@ data class PropertyDisplayModel(
 @Immutable
 data class PropertyListState(
     // We map raw Property to PropertyDisplayModel so the UI does zero logic
-    val propertiesState: UiState<List<PropertyDisplayModel>> = UiState.Idle,
+    val propertiesState: UiState<ImmutableList<PropertyDisplayModel>> = UiState.Idle,
     val searchQuery: String = "",
-    val selectedLocation: String = "All properties"
+    val selectedLocation: String = "All properties",
+    // Pre-computed by ViewModel on Dispatchers.Default — never on the UI thread
+    val filteredProperties: ImmutableList<PropertyDisplayModel> = persistentListOf()
 ) {
-    val allProperties: List<PropertyDisplayModel>
-        get() = (propertiesState as? UiState.Success)?.data ?: emptyList()
-
-    val filteredProperties: List<PropertyDisplayModel>
-        get() {
-            val raw = allProperties
-            return raw.filter { prop ->
-                val matchesSearch = if (searchQuery.isBlank()) {
-                    true
-                } else {
-                    val q = searchQuery.trim().lowercase()
-                    prop.name.lowercase().contains(q) ||
-                        prop.address.lowercase().contains(q)
-                }
-                val matchesLocation = if (selectedLocation == "All properties" || selectedLocation.isBlank()) {
-                    true
-                } else {
-                    prop.address.lowercase().contains(selectedLocation.lowercase()) ||
-                        prop.name.lowercase().contains(selectedLocation.lowercase())
-                }
-                matchesSearch && matchesLocation
-            }
-        }
+    val allProperties: ImmutableList<PropertyDisplayModel>
+        get() = (propertiesState as? UiState.Success)?.data ?: persistentListOf()
 }
 
 /**

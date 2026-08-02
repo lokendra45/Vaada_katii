@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -47,13 +48,15 @@ fun AppTextField(
     singleLine: Boolean = true,
     minLines: Int = 1,
     maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
+    readOnly: Boolean = false,
+    enabled: Boolean = true,
     textStyle: TextStyle = LocalTextStyle.current
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
 
     Column(modifier = modifier) {
-        // Label Row
+        // Top Labels Row
         if (label != null || topRightLabel != null) {
             Row(
                 modifier = Modifier
@@ -64,13 +67,15 @@ fun AppTextField(
             ) {
                 if (label != null) {
                     Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = label.uppercase(),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 0.5.sp
                         )
                     )
                 } else {
-                    Spacer(modifier = Modifier.width(1.dp))
+                    Spacer(modifier = Modifier.width(1.dp)) // Maintain alignment if only topRightLabel is present
                 }
 
                 if (topRightLabel != null) {
@@ -86,11 +91,13 @@ fun AppTextField(
         }
 
         val mergedTextStyle = textStyle.merge(
-            MaterialTheme.typography.bodyMedium.copy(
-                color = MaterialTheme.colorScheme.onSurface
+            MaterialTheme.typography.bodyLarge.copy(
+                fontWeight = FontWeight.Normal,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 16.sp
             )
         )
-
+        
         // Text Field Box
         BasicTextField(
             value = value,
@@ -102,74 +109,66 @@ fun AppTextField(
             singleLine = singleLine,
             minLines = minLines,
             maxLines = maxLines,
-            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+            readOnly = readOnly,
+            enabled = enabled,
             interactionSource = interactionSource,
+            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
             decorationBox = { innerTextField ->
-                val containerColor = if (isFocused) {
-                    MaterialTheme.colorScheme.surface
-                } else {
-                    MaterialTheme.colorScheme.surfaceVariant
-                }
-                
-                val borderModifier = if (isFocused) {
-                    Modifier.border(
-                        BorderStroke(AppDimensions.TextFieldBorderWidth, MaterialTheme.colorScheme.primary),
-                        RoundedCornerShape(AppDimensions.TextFieldCornerRadius)
-                    )
-                } else {
-                    Modifier
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .then(borderModifier)
-                        .clip(RoundedCornerShape(AppDimensions.TextFieldCornerRadius))
-                        .background(containerColor)
-                        .padding(
-                            horizontal = AppDimensions.TextFieldHorizontalPadding,
-                            vertical = AppDimensions.TextFieldVerticalPadding
-                        ),
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    if (leadingIcon != null) {
-                        leadingIcon()
-                        Spacer(modifier = Modifier.width(12.dp))
-                    }
-                    if (prefix != null) {
-                        Text(
-                            text = prefix,
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        
-                        // Vertical divider line for prefix
-                        Box(
-                            modifier = Modifier
-                                .height(20.dp)
-                                .width(1.dp)
-                                .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        if (value.isEmpty() && placeholder != null) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Leading Icon
+                        if (leadingIcon != null) {
+                            leadingIcon()
+                            Spacer(modifier = Modifier.width(12.dp))
+                        }
+
+                        // Prefix
+                        if (prefix != null) {
                             Text(
-                                text = placeholder,
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    color = MaterialTheme.colorScheme.outline
+                                text = prefix,
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontSize = 17.sp
                                 )
                             )
+                            Spacer(modifier = Modifier.width(8.dp))
                         }
-                        innerTextField()
+
+                        // Text input or placeholder
+                        Box(modifier = Modifier.weight(1f)) {
+                            if (value.isEmpty() && placeholder != null) {
+                                Text(
+                                    text = placeholder,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                    )
+                                )
+                            }
+                            innerTextField()
+                        }
+
+                        // Trailing Icon
+                        if (trailingIcon != null) {
+                            Spacer(modifier = Modifier.width(12.dp))
+                            trailingIcon()
+                        }
                     }
-                    if (trailingIcon != null) {
-                        Spacer(modifier = Modifier.width(12.dp))
-                        trailingIcon()
-                    }
+                    
+                    // Thin horizontal divider below the input
+                    HorizontalDivider(
+                        modifier = Modifier.fillMaxWidth(),
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.surfaceVariant
+                    )
                 }
             }
         )

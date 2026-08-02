@@ -4,10 +4,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Domain
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Domain
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.serialization.Serializable
@@ -23,6 +25,7 @@ enum class DashboardTab(
 ) {
     HOME(title = "Home"),
     PROPERTIES(title = "Properties"),
+    PAYMENTS(title = "Payments"),
     TENANTS(title = "Tenants"),
     SETTINGS(title = "Settings");
     
@@ -34,6 +37,7 @@ val DashboardTab.selectedIcon: ImageVector
     get() = when (this) {
         DashboardTab.HOME -> Icons.Filled.Home
         DashboardTab.PROPERTIES -> Icons.Filled.Domain
+        DashboardTab.PAYMENTS -> Icons.Filled.Payments
         DashboardTab.TENANTS -> Icons.Filled.Group
         DashboardTab.SETTINGS -> Icons.Filled.Settings
     }
@@ -42,6 +46,7 @@ val DashboardTab.unselectedIcon: ImageVector
     get() = when (this) {
         DashboardTab.HOME -> Icons.Outlined.Home
         DashboardTab.PROPERTIES -> Icons.Outlined.Domain
+        DashboardTab.PAYMENTS -> Icons.Outlined.Payments
         DashboardTab.TENANTS -> Icons.Outlined.Group
         DashboardTab.SETTINGS -> Icons.Outlined.Settings
     }

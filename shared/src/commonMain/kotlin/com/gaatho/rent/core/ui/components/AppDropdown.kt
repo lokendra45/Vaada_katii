@@ -58,10 +58,10 @@ data class AppDropdownColors(
 object AppDropdownDefaults {
     @Composable
     fun colors(
-        containerColor: Color = MaterialTheme.colorScheme.surfaceVariant,
-        focusedContainerColor: Color = MaterialTheme.colorScheme.surface,
-        disabledContainerColor: Color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-        errorContainerColor: Color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.25f),
+        containerColor: Color = Color.Transparent,
+        focusedContainerColor: Color = Color.Transparent,
+        disabledContainerColor: Color = Color.Transparent,
+        errorContainerColor: Color = Color.Transparent,
         borderColor: Color = MaterialTheme.colorScheme.primary,
         errorBorderColor: Color = MaterialTheme.colorScheme.error,
         textColor: Color = MaterialTheme.colorScheme.onSurface,
@@ -190,7 +190,7 @@ fun <T> AppDropdown(
     val targetBorderColor = when {
         isError -> colors.errorBorderColor
         expanded -> colors.borderColor
-        else -> Color.Transparent
+        else -> MaterialTheme.colorScheme.outlineVariant
     }
     val animatedBorderColor by animateColorAsState(
         targetValue = targetBorderColor,
@@ -205,69 +205,52 @@ fun <T> AppDropdown(
     )
 
     Column(modifier = modifier) {
-        if (label != null) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium.copy(color = colors.labelColor),
-                modifier = Modifier.padding(bottom = 6.dp),
-            )
-        }
+        // Label is now passed into AppTextField
 
         Box {
-            Row(
+            AppTextField(
+                value = if (selectedItem != null) itemLabel(selectedItem) else "",
+                onValueChange = {},
+                label = label,
+                placeholder = placeholder,
+                leadingIcon = leadingIcon,
+                trailingIcon = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (onClear != null && selectedItem != null && enabled) {
+                            IconButton(onClick = onClear, modifier = Modifier.size(28.dp)) {
+                                Icon(
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = "Clear selection",
+                                    tint = colors.iconColor,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(2.dp))
+                        }
+        
+                        if (trailingIcon != null) {
+                            trailingIcon(expanded)
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown,
+                                contentDescription = null,
+                                tint = colors.iconColor,
+                                modifier = Modifier.rotate(chevronRotation),
+                            )
+                        }
+                    }
+                },
+                readOnly = true,
+                enabled = enabled,
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            // Transparent overlay to intercept clicks
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(height)
-                    .clip(shape)
-                    .background(animatedContainerColor)
-                    .border(BorderStroke(borderWidth, animatedBorderColor), shape)
+                    .matchParentSize()
                     .clickable(enabled = enabled) { expanded = !expanded }
-                    .padding(horizontal = AppDimensions.TextFieldHorizontalPadding),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (leadingIcon != null) {
-                    CompositionLocalProvider(LocalContentColor provides colors.iconColor) {
-                        leadingIcon()
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
-                }
-
-                Text(
-                    text = if (selectedItem != null) itemLabel(selectedItem) else placeholder,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = when {
-                        !enabled -> colors.disabledTextColor
-                        selectedItem != null -> colors.textColor
-                        else -> colors.placeholderColor
-                    },
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-
-                if (onClear != null && selectedItem != null && enabled) {
-                    IconButton(onClick = onClear, modifier = Modifier.size(28.dp)) {
-                        Icon(
-                            imageVector = Icons.Default.Clear,
-                            contentDescription = "Clear selection",
-                            tint = colors.iconColor,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(2.dp))
-                }
-
-                if (trailingIcon != null) {
-                    trailingIcon(expanded)
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = null,
-                        tint = colors.iconColor,
-                        modifier = Modifier.rotate(chevronRotation),
-                    )
-                }
-            }
+            )
 
             DropdownMenu(
                 expanded = expanded,

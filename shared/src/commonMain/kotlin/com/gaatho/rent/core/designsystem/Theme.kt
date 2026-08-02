@@ -4,6 +4,9 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.Shapes
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
@@ -40,6 +43,11 @@ private val QuietPremiumLight = lightColorScheme(
     outlineVariant         = OutlineVariant,
     scrim                  = Color(0xFF000000),
     surfaceTint            = SurfaceTint,
+    surfaceContainerLowest = SurfaceContainerLowest,
+    surfaceContainerLow    = SurfaceContainerLow,
+    surfaceContainer       = SurfaceContainer,
+    surfaceContainerHigh   = SurfaceContainerHigh,
+    surfaceContainerHighest= SurfaceContainerHighest,
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -75,7 +83,21 @@ private val QuietPremiumDark = darkColorScheme(
     outlineVariant         = DarkOutlineVariant,
     scrim                  = Color(0xFF000000),
     surfaceTint            = DarkSurfaceTint,
+    surfaceContainerLowest = DarkSurfaceContainerLowest,
+    surfaceContainerLow    = DarkSurfaceContainerLow,
+    surfaceContainer       = DarkSurfaceContainer,
+    surfaceContainerHigh   = DarkSurfaceContainerHigh,
+    surfaceContainerHighest= DarkSurfaceContainerHighest,
 )
+
+@Composable
+fun rentManagerShapes(): Shapes {
+    return Shapes(
+        small = RoundedCornerShape(8.dp),
+        medium = RoundedCornerShape(16.dp),
+        large = RoundedCornerShape(50) // Pill shape
+    )
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Theme Entry Point
@@ -88,6 +110,7 @@ fun RentManagerTheme(
     MaterialTheme(
         colorScheme = if (darkTheme) QuietPremiumDark else QuietPremiumLight,
         typography  = rentManagerTypography(),
+        shapes      = rentManagerShapes(),
         content     = content
     )
 }

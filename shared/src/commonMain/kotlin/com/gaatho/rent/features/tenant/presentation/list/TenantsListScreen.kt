@@ -18,23 +18,31 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import com.gaatho.rent.core.designsystem.AppDimensions
 import com.gaatho.rent.core.designsystem.ExtendedColorHex
+import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.core.ui.components.AppSearchBar
 import com.gaatho.rent.features.tenant.domain.model.Tenant
+import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.viewmodel.koinViewModel
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.*
 import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
+import com.gaatho.rent.core.ui.components.AppSegmentedControl
 
 @Composable
 fun TenantsListScreen(
@@ -70,8 +78,6 @@ fun TenantsListContent(
     onAction: (TenantsListAction) -> Unit,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
-    var statusDropdownExpanded by remember { mutableStateOf(false) }
-    var propertyDropdownExpanded by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberStandardBottomSheetState(
@@ -80,32 +86,13 @@ fun TenantsListContent(
         )
     )
 
-    // Calculate blur and scrim opacity based on sheet state
-    val isSheetVisible = scaffoldState.bottomSheetState.targetValue != SheetValue.Hidden
-    val blurRadius by animateDpAsState(
-        targetValue = if (isSheetVisible) AppDimensions.RadiusMedium else 0.dp,
-        animationSpec = tween(durationMillis = 300)
-    )
-    val scrimAlpha by animateFloatAsState(
-        targetValue = if (isSheetVisible) 0.45f else 0f,
-        animationSpec = tween(durationMillis = 300)
-    )
-
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 0.dp,
         sheetDragHandle = null,
-        sheetContainerColor = Color.Transparent, // Let the bottom sheet content handle its own bg
-        sheetContent = {
-            com.gaatho.rent.features.tenant.presentation.list.components.AddTenantBottomSheet(
-                onDismiss = { coroutineScope.launch { scaffoldState.bottomSheetState.hide() } },
-                onSave = { coroutineScope.launch { scaffoldState.bottomSheetState.hide() } },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.92f)
-                    .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
-            )
-        },
+        sheetContainerColor = MaterialTheme.colorScheme.surface,
+        sheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        sheetSwipeEnabled = true,
         topBar = {
             com.gaatho.rent.core.ui.components.AppTopBar(
                 title = "Tenants",
@@ -113,27 +100,37 @@ fun TenantsListContent(
                 actions = {
                     com.gaatho.rent.core.ui.components.AppTopBarActionButton(
                         text = "Add tenant",
-                        onClick = { coroutineScope.launch { scaffoldState.bottomSheetState.expand() } }
+                        onClick = {
+                            coroutineScope.launch { scaffoldState.bottomSheetState.expand() }
+                        }
                     )
-                },
-                modifier = Modifier.blur(blurRadius)
+                }
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        sheetContent = {
+            com.gaatho.rent.features.tenant.presentation.list.components.AddTenantBottomSheet(
+                onDismiss = { coroutineScope.launch { scaffoldState.bottomSheetState.hide() } },
+                onSave = { coroutineScope.launch { scaffoldState.bottomSheetState.hide() } },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.92f)
+            )
+        }
     ) { padding ->
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Main Content with Blur
+            // Main Content
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .widthIn(max = 800.dp)
                     .align(Alignment.TopCenter)
-                    .blur(blurRadius)
             ) {
                 // 1. Search & Filter Section with clean layout
                 Column(
@@ -172,120 +169,12 @@ fun TenantsListContent(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    // Properly aligned Dropdown Filter Strip
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Status Filter Dropdown Pill
-                        Box {
-                            val isStatusFiltered = state.selectedStatus != "All statuses"
-                            Surface(
-                                shape = RoundedCornerShape(18.dp),
-                                border = BorderStroke(
-                                    width = 1.dp,
-                                    color = if (isStatusFiltered) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.8f)
-                                ),
-                                color = if (isStatusFiltered) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else MaterialTheme.colorScheme.surface,
-                                modifier = Modifier
-                                    .height(36.dp)
-                                    .clickable { statusDropdownExpanded = true }
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Text(
-                                        text = state.selectedStatus,
-                                        style = MaterialTheme.typography.labelLarge.copy(
-                                            fontWeight = if (isStatusFiltered) FontWeight.Bold else FontWeight.SemiBold,
-                                            color = if (isStatusFiltered) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                                        )
-                                    )
-                                    Icon(
-                                        imageVector = Icons.Default.KeyboardArrowDown,
-                                        contentDescription = "Select Status",
-                                        tint = if (isStatusFiltered) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
-                            }
-
-                            DropdownMenu(
-                                expanded = statusDropdownExpanded,
-                                onDismissRequest = { statusDropdownExpanded = false }
-                            ) {
-                                listOf("All statuses", "Active", "Inactive").forEach { status ->
-                                    DropdownMenuItem(
-                                        text = { Text(status) },
-                                        onClick = {
-                                            onAction(TenantsListAction.OnStatusFilterChanged(status))
-                                            statusDropdownExpanded = false
-                                        }
-                                    )
-                                }
-                            }
-                        }
-
-                        // Property Filter Dropdown Pill
-                        Box {
-                            val isPropertyFiltered = state.selectedProperty != "All properties"
-                            Surface(
-                                shape = RoundedCornerShape(18.dp),
-                                border = BorderStroke(
-                                    width = 1.dp,
-                                    color = if (isPropertyFiltered) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.8f)
-                                ),
-                                color = if (isPropertyFiltered) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else MaterialTheme.colorScheme.surface,
-                                modifier = Modifier
-                                    .height(36.dp)
-                                    .clickable { propertyDropdownExpanded = true }
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Text(
-                                        text = state.selectedProperty,
-                                        style = MaterialTheme.typography.labelLarge.copy(
-                                            fontWeight = if (isPropertyFiltered) FontWeight.Bold else FontWeight.SemiBold,
-                                            color = if (isPropertyFiltered) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                                        ),
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    Icon(
-                                        imageVector = Icons.Default.KeyboardArrowDown,
-                                        contentDescription = "Select Property",
-                                        tint = if (isPropertyFiltered) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
-                            }
-
-                            val propertyOptions = remember(state.allTenants) {
-                                listOf("All properties") + state.allTenants.mapNotNull { it.propertyName }.distinct()
-                            }
-
-                            DropdownMenu(
-                                expanded = propertyDropdownExpanded,
-                                onDismissRequest = { propertyDropdownExpanded = false }
-                            ) {
-                                propertyOptions.forEach { prop ->
-                                    DropdownMenuItem(
-                                        text = { Text(prop) },
-                                        onClick = {
-                                            onAction(TenantsListAction.OnPropertyFilterChanged(prop))
-                                            propertyDropdownExpanded = false
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    // Extracted to prevent entire screen recomposition when dropdowns toggle
+                    TenantsFilterStrip(
+                        state = state,
+                        onAction = onAction,
+                        modifier = Modifier.padding(horizontal = AppDimensions.ScreenHorizontalPadding, vertical = 8.dp)
+                    )
                 }
 
                 // 2. List Section without outer card container (clean edge-to-edge native rows)
@@ -299,9 +188,9 @@ fun TenantsListContent(
                     is UiState.Error -> {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Text("Failed to load tenants", style = MaterialTheme.typography.titleMedium)
+                                Text(stringResource(Res.string.tenant_failed_load), style = MaterialTheme.typography.titleMedium)
                                 Button(onClick = { onAction(TenantsListAction.OnRetry) }) {
-                                    Text("Retry")
+                                    Text(stringResource(Res.string.retry))
                                 }
                             }
                         }
@@ -339,7 +228,8 @@ fun TenantsListContent(
                             ) {
                                 itemsIndexed(
                                     items = state.filteredTenants,
-                                    key = { _, tenant -> tenant.id }
+                                    key = { _, tenant -> tenant.id },
+                                    contentType = { _, _ -> "tenantRow" }
                                 ) { index, tenant ->
                                     TenantRowItem(
                                         tenant = tenant,
@@ -348,8 +238,9 @@ fun TenantsListContent(
 
                                     if (index < state.filteredTenants.lastIndex) {
                                         HorizontalDivider(
-                                            modifier = Modifier.padding(horizontal = 20.dp),
-                                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                                            modifier = Modifier.padding(horizontal = 24.dp),
+                                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                                            thickness = 0.5.dp
                                         )
                                     }
                                 }
@@ -359,14 +250,85 @@ fun TenantsListContent(
                 }
             }
 
-            // Scrim Overlay
-            if (scrimAlpha > 0f) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = scrimAlpha))
-                        .clickable(enabled = false) {} // Consume clicks
+        } // Box
+    } // BottomSheetScaffold content
+} // TenantsListContent
+
+@Composable
+private fun TenantsFilterStrip(
+    state: TenantsListState,
+    onAction: (TenantsListAction) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var propertyDropdownExpanded by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Segmented Control for Status
+        val options = listOf("All statuses", "Active", "Inactive")
+        val displayOptions = listOf("All", "Active", "Inactive")
+        val selectedIndex = options.indexOf(state.selectedStatus).coerceAtLeast(0)
+
+        AppSegmentedControl(
+            options = displayOptions,
+            selectedIndex = selectedIndex,
+            onOptionSelected = { index -> 
+                onAction(TenantsListAction.OnStatusFilterChanged(options[index])) 
+            },
+            modifier = Modifier.weight(1f)
+        )
+        
+        Spacer(modifier = Modifier.width(8.dp))
+
+        // Minimal Property Filter
+        Box {
+            val isPropertyFiltered = state.selectedProperty != "All properties"
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .clickable { propertyDropdownExpanded = true }
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = if (isPropertyFiltered) state.selectedProperty else "Property",
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontWeight = if (isPropertyFiltered) FontWeight.Bold else FontWeight.Medium,
+                        color = if (isPropertyFiltered) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.widthIn(max = 100.dp)
                 )
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = "Select Property",
+                    tint = if (isPropertyFiltered) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+
+            val propertyOptions = remember(state.allTenants) {
+                listOf("All properties") + state.allTenants.mapNotNull { it.propertyName }.distinct()
+            }
+
+            DropdownMenu(
+                expanded = propertyDropdownExpanded,
+                onDismissRequest = { propertyDropdownExpanded = false }
+            ) {
+                propertyOptions.forEach { prop ->
+                    DropdownMenuItem(
+                        text = { Text(prop) },
+                        onClick = {
+                            onAction(TenantsListAction.OnPropertyFilterChanged(prop))
+                            propertyDropdownExpanded = false
+                        }
+                    )
+                }
             }
         }
     }
@@ -380,18 +342,18 @@ private fun TenantRowItem(
 ) {
     Surface(
         onClick = onClick,
-        color = Color.Transparent
+        color = MaterialTheme.colorScheme.surfaceContainerLowest
     ) {
         Row(
             modifier = modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 12.dp),
+                .padding(horizontal = 24.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar
+            // Perfect Circle Avatar
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .background(Color(tenant.avatarBgColorHex)),
                 contentAlignment = Alignment.Center
@@ -399,53 +361,57 @@ private fun TenantRowItem(
                 Text(
                     text = tenant.initials,
                     style = MaterialTheme.typography.titleMedium.copy(
-                        color = Color(tenant.avatarTextColorHex)
+                        color = Color(tenant.avatarTextColorHex),
+                        fontWeight = FontWeight.Bold
                     )
                 )
             }
 
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
-            // Middle details
+            // Main Details
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(3.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = tenant.name,
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurface
-                        ),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-
-                    // Status Pill
-                    StatusBadge(status = tenant.status, isActive = tenant.isActive)
-                }
+                Text(
+                    text = tenant.name,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 17.sp
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
 
                 Text(
                     text = tenant.subtitle,
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Medium
                     ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = "View Details",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                modifier = Modifier.size(18.dp)
-            )
+            // Trailing Side
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                StatusBadge(status = tenant.status, isActive = tenant.isActive)
+                
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = "View Details",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.size(16.dp)
+                )
+            }
         }
     }
 }
@@ -470,4 +436,61 @@ private fun StatusBadge(status: String, isActive: Boolean) {
     }
 }
 
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+fun TenantsListScreenPreview() {
+    com.gaatho.rent.core.designsystem.RentManagerTheme {
+        val dummyTenants = kotlinx.collections.immutable.persistentListOf(
+            TenantDisplayModel(
+                id = "1",
+                name = "Brooklyn Simmons",
+                initials = "BS",
+                subtitle = "Sunrise Residency • Room 4A",
+                status = "Active",
+                isActive = true,
+                avatarBgColorHex = 0xFFE3F2FD,
+                avatarTextColorHex = 0xFF1976D2,
+                propertyName = "Sunrise Residency",
+                roomNumber = "Room 4A",
+                email = null,
+                phone = null
+            ),
+            TenantDisplayModel(
+                id = "2",
+                name = "Darlene Robertson",
+                initials = "DR",
+                subtitle = "Ganga Nivas • Room 5",
+                status = "Inactive",
+                isActive = false,
+                avatarBgColorHex = 0xFFFBE9E7,
+                avatarTextColorHex = 0xFFD32F2F,
+                propertyName = "Ganga Nivas",
+                roomNumber = "Room 5",
+                email = null,
+                phone = null
+            ),
+            TenantDisplayModel(
+                id = "3",
+                name = "Marvin McKinney",
+                initials = "MM",
+                subtitle = "Sunrise Residency • Room 1B",
+                status = "Active",
+                isActive = true,
+                avatarBgColorHex = 0xFFE8F5E9,
+                avatarTextColorHex = 0xFF388E3C,
+                propertyName = "Sunrise Residency",
+                roomNumber = "Room 1B",
+                email = null,
+                phone = null
+            )
+        )
+        val dummyState = TenantsListState(
+            tenantsState = com.gaatho.rent.core.ui.UiState.Success(dummyTenants),
+            filteredTenants = dummyTenants,
+            selectedStatus = "All statuses",
+            selectedProperty = "All properties"
+        )
+        TenantsListContent(state = dummyState, onAction = {})
+    }
+}
 

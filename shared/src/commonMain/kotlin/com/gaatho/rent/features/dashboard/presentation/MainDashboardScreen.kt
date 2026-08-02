@@ -23,7 +23,8 @@ fun MainDashboardScreen(
     onNavigateToPropertyDetails: (String) -> Unit,
     onNavigateToAddProperty: () -> Unit,
     onNavigateToTenantDetails: (String) -> Unit = {},
-    onNavigateToAddTenant: () -> Unit = {}
+    onNavigateToAddTenant: () -> Unit = {},
+    onNavigateToLogin: () -> Unit = {}
 ) {
     val viewModel: MainDashboardViewModel = koinViewModel()
     val state by viewModel.collectAsState()
@@ -48,7 +49,8 @@ fun MainDashboardScreen(
             onNavigateToPropertyDetails = onNavigateToPropertyDetails,
             onNavigateToAddProperty = onNavigateToAddProperty,
             onNavigateToTenantDetails = onNavigateToTenantDetails,
-            onNavigateToAddTenant = onNavigateToAddTenant
+            onNavigateToAddTenant = onNavigateToAddTenant,
+            onNavigateToLogin = onNavigateToLogin
         )
     }
 }

@@ -44,27 +44,27 @@ val OnError            = Color(0xFFFFFFFF)
 val ErrorContainer     = Color(0xFFFFDAD6)
 val OnErrorContainer   = Color(0xFF93000A)
 
-// Surface scale
-val Surface                 = Color(0xFFF9F9FF)
-val SurfaceDim              = Color(0xFFD3DAEA)
-val SurfaceBright           = Color(0xFFF9F9FF)
-val SurfaceContainerLowest  = Color(0xFFFFFFFF)
-val SurfaceContainerLow     = Color(0xFFF0F3FF)
-val SurfaceContainer        = Color(0xFFE7EEFE)
-val SurfaceContainerHigh    = Color(0xFFE2E8F8)
-val SurfaceContainerHighest = Color(0xFFDCE2F3)
+// Surface scale - Premium Silver
+val Surface                 = Color(0xFFF9FAFB) // Gray 50
+val SurfaceDim              = Color(0xFFE5E7EB) // Gray 200
+val SurfaceBright           = Color(0xFFF9FAFB)
+val SurfaceContainerLowest  = Color(0xFFFFFFFF) // White
+val SurfaceContainerLow     = Color(0xFFF9FAFB)
+val SurfaceContainer        = Color(0xFFF3F4F6) // Gray 100
+val SurfaceContainerHigh    = Color(0xFFE5E7EB) // Gray 200
+val SurfaceContainerHighest = Color(0xFFD1D5DB) // Gray 300
 val SurfaceTint             = Color(0xFF4D44E3)
-val SurfaceVariant          = Color(0xFFDCE2F3)
+val SurfaceVariant          = Color(0xFFE5E7EB)
 
 // On-surface
-val OnSurface        = Color(0xFF111827)
-val OnSurfaceVariant = Color(0xFF64748B)
+val OnSurface        = Color(0xFF1A1A1A)
+val OnSurfaceVariant = Color(0xFF4B5563) // Gray-600 for proper secondary text contrast
 val InverseSurface   = Color(0xFF2A313D)
 val InverseOnSurface = Color(0xFFEBF1FF)
 
 // Background
 val Background   = Color(0xFFF9F9FF)
-val OnBackground = Color(0xFF111827)
+val OnBackground = Color(0xFF1A1A1A)
 
 // Outline
 val Outline        = Color(0xFF9CA3AF) // Gray-400
@@ -107,24 +107,24 @@ val DarkOnError            = Color(0xFF690005)
 val DarkErrorContainer     = Color(0xFF93000A)
 val DarkOnErrorContainer   = Color(0xFFFFDAD6)
 
-val DarkSurface                = Color(0xFF111827)
-val DarkSurfaceDim             = Color(0xFF111827)
-val DarkSurfaceBright          = Color(0xFF334155)
-val DarkSurfaceContainerLowest = Color(0xFF0B0F19)
-val DarkSurfaceContainerLow    = Color(0xFF1E293B)
-val DarkSurfaceContainer       = Color(0xFF1E293B)
-val DarkSurfaceContainerHigh   = Color(0xFF334155)
-val DarkSurfaceContainerHighest= Color(0xFF475569)
-val DarkSurfaceVariant         = Color(0xFF334155)
+val DarkSurface                = Color(0xFF121212)
+val DarkSurfaceDim             = Color(0xFF121212)
+val DarkSurfaceBright          = Color(0xFF2C2C2C)
+val DarkSurfaceContainerLowest = Color(0xFF000000)
+val DarkSurfaceContainerLow    = Color(0xFF1C1C1E)
+val DarkSurfaceContainer       = Color(0xFF1C1C1E)
+val DarkSurfaceContainerHigh   = Color(0xFF2C2C2C)
+val DarkSurfaceContainerHighest= Color(0xFF3A3A3C)
+val DarkSurfaceVariant         = Color(0xFF2C2C2C)
 val DarkSurfaceTint            = Color(0xFFBDC2FF)
 
-val DarkOnSurface        = Color(0xFFF8FAFC)
+val DarkOnSurface        = Color(0xFFE5E5E5)
 val DarkOnSurfaceVariant = Color(0xFFCBD5E1)
 val DarkInverseSurface   = Color(0xFFDAE2FD)
 val DarkInverseOnSurface = Color(0xFF283044)
 
-val DarkBackground   = Color(0xFF111827)
-val DarkOnBackground = Color(0xFFF8FAFC)
+val DarkBackground   = Color(0xFF000000)
+val DarkOnBackground = Color(0xFFE5E5E5)
 
 val DarkOutline        = Color(0xFF908F9E)
 val DarkOutlineVariant = Color(0xFF454653)

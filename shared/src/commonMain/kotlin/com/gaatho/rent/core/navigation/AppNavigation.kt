@@ -14,6 +14,14 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import com.gaatho.rent.core.ui.animation.tabSlideTransition
 import androidx.savedstate.serialization.SavedStateConfiguration
 import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.features.auth.presentation.LoginScreen
@@ -25,6 +33,8 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import com.gaatho.rent.features.dashboard.presentation.MainDashboardScreen
 import com.gaatho.rent.features.paywall.presentation.PaywallScreen
+import com.gaatho.rent.features.property.presentation.details.PropertyDetailsScreen
+import com.gaatho.rent.features.property.presentation.edit.EditPropertyScreen
 import com.gaatho.rent.features.tenant.presentation.list.TenantsListScreen
 import org.koin.compose.koinInject
 
@@ -50,6 +60,8 @@ fun AppNavigation() {
         entryDecorators = listOf(
             rememberViewModelStoreNavEntryDecorator()
         ),
+        transitionSpec = { tabSlideTransition(direction = 1) },
+        popTransitionSpec = { tabSlideTransition(direction = -1) },
         entryProvider = entryProvider {
 
             entry<SplashRoute> {
@@ -78,6 +90,10 @@ fun AppNavigation() {
                     },
                     onNavigateToAddTenant = {
                         backStack.add(AddTenantRoute)
+                    },
+                    onNavigateToLogin = {
+                        backStack.clear()
+                        backStack.add(LoginRoute)
                     }
                 )
             }
@@ -94,7 +110,16 @@ fun AppNavigation() {
             }
 
             entry<PropertyDetailRoute> { route ->
-                PlaceholderScreen("Property Detail\n${route.propertyId}")
+                PropertyDetailsScreen(
+                    propertyId = route.propertyId,
+                    onNavigateBack = { backStack.removeLastOrNull() },
+                    onNavigateToEdit = { propertyId ->
+                        backStack.add(EditPropertyRoute(propertyId))
+                    },
+                    onNavigateToTenantDetails = { tenantId ->
+                        backStack.add(TenantDetailRoute(tenantId))
+                    }
+                )
             }
 
             entry<AddPropertyRoute> {
@@ -103,7 +128,10 @@ fun AppNavigation() {
             }
 
             entry<EditPropertyRoute> { route ->
-                PlaceholderScreen("Edit Property\n${route.propertyId}")
+                EditPropertyScreen(
+                    propertyId = route.propertyId,
+                    onNavigateBack = { backStack.removeLastOrNull() }
+                )
             }
 
             entry<UnitListRoute> { route ->
@@ -139,8 +167,11 @@ fun AppNavigation() {
                 )
             }
 
-            entry<TenantDetailRoute> {
-                PlaceholderScreen("Tenant Details Screen")
+            entry<TenantDetailRoute> { route ->
+                com.gaatho.rent.features.tenant.presentation.details.TenantDetailsScreen(
+                    tenantId = route.tenantId,
+                    onNavigateBack = { backStack.removeLastOrNull() }
+                )
             }
 
             entry<AddTenantRoute> {

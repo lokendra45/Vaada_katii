@@ -11,16 +11,16 @@ import androidx.compose.ui.unit.dp
 object Spacing {
     /** 8dp — base grid unit */
     val BaseUnit        = 8.dp
-    /** 20dp — standard screen edge padding */
-    val ScreenPadding   = 20.dp
-    /** 24dp — separation between high-level sections */
-    val SectionGap      = 24.dp
+    /** 24dp — standard screen edge padding */
+    val ScreenPadding   = 24.dp
+    /** 32dp — separation between high-level sections */
+    val SectionGap      = 32.dp
     /** 16dp — separation between items/cards within a section */
     val ItemGap         = 16.dp
-    /** 4dp — tight label/icon stacking */
-    val StackTight      = 4.dp
-    /** 12dp — loose stacking within a component */
-    val StackLoose      = 12.dp
+    /** 8dp — tight label/icon stacking */
+    val StackTight      = 8.dp
+    /** 16dp — loose stacking within a component */
+    val StackLoose      = 16.dp
 }
 
 /**

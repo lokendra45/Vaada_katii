@@ -13,7 +13,8 @@ import kotlinx.serialization.Serializable
  * @property propertyId ID of the property they are renting.
  * @property propertyName Name of the property (e.g. "Sunrise Residency").
  * @property roomNumber Room or flat identifier (e.g. "Room 4A").
- * @property status Current occupancy status ("Active" or "Inactive").
+ * @property rentAmount Monthly rent amount in NPR (e.g. 15000).
+ * @property status Current occupancy status ("Active", "Inactive", or "Overdue").
  * @property createdAt ISO timestamp when first added.
  * @property updatedAt ISO timestamp of last update.
  */
@@ -27,6 +28,7 @@ data class Tenant(
     val propertyId: String? = null,
     val propertyName: String? = null,
     val roomNumber: String? = null,
+    val rentAmount: Long = 0L,
     val status: String = "Active",
     val createdAt: String? = null,
     val updatedAt: String? = null

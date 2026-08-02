@@ -10,6 +10,9 @@ import com.gaatho.rent.core.utils.UuidUtil
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
 import com.gaatho.rent.features.tenant.data.repository.TenantRepository
 import com.gaatho.rent.features.tenant.domain.model.Tenant
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.catch
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 
@@ -20,6 +23,11 @@ class TenantsListViewModel(
     savedStateHandle: SavedStateHandle
 ) : MviViewModel<TenantsListState, TenantsListSideEffect, TenantsListAction>() {
 
+    /**
+     * After [SqlDelightGuestSessionManager] caches the value on first access,
+     * this property is a pure in-memory lookup — no DB hit, safe on any thread.
+     * The repository layer owns IO dispatching for all actual DB operations.
+     */
     private val ownerId: String
         get() = userIdentityProvider.currentUserId()
 
@@ -35,13 +43,16 @@ class TenantsListViewModel(
     override fun onAction(action: TenantsListAction) {
         when (action) {
             is TenantsListAction.OnSearchQueryChanged -> intent {
-                reduce { state.copy(searchQuery = action.query) }
+                val newState = state.copy(searchQuery = action.query)
+                reduce { newState.copy(filteredTenants = computeFilteredTenants(newState)) }
             }
             is TenantsListAction.OnStatusFilterChanged -> intent {
-                reduce { state.copy(selectedStatus = action.status) }
+                val newState = state.copy(selectedStatus = action.status)
+                reduce { newState.copy(filteredTenants = computeFilteredTenants(newState)) }
             }
             is TenantsListAction.OnPropertyFilterChanged -> intent {
-                reduce { state.copy(selectedProperty = action.propertyName) }
+                val newState = state.copy(selectedProperty = action.propertyName)
+                reduce { newState.copy(filteredTenants = computeFilteredTenants(newState)) }
             }
             is TenantsListAction.OnTenantClicked -> intent {
                 postSideEffect(TenantsListSideEffect.NavigateToTenantDetails(action.tenantId))
@@ -56,6 +67,7 @@ class TenantsListViewModel(
     private fun observeTenants() = intent(registerIdling = false) {
         reduce { state.copy(tenantsState = UiState.Loading) }
         tenantRepository.getTenants(ownerId)
+            // IO dispatching is handled by LocalTenantRepository.flowOn(Dispatchers.IO)
             .catch { e ->
                 val msg = ErrorMessageExtractor.extract(e, "Could not load tenants. Please try again.")
                 reduce { state.copy(tenantsState = UiState.Error(msg)) }
@@ -65,58 +77,75 @@ class TenantsListViewModel(
                 if (tenants.isEmpty()) {
                     seedInitialTenantsIfEmpty()
                 } else {
-                    val displayModels = tenants.map { tenant ->
-                        val isActive = tenant.status.equals("Active", ignoreCase = true)
-                        
-                        // Harmonious Avatar Colors
-                        val colors = com.gaatho.rent.core.designsystem.ExtendedColorHex.AvatarPairs
-                        val index = kotlin.math.abs(tenant.name.hashCode()) % colors.size
-                        val (bgColor, textColor) = colors[index]
-                        
-                        // Initials (e.g. "John Doe" -> "JD")
-                        val parts = tenant.name.trim().split(Regex("\\s+"))
-                        val initials = if (parts.size >= 2) {
-                            "${parts[0].firstOrNull()?.uppercaseChar() ?: ""}${parts[1].firstOrNull()?.uppercaseChar() ?: ""}"
-                        } else {
-                            tenant.name.take(2).uppercase()
-                        }
-                        
-                        // Subtitle
-                        val subtitle = buildString {
-                            append(tenant.propertyName ?: "Assigned Room")
-                            if (!tenant.roomNumber.isNullOrBlank()) {
-                                append(" · ${tenant.roomNumber}")
-                            }
-                        }
-                        
-                        TenantDisplayModel(
-                            id = tenant.id,
-                            name = tenant.name,
-                            initials = initials,
-                            subtitle = subtitle,
-                            status = tenant.status,
-                            isActive = isActive,
-                            avatarBgColorHex = bgColor,
-                            avatarTextColorHex = textColor,
-                            propertyName = tenant.propertyName,
-                            roomNumber = tenant.roomNumber,
-                            email = tenant.email,
-                            phone = tenant.phone
-                        )
-                    }
-                    reduce { state.copy(tenantsState = UiState.Success(displayModels)) }
+                    val displayModels = tenants.map { mapToDisplayModel(it) }.toImmutableList()
+                    val newState = state.copy(tenantsState = UiState.Success(displayModels))
+                    reduce { newState.copy(filteredTenants = computeFilteredTenants(newState)) }
                 }
             }
     }
 
     private fun observeProperties() = intent(registerIdling = false) {
         propertyRepository.getProperties(ownerId)
+            // IO dispatching is handled by LocalPropertyRepository.flowOn(Dispatchers.IO)
             .catch { e ->
                 reduce { state.copy(propertiesState = UiState.Error("Failed to load properties")) }
             }
             .collect { properties ->
-                reduce { state.copy(propertiesState = UiState.Success(properties)) }
+                reduce { state.copy(propertiesState = UiState.Success(properties.toImmutableList())) }
             }
+    }
+
+    /**
+     * Pure filtering function — runs on the Orbit Default dispatcher, never on Main.
+     * The result is stored as a state field so Compose reads zero logic on recomposition.
+     */
+    private fun computeFilteredTenants(s: TenantsListState): ImmutableList<TenantDisplayModel> {
+        val raw = (s.tenantsState as? UiState.Success)?.data ?: return persistentListOf()
+        return raw.filter { tenant ->
+            val matchesSearch = if (s.searchQuery.isBlank()) {
+                true
+            } else {
+                val q = s.searchQuery.trim().lowercase()
+                tenant.name.lowercase().contains(q) ||
+                    (tenant.email?.lowercase()?.contains(q) == true) ||
+                    (tenant.phone?.lowercase()?.contains(q) == true) ||
+                    (tenant.propertyName?.lowercase()?.contains(q) == true) ||
+                    (tenant.roomNumber?.lowercase()?.contains(q) == true)
+            }
+            val matchesStatus = when (s.selectedStatus) {
+                "All statuses" -> true
+                else -> tenant.status.equals(s.selectedStatus, ignoreCase = true)
+            }
+            val matchesProperty = when (s.selectedProperty) {
+                "All properties" -> true
+                else -> tenant.propertyName?.equals(s.selectedProperty, ignoreCase = true) == true
+            }
+            matchesSearch && matchesStatus && matchesProperty
+        }.toImmutableList()
+    }
+
+    private fun mapToDisplayModel(tenant: Tenant): TenantDisplayModel {
+        val isActive = tenant.status.equals("Active", ignoreCase = true)
+        val colors = com.gaatho.rent.core.designsystem.ExtendedColorHex.AvatarPairs
+        val index = kotlin.math.abs(tenant.name.hashCode()) % colors.size
+        val (bgColor, textColor) = colors[index]
+        val parts = tenant.name.trim().split(Regex("\\s+"))
+        val initials = if (parts.size >= 2) {
+            "${parts[0].firstOrNull()?.uppercaseChar() ?: ""}${parts[1].firstOrNull()?.uppercaseChar() ?: ""}"
+        } else {
+            tenant.name.take(2).uppercase()
+        }
+        val subtitle = buildString {
+            append(tenant.propertyName ?: "Assigned Room")
+            if (!tenant.roomNumber.isNullOrBlank()) append(" · ${tenant.roomNumber}")
+        }
+        return TenantDisplayModel(
+            id = tenant.id, name = tenant.name, initials = initials,
+            subtitle = subtitle, status = tenant.status, isActive = isActive,
+            avatarBgColorHex = bgColor, avatarTextColorHex = textColor,
+            propertyName = tenant.propertyName, roomNumber = tenant.roomNumber,
+            email = tenant.email, phone = tenant.phone
+        )
     }
 
     private suspend fun seedInitialTenantsIfEmpty() {

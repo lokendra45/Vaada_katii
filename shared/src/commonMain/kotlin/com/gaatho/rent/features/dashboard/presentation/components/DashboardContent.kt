@@ -1,21 +1,29 @@
 package com.gaatho.rent.features.dashboard.presentation.components
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.gaatho.rent.core.ui.animation.tabSlideTransition
 import com.gaatho.rent.features.dashboard.presentation.home.HomeScreen
 import com.gaatho.rent.features.dashboard.presentation.model.DashboardTab
 import com.gaatho.rent.features.property.presentation.list.PropertyListScreen
+import com.gaatho.rent.features.settings.presentation.SettingsScreen
 import com.gaatho.rent.features.tenant.presentation.list.TenantsListScreen
 
 /**
  * Handles the switching of active tabs in the Main Dashboard.
- * 
- * In a complex app, each of these branches would route to a fully separated screen composable.
+ *
+ * Uses [AnimatedContent] with spring-physics [tabSlideTransition] for a premium,
+ * buttery-smooth feel — same animation system as GaathoMobileApp.
+ *
+ * [rememberSaveableStateHolder] preserves each tab's scroll position and form state
+ * across tab switches so state is never lost on re-entry.
  */
 @Composable
 fun DashboardContent(
@@ -26,31 +34,43 @@ fun DashboardContent(
     onNavigateToAddProperty: () -> Unit,
     onNavigateToTenantDetails: (String) -> Unit = {},
     onNavigateToAddTenant: () -> Unit = {},
+    onNavigateToLogin: () -> Unit = {},
 ) {
-    Box(
-        modifier = modifier.fillMaxSize()
-    ) {
-        when (currentTab) {
-            DashboardTab.HOME -> {
-                HomeScreen(
-                    onNavigateToProperties = onNavigateToPropertiesTab
-                )
+    val saveableStateHolder = rememberSaveableStateHolder()
+
+    Box(modifier = modifier.fillMaxSize()) {
+        AnimatedContent(
+            targetState = currentTab,
+            label = "DashboardTabTransition",
+            transitionSpec = {
+                val toIndex = DashboardTab.entries.indexOf(targetState)
+                val fromIndex = DashboardTab.entries.indexOf(initialState)
+                val direction = if (toIndex >= fromIndex) 1 else -1
+                tabSlideTransition(direction = direction)
             }
-            DashboardTab.PROPERTIES -> {
-                // The fully built PropertyListScreen
-                PropertyListScreen(
-                    onNavigateToDetails = onNavigateToPropertyDetails,
-                    onNavigateToAddProperty = onNavigateToAddProperty
-                )
-            }
-            DashboardTab.TENANTS -> {
-                TenantsListScreen(
-                    onNavigateToDetails = onNavigateToTenantDetails,
-                    onNavigateToAddTenant = onNavigateToAddTenant
-                )
-            }
-            DashboardTab.SETTINGS -> {
-                PlaceholderTab("App Settings & Profile")
+        ) { tab ->
+            // SaveableStateProvider keeps scroll position, text fields, etc. alive
+            // when switching away from a tab and coming back.
+            saveableStateHolder.SaveableStateProvider(key = tab.ordinal) {
+                when (tab) {
+                    DashboardTab.HOME -> HomeScreen(
+                        onNavigateToProperties = onNavigateToPropertiesTab
+                    )
+                    DashboardTab.PROPERTIES -> PropertyListScreen(
+                        onNavigateToDetails = onNavigateToPropertyDetails,
+                        onNavigateToAddProperty = onNavigateToAddProperty
+                    )
+                    DashboardTab.PAYMENTS -> com.gaatho.rent.features.payment.presentation.add.AddPaymentScreen(
+                        onNavigateBack = { /* Optional: switch to home */ }
+                    )
+                    DashboardTab.TENANTS -> TenantsListScreen(
+                        onNavigateToDetails = onNavigateToTenantDetails,
+                        onNavigateToAddTenant = onNavigateToAddTenant
+                    )
+                    DashboardTab.SETTINGS -> SettingsScreen(
+                        onNavigateToLogin = onNavigateToLogin
+                    )
+                }
             }
         }
     }

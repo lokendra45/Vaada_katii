@@ -18,6 +18,10 @@ class AddPropertyViewModel(
     savedStateHandle: SavedStateHandle
 ) : MviViewModel<AddPropertyState, AddPropertySideEffect, AddPropertyAction>() {
 
+    /**
+     * After [SqlDelightGuestSessionManager] caches the value on first access,
+     * this property is a pure in-memory lookup — no DB hit, safe on any thread.
+     */
     private val ownerId: String
         get() = userIdentityProvider.currentUserId()
 

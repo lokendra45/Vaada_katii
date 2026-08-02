@@ -1,8 +1,6 @@
 package com.gaatho.rent.core.database
 
 import android.content.Context
-import android.os.Build
-import androidx.annotation.RequiresApi
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.gaatho.rent.core.database.security.SecureDatabasePassphraseManager
@@ -17,8 +15,14 @@ private const val DB_NAME = "rentmanager.db"
 
 actual class DriverFactory(private val context: Context) {
 
-    // Matches SecureDatabasePassphraseManager's actual floor (API 23). StrongBox is attempted
-    // opportunistically on 28+ inside the manager -- it isn't a hard requirement here.
+    /**
+     * Guard flag to prevent infinite recursion during recovery.
+     * If `createDriver()` → verify fails → deleteDatabase → `createDriver()` again → that also
+     * fails, we must NOT call `createDriver()` a third time. Instead, throw and let the app
+     * surface the error to the user.
+     */
+    private var recoveryAttempted = false
+
     actual fun createDriver(): SqlDriver {
         System.loadLibrary("sqlcipher")
 
@@ -34,23 +38,24 @@ actual class DriverFactory(private val context: Context) {
             context.deleteDatabase(DB_NAME)
         }
 
-        // SupportOpenHelperFactory keeps a direct reference to `passphrase` -- it does not
-        // copy it, and unlike the legacy net.sqlcipher.database.SupportFactory this library
-        // has no clearPassphrase flag to auto-wipe it for you. The database also opens lazily
-        // (on first real access), so don't wipe the array here -- wipe it in postKey() below,
-        // which fires exactly once, right after the connection is actually keyed with it.
         val hook = object : SQLiteDatabaseHook {
             override fun preKey(connection: SQLiteConnection) {}
 
             override fun postKey(connection: SQLiteConnection) {
                 // Set-form pragmas return no row (SQLITE_DONE) -- must use execute(), not
-                // executeForString()/executeForLong(), which require a SQLITE_ROW result and throw
-                // SQLiteDoneException otherwise. executeForString/Long are only for query-form pragmas
-                // that return a value, e.g. "PRAGMA cipher_version;".
+                // executeForString()/executeForLong(), which require a SQLITE_ROW result.
                 connection.execute("PRAGMA temp_store = MEMORY;", null, null)
                 connection.execute("PRAGMA cipher_memory_security = ON;", null, null)
                 connection.execute("PRAGMA foreign_keys = ON;", null, null)
-                SecureDatabasePassphraseManager.wipe(passphrase)
+
+                // NOTE: Do NOT wipe the passphrase here. With WAL mode enabled,
+                // SupportOpenHelperFactory holds a direct reference to the passphrase
+                // ByteArray and reuses it to key additional pool connections for concurrent
+                // reads. Wiping it after the first connection causes all subsequent pool
+                // connections to fail with "file is not a database" (code 26).
+                //
+                // cipher_memory_security = ON (above) already ensures SQLCipher zeroes its
+                // own internal copies of key material when connections are closed.
             }
         }
 
@@ -68,13 +73,22 @@ actual class DriverFactory(private val context: Context) {
         )
 
         return try {
-            // Eagerly verify that the database file on disk can actually be opened and decrypted
-            // with the current passphrase. If the file on disk is plain-text SQLite (from an older build)
-            // or was encrypted with a different key before passphrase sync, SQLCipher throws
-            // SQLiteNotADatabaseException (code 26).
+            // Eagerly verify that the database file on disk can actually be opened and
+            // decrypted with the current passphrase.
             driver.executeQuery(null, "SELECT 1;", { cursor -> cursor.next() }, 0)
             driver
         } catch (e: Throwable) {
+            if (recoveryAttempted) {
+                // Already tried recovery once — do NOT recurse again. Throw to surface the
+                // real error instead of StackOverflowError.
+                AppLogger.database.e { "Database recovery already attempted. Refusing to recurse. Error: ${e.message}" }
+                try { driver.close() } catch (_: Exception) {}
+                throw IllegalStateException(
+                    "Database could not be opened even after recovery. " +
+                        "Please clear app data or reinstall.", e
+                )
+            }
+
             val msg = (e.message ?: "") + " " + (e.cause?.message ?: "")
             val isNotADatabase = e is net.zetetic.database.sqlcipher.SQLiteNotADatabaseException ||
                 msg.contains("file is not a database", ignoreCase = true) ||
@@ -82,19 +96,22 @@ actual class DriverFactory(private val context: Context) {
                 msg.contains("code 26")
 
             if (isNotADatabase || (dbFile.exists() && result.wasRegenerated)) {
-                AppLogger.database.e { "Database file on disk ($DB_NAME) cannot be opened/decrypted with current passphrase ($msg). Deleting corrupted/incompatible database and regenerating fresh driver." }
+                AppLogger.database.e {
+                    "Database file ($DB_NAME) cannot be opened with current passphrase ($msg). " +
+                        "Deleting and regenerating fresh driver."
+                }
                 try { driver.close() } catch (_: Exception) {}
                 context.deleteDatabase(DB_NAME)
 
-                // Also reset passphrase manager if the existing passphrase couldn't open the existing DB
+                // Also reset passphrase manager if the existing passphrase couldn't open the DB
                 if (!result.wasRegenerated) {
                     try {
-                        context.getSharedPreferences("rentmanager_secure_db_prefs", Context.MODE_PRIVATE).edit(
-                            commit = true
-                        ) { clear() }
+                        context.getSharedPreferences("rentmanager_secure_db_prefs", Context.MODE_PRIVATE)
+                            .edit(commit = true) { clear() }
                     } catch (_: Exception) {}
                 }
 
+                recoveryAttempted = true
                 return createDriver()
             }
             throw e

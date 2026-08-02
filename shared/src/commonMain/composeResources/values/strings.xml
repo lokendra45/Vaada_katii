@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common -->
+    <string name="app_name">Kotha</string>
+    <string name="cancel">Cancel</string>
+    <string name="retry">Retry</string>
+    <string name="continue_action">Continue</string>
+
+    <!-- Auth -->
+    <string name="privacy_policy">PRIVACY POLICY</string>
+    <string name="terms_of_service">TERMS OF SERVICE</string>
+    <string name="help_center">HELP CENTER</string>
+
+    <!-- Payment -->
+    <string name="payment_add_title">Add Payment</string>
+    <string name="payment_currency">NPR </string>
+    <string name="payment_amount_placeholder">0</string>
+    <string name="payment_details">Payment Details</string>
+    <string name="payment_tenant_label">Tenant &amp; Unit</string>
+    <string name="payment_tenant_placeholder">Select a tenant</string>
+    <string name="payment_property_label">Property</string>
+    <string name="payment_property_placeholder">Select a property</string>
+    <string name="payment_date_label">Payment Date</string>
+    <string name="payment_date_placeholder">DD-MMM-YYYY</string>
+    <string name="payment_method">Payment Method</string>
+    <string name="payment_remarks_label">Remarks (Optional)</string>
+    <string name="payment_remarks_placeholder">Reference ID or month...</string>
+    <string name="payment_record_button">Record Payment</string>
+    <string name="payment_total_due">TOTAL DUE: NPR %s</string>
+    <string name="payment_method_cash">Cash</string>
+    <string name="payment_method_bank">Bank</string>
+    <string name="payment_method_esewa">eSewa</string>
+    <string name="payment_method_khalti">Khalti</string>
+    <string name="payment_info_banner">A digital receipt and confirmation SMS will be sent to the tenant immediately.</string>
+
+    <!-- Property -->
+    <string name="property_create_button">Create Property</string>
+
+    <!-- Tenant -->
+    <string name="tenant_failed_load">Failed to load tenants</string>
+    <string name="tenant_add_button">Add Tenant</string>
+
+</resources>

@@ -7,16 +7,31 @@ import com.gaatho.rent.features.property.data.repository.ProxyPropertyRepository
 
 import com.gaatho.rent.features.property.presentation.add.AddPropertyViewModel
 import com.gaatho.rent.features.property.presentation.list.PropertyListViewModel
+import com.gaatho.rent.features.property.presentation.details.PropertyDetailsViewModel
+import com.gaatho.rent.features.property.presentation.edit.EditPropertyViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val propertyModule = module {
-    single { LocalPropertyRepository(get()) }          // RentManagerDatabase
-    single { CloudPropertyRepository(get()) }          // SupabaseClient
-    
-    // Bind Proxy to the main Interface
-    single<PropertyRepository> { ProxyPropertyRepository(get(), get(), get()) } // Local, Cloud, Paywall
-    
-    viewModel { PropertyListViewModel(get(), get(), get()) } // PropertyRepository, SupabaseClient, SavedStateHandle
-    viewModel { AddPropertyViewModel(get(), get(), get()) } // PropertyRepository, SupabaseClient, SavedStateHandle
+    single { LocalPropertyRepository(get()) }
+    single { CloudPropertyRepository(get()) }
+    single<PropertyRepository> { ProxyPropertyRepository(get(), get(), get()) }
+
+    viewModel { PropertyListViewModel(get(), get(), get()) }
+    viewModel { AddPropertyViewModel(get(), get(), get()) }
+    viewModel { params ->
+        PropertyDetailsViewModel(
+            propertyId = params.get(),
+            propertyRepository = get(),
+            tenantRepository = get(),
+            userIdentityProvider = get()
+        )
+    }
+    viewModel { params ->
+        EditPropertyViewModel(
+            propertyId = params.get(),
+            propertyRepository = get(),
+            userIdentityProvider = get()
+        )
+    }
 }

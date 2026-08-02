@@ -27,6 +27,9 @@ import com.gaatho.rent.features.property.presentation.add.AddPropertyAction
 import com.gaatho.rent.features.property.presentation.add.AddPropertyState
 import kotlinx.collections.immutable.immutableListOf
 import kotlinx.collections.immutable.persistentListOf
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.*
 
 @Composable
 fun AddPropertyBottomSheet(
@@ -294,7 +297,7 @@ fun AddPropertyBottomSheet(
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
                 ) {
-                    Text("Cancel", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
+                    Text(stringResource(Res.string.cancel), style = MaterialTheme.typography.labelLarge)
                 }
 
                 com.gaatho.rent.core.designsystem.components.RentManagerButton(
@@ -303,7 +306,7 @@ fun AddPropertyBottomSheet(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Text("Create Property", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
+                        Text(stringResource(Res.string.property_create_button), style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }

@@ -14,4 +14,5 @@ val tenantModule = module {
     single<TenantRepository> { ProxyTenantRepository(get(), get(), get()) }
 
     viewModel { TenantsListViewModel(get(), get(), get(), get()) }
+    viewModel { params -> com.gaatho.rent.features.tenant.presentation.details.TenantDetailsViewModel(tenantId = params.get()) }
 }

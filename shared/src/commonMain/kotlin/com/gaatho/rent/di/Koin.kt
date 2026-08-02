@@ -8,6 +8,7 @@ import com.gaatho.rent.features.auth.di.authModule
 import com.gaatho.rent.features.dashboard.di.dashboardModule
 import com.gaatho.rent.features.paywall.di.paywallModule
 import com.gaatho.rent.features.property.di.propertyModule
+import com.gaatho.rent.features.settings.di.settingsModule
 import com.gaatho.rent.features.splash.di.splashModule
 import com.gaatho.rent.features.tenant.di.tenantModule
 import org.koin.core.context.startKoin
@@ -37,7 +38,8 @@ fun initKoin(supabaseConfig: SupabaseConfig, appDeclaration: KoinAppDeclaration 
             dashboardModule,
             paywallModule,
             tenantModule,
-            // Add feature modules here as they are built
+            settingsModule,
+            com.gaatho.rent.features.payment.di.paymentModule,
         )
     }
 

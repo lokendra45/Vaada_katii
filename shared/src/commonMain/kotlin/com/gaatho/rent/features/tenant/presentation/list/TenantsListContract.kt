@@ -5,8 +5,12 @@ import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.features.property.domain.model.Property
 import com.gaatho.rent.features.tenant.domain.model.Tenant
 import kotlinx.serialization.Serializable
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 
 @Serializable
+@Immutable
 data class TenantDisplayModel(
     val id: String,
     val name: String,
@@ -24,56 +28,23 @@ data class TenantDisplayModel(
 
 /**
  * Represents the immutable UI state for the Tenants List screen.
+ *
+ * [filteredTenants] is a pre-computed field updated by the ViewModel on
+ * Dispatchers.Default — never computed on the Compose Main thread.
  */
 @Serializable
 @Immutable
 data class TenantsListState(
-    val tenantsState: UiState<List<TenantDisplayModel>> = UiState.Idle,
-    val propertiesState: UiState<List<Property>> = UiState.Idle,
+    val tenantsState: UiState<ImmutableList<TenantDisplayModel>> = UiState.Idle,
+    val propertiesState: UiState<ImmutableList<Property>> = UiState.Idle,
     val searchQuery: String = "",
     val selectedStatus: String = "All statuses",
-    val selectedProperty: String = "All properties"
+    val selectedProperty: String = "All properties",
+    // Pre-computed by ViewModel on Dispatchers.Default — never on the UI thread
+    val filteredTenants: ImmutableList<TenantDisplayModel> = persistentListOf()
 ) {
-    /**
-     * Helper to compute the active list of tenants regardless of state.
-     */
-    val allTenants: List<TenantDisplayModel>
-        get() = (tenantsState as? UiState.Success)?.data ?: emptyList()
-
-    /**
-     * Computes the filtered list based on current search query and selected dropdown filters.
-     */
-    val filteredTenants: List<TenantDisplayModel>
-        get() {
-            val raw = allTenants
-            return raw.filter { tenant ->
-                // 1. Search Query filter (matches name, email, phone, or property name)
-                val matchesSearch = if (searchQuery.isBlank()) {
-                    true
-                } else {
-                    val q = searchQuery.trim().lowercase()
-                    tenant.name.lowercase().contains(q) ||
-                        (tenant.email?.lowercase()?.contains(q) == true) ||
-                        (tenant.phone?.lowercase()?.contains(q) == true) ||
-                        (tenant.propertyName?.lowercase()?.contains(q) == true) ||
-                        (tenant.roomNumber?.lowercase()?.contains(q) == true)
-                }
-
-                // 2. Status dropdown filter
-                val matchesStatus = when (selectedStatus) {
-                    "All statuses" -> true
-                    else -> tenant.status.equals(selectedStatus, ignoreCase = true)
-                }
-
-                // 3. Property dropdown filter
-                val matchesProperty = when (selectedProperty) {
-                    "All properties" -> true
-                    else -> tenant.propertyName?.equals(selectedProperty, ignoreCase = true) == true
-                }
-
-                matchesSearch && matchesStatus && matchesProperty
-            }
-        }
+    val allTenants: ImmutableList<TenantDisplayModel>
+        get() = (tenantsState as? UiState.Success)?.data ?: persistentListOf()
 
     val totalCount: Int
         get() = allTenants.size

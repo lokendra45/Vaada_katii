@@ -7,6 +7,8 @@ import com.gaatho.rent.features.property.domain.model.Property
 import com.skydoves.sandwich.ApiResponse
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
@@ -14,7 +16,7 @@ class CloudPropertyRepository(
     private val supabase: SupabaseClient
 ) : PropertyRepository {
 
-    override fun getProperties(ownerId: String): Flow<List<Property>> = flow {
+    override fun getProperties(ownerId: String): Flow<ImmutableList<Property>> = flow {
         val dtos = supabase.postgrest["property"]
             .select {
                 filter {
@@ -22,7 +24,7 @@ class CloudPropertyRepository(
                 }
             }
             .decodeList<PropertyDto>()
-        emit(dtos.map { it.toDomain() })
+        emit(dtos.map { it.toDomain() }.toPersistentList())
     }
 
     override suspend fun createProperty(property: Property): ApiResponse<Unit> =
