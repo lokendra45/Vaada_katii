@@ -93,30 +93,8 @@ fun SettingsScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            // Stitch: back arrow + centered title
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(Res.string.settings_title),
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.SemiBold
-                        ),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = {}) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    scrolledContainerColor = MaterialTheme.colorScheme.background,
-                )
+            com.gaatho.rent.core.ui.components.AppTopBar(
+                title = stringResource(Res.string.settings_title)
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -149,53 +127,31 @@ private fun SettingsContent(
             .padding(bottom = 32.dp),
     ) {
 
-        // ── 1. Account ────────────────────────────────────────────────────────
-        SectionLabel(stringResource(Res.string.account_section))
+        // ── 0. Profile Card ──────────────────────────
+        Spacer(modifier = Modifier.height(16.dp))
         SettingsCard {
-            // Profile row
             SettingsNavRow(
                 leading = {
                     ProfileAvatar(
                         imageUrl = null, // TODO: user avatarUrl
                         displayName = state.userName,
-                        modifier = Modifier.size(48.dp)
+                        modifier = Modifier.size(56.dp)
                     )
                 },
                 title = state.userName.ifEmpty { stringResource(Res.string.guest) },
                 subtitle = state.userEmail.ifEmpty { stringResource(Res.string.not_signed_in) },
-                showDivider = true,
+                showDivider = false,
                 onClick = {}
-            )
-            // Subscription row
-            SettingsNavRow(
-                leading = {
-                    IconCircle(icon = Icons.Outlined.Stars, tint = MaterialTheme.colorScheme.primary)
-                },
-                title = stringResource(Res.string.subscription),
-                trailing = {
-                    Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
-                    ) {
-                        Text(
-                            text = if (state.isPremium) stringResource(Res.string.premium) else stringResource(Res.string.free),
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.primary
-                            ),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
-                },
-                onClick = { onAction(SettingsAction.OnUpgradeClicked) }
             )
         }
 
-        // ── 2. Notifications ──────────────────────────────────────────────────
+        // ── 1. Notifications ──────────────────────────────────────────────────
         SectionLabel(stringResource(Res.string.notifications_section))
         SettingsCard {
             SettingsToggleRow(
                 icon = Icons.Outlined.Notifications,
+                iconTint = MaterialTheme.colorScheme.primary,
+                iconBackground = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
                 title = stringResource(Res.string.push_notifications),
                 checked = state.notificationsEnabled,
                 showDivider = true,
@@ -203,6 +159,8 @@ private fun SettingsContent(
             )
             SettingsToggleRow(
                 icon = Icons.Outlined.Email,
+                iconTint = MaterialTheme.colorScheme.primary,
+                iconBackground = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
                 title = stringResource(Res.string.email_alerts),
                 checked = state.emailAlertsEnabled,
                 showDivider = false,
@@ -214,13 +172,21 @@ private fun SettingsContent(
         SectionLabel(stringResource(Res.string.security_section))
         SettingsCard {
             SettingsNavRow(
-                leading = { IconCircle(icon = Icons.Outlined.Lock) },
+                leading = {
+                    IconCircle(
+                        icon = Icons.Outlined.Lock,
+                        tint = Color(0xFFE65100),
+                        background = Color(0xFFFFF3E0)
+                    )
+                },
                 title = stringResource(Res.string.change_password),
                 showDivider = true,
                 onClick = {}
             )
             SettingsToggleRow(
                 icon = Icons.Outlined.Fingerprint,
+                iconTint = Color(0xFFE65100),
+                iconBackground = Color(0xFFFFF3E0),
                 title = stringResource(Res.string.biometrics),
                 subtitle = stringResource(Res.string.face_id_touch_id),
                 checked = state.biometricsEnabled,
@@ -234,13 +200,21 @@ private fun SettingsContent(
         SettingsCard {
             SettingsToggleRow(
                 icon = Icons.Outlined.DarkMode,
+                iconTint = MaterialTheme.colorScheme.secondary,
+                iconBackground = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
                 title = stringResource(Res.string.dark_mode),
                 checked = state.darkModeEnabled,
                 showDivider = true,
                 onCheckedChange = { onAction(SettingsAction.OnDarkModeToggled(it)) }
             )
             SettingsNavRow(
-                leading = { IconCircle(icon = Icons.Outlined.CurrencyRupee) },
+                leading = {
+                    IconCircle(
+                        icon = Icons.Outlined.CurrencyRupee,
+                        tint = Color(0xFF2E7D32),
+                        background = Color(0xFFE8F5E9)
+                    )
+                },
                 title = stringResource(Res.string.currency),
                 trailingLabel = "NPR",
                 showDivider = true,
@@ -249,7 +223,13 @@ private fun SettingsContent(
             Box {
                 var languageDropDownVisible by remember { mutableStateOf(false) }
                 SettingsNavRow(
-                    leading = { IconCircle(icon = Icons.Outlined.Language) },
+                    leading = {
+                        IconCircle(
+                            icon = Icons.Outlined.Language,
+                            tint = Color(0xFF1565C0),
+                            background = Color(0xFFE3F2FD)
+                        )
+                    },
                     title = stringResource(Res.string.language),
                     trailingLabel = if (currentLanguageCode == "ne") "नेपाली" else "English",
                     showDivider = false,
@@ -283,19 +263,37 @@ private fun SettingsContent(
         SectionLabel(stringResource(Res.string.help_support_section))
         SettingsCard {
             SettingsNavRow(
-                leading = { IconCircle(icon = Icons.AutoMirrored.Outlined.HelpOutline) },
+                leading = {
+                    IconCircle(
+                        icon = Icons.AutoMirrored.Outlined.HelpOutline,
+                        tint = MaterialTheme.colorScheme.primary,
+                        background = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                    )
+                },
                 title = stringResource(Res.string.faq),
                 showDivider = true,
                 onClick = {}
             )
             SettingsNavRow(
-                leading = { IconCircle(icon = Icons.Outlined.SupportAgent) },
+                leading = {
+                    IconCircle(
+                        icon = Icons.Outlined.SupportAgent,
+                        tint = MaterialTheme.colorScheme.primary,
+                        background = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                    )
+                },
                 title = stringResource(Res.string.contact_us),
                 showDivider = true,
                 onClick = {}
             )
             SettingsNavRow(
-                leading = { IconCircle(icon = Icons.Outlined.Policy) },
+                leading = {
+                    IconCircle(
+                        icon = Icons.Outlined.Policy,
+                        tint = MaterialTheme.colorScheme.primary,
+                        background = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                    )
+                },
                 title = stringResource(Res.string.privacy_policy),
                 showDivider = false,
                 onClick = {}
@@ -319,15 +317,15 @@ private fun SettingsContent(
 @Composable
 private fun SectionLabel(title: String) {
     Text(
-        text = title,
-        style = MaterialTheme.typography.titleLarge.copy(
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 18.sp
+        text = title.uppercase(),
+        style = MaterialTheme.typography.labelSmall.copy(
+            fontWeight = FontWeight.Medium,
+            letterSpacing = 1.2.sp
         ),
-        color = MaterialTheme.colorScheme.onSurface,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier
             .padding(horizontal = 4.dp)
-            .padding(top = 28.dp, bottom = 8.dp)
+            .padding(top = 28.dp, bottom = 10.dp)
     )
 }
 
@@ -337,13 +335,9 @@ private fun SectionLabel(title: String) {
 private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-        ),
-        shadowElevation = 0.dp
+        shadowElevation = 1.dp
     ) {
         Column { content() }
     }
@@ -420,6 +414,8 @@ private fun SettingsToggleRow(
     subtitle: String? = null,
     checked: Boolean,
     showDivider: Boolean = true,
+    iconTint: Color = MaterialTheme.colorScheme.primary,
+    iconBackground: Color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
     onCheckedChange: (Boolean) -> Unit
 ) {
     // Spring scale micro-animation on toggle
@@ -434,11 +430,11 @@ private fun SettingsToggleRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onCheckedChange(!checked) }
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            IconCircle(icon = icon)
+            IconCircle(icon = icon, tint = iconTint, background = iconBackground)
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
@@ -449,7 +445,7 @@ private fun SettingsToggleRow(
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -483,22 +479,23 @@ private fun SettingsToggleRow(
 @Composable
 private fun IconCircle(
     icon: ImageVector,
-    tint: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    tint: Color = MaterialTheme.colorScheme.primary,
+    background: Color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
 ) {
     Box(
         modifier = Modifier
-            .size(32.dp)
+            .size(36.dp)
             .background(
-                color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.6f),
-                shape = CircleShape
+                color = background,
+                shape = RoundedCornerShape(10.dp)
             ),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = tint.copy(alpha = 0.8f),
-            modifier = Modifier.size(18.dp)
+            tint = tint,
+            modifier = Modifier.size(20.dp)
         )
     }
 }
@@ -571,7 +568,7 @@ private fun LogoutButton(onClick: () -> Unit) {
         Spacer(Modifier.width(8.dp))
         Text(
             text = stringResource(Res.string.logout_action),
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium)
         )
     }
 }

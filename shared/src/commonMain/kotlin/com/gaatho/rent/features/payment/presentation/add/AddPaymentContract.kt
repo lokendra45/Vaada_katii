@@ -20,6 +20,7 @@ data class AddPaymentState(
     val paymentDate: String = "",
     val selectedPaymentMethod: PaymentMethod? = null,
     val remarks: String = "",
+    val isReceiptAgreed: Boolean = true,
     
     val isSaving: Boolean = false,
     val isSuccess: Boolean = false
@@ -30,6 +31,7 @@ data class AddPaymentState(
                 selectedPropertyId != null &&
                 paymentDate.isNotBlank() &&
                 selectedPaymentMethod != null &&
+                isReceiptAgreed &&
                 !isSaving
 }
 
@@ -59,6 +61,7 @@ sealed class AddPaymentAction {
     data class OnPaymentDateChanged(val date: String) : AddPaymentAction()
     data class OnPaymentMethodSelected(val method: PaymentMethod) : AddPaymentAction()
     data class OnRemarksChanged(val remarks: String) : AddPaymentAction()
+    data class OnAgreementToggled(val agreed: Boolean) : AddPaymentAction()
     
     data object OnRecordPaymentClicked : AddPaymentAction()
     data object OnBackClicked : AddPaymentAction()

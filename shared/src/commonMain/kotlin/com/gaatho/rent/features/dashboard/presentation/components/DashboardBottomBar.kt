@@ -43,7 +43,7 @@ fun DashboardBottomBar(
                 label = {
                     Text(
                         text = stringResource(tab.title),
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                        fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(

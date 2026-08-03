@@ -52,6 +52,9 @@ class AddPaymentViewModel : MviViewModel<AddPaymentState, AddPaymentEffect, AddP
             is AddPaymentAction.OnRemarksChanged -> intent {
                 reduce { state.copy(remarks = action.remarks) }
             }
+            is AddPaymentAction.OnAgreementToggled -> intent {
+                reduce { state.copy(isReceiptAgreed = action.agreed) }
+            }
             is AddPaymentAction.OnRecordPaymentClicked -> intent {
                 if (!state.canSubmit) {
                     postSideEffect(AddPaymentEffect.ShowToast("Please fill all required fields"))

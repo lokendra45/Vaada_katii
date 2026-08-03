@@ -211,7 +211,7 @@ fun TenantsListContent(
                                 ) {
                                     Text(
                                         text = stringResource(Res.string.no_tenants_found),
-                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium)
                                     )
                                     Text(
                                         text = stringResource(Res.string.no_tenants_found_subtitle),
@@ -362,7 +362,7 @@ private fun TenantRowItem(
                     text = tenant.initials,
                     style = MaterialTheme.typography.titleMedium.copy(
                         color = Color(tenant.avatarTextColorHex),
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Medium
                     )
                 )
             }
@@ -376,10 +376,9 @@ private fun TenantRowItem(
             ) {
                 Text(
                     text = tenant.name,
-                    style = MaterialTheme.typography.titleMedium.copy(
+                    style = MaterialTheme.typography.titleLarge.copy(
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 17.sp
+                        fontWeight = FontWeight.Medium
                     ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

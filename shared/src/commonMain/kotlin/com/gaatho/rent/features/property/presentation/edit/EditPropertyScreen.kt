@@ -49,6 +49,12 @@ fun EditPropertyScreen(
     }
 
     Scaffold(
+        topBar = {
+            com.gaatho.rent.core.ui.components.AppTopBar(
+                title = "Edit Property",
+                onBackClick = { viewModel.onAction(EditPropertyAction.OnBackClicked) }
+            )
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
@@ -77,29 +83,6 @@ private fun EditPropertyContent(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface)
     ) {
-        // ── Top Bar ──────────────────────────────────────────────────────────
-        TopAppBar(
-            title = {
-                Text(
-                    text = "Edit Property",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.SemiBold
-                    )
-                )
-            },
-            navigationIcon = {
-                IconButton(onClick = { onAction(EditPropertyAction.OnBackClicked) }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back"
-                    )
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            )
-        )
-
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 
         if (state.isLoading) {
@@ -325,14 +308,15 @@ private fun EditPropertyContent(
                         .padding(horizontal = 24.dp, vertical = 20.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    OutlinedButton(
+                    Button(
                         onClick = { onAction(EditPropertyAction.OnBackClicked) },
                         modifier = Modifier
                             .weight(1f)
                             .height(AppDimensions.ButtonHeightMedium),
                         shape = RoundedCornerShape(AppDimensions.RadiusPill),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                        colors = ButtonDefaults.outlinedButtonColors(
+                        elevation = ButtonDefaults.buttonElevation(0.dp, 0.dp, 0.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                             contentColor = MaterialTheme.colorScheme.onSurface
                         )
                     ) {
@@ -391,13 +375,9 @@ private fun EditAmenityChip(
     Surface(
         onClick = onToggle,
         shape = RoundedCornerShape(12.dp),
-        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
-        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-        border = BorderStroke(
-            1.dp,
-            if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-            else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-        ),
+        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceContainerLowest,
+        shadowElevation = 0.dp,
         modifier = modifier.height(48.dp)
     ) {
         Row(
@@ -409,13 +389,7 @@ private fun EditAmenityChip(
                 modifier = Modifier
                     .size(20.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
-                    .border(
-                        1.dp,
-                        if (isSelected) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.outlineVariant,
-                        RoundedCornerShape(4.dp)
-                    ),
+                    .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh),
                 contentAlignment = Alignment.Center
             ) {
                 if (isSelected) {

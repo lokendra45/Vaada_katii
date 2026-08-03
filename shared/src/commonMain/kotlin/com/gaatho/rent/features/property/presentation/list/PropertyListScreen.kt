@@ -352,10 +352,9 @@ private fun PropertyRowItem(
             // Title
             Text(
                 text = property.name,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 17.sp
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface
                 ),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -396,7 +395,7 @@ private fun PropertyRowItem(
             Text(
                 text = property.pendingText,
                 style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Medium,
                     color = if (property.isPending) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
@@ -415,9 +414,9 @@ private fun EmptyPropertiesState(
     modifier: Modifier = Modifier
 ) {
     Surface(
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
+        shadowElevation = 2.dp,
         modifier = modifier.padding(24.dp).fillMaxWidth()
     ) {
         Column(
@@ -438,7 +437,7 @@ private fun EmptyPropertiesState(
                 Text(
                     text = stringResource(Res.string.welcome_property_empty_title),
                     style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
                     ),
                     textAlign = TextAlign.Center
@@ -464,7 +463,7 @@ private fun EmptyPropertiesState(
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(20.dp))
                     Text(
                         text = stringResource(Res.string.add_first_property_btn),
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium)
                     )
                 }
             }

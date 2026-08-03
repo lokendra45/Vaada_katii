@@ -34,6 +34,16 @@ fun DashboardContent(
     onNavigateToTenantDetails: (String) -> Unit = {},
     onNavigateToAddTenant: () -> Unit = {},
     onNavigateToLogin: () -> Unit = {},
+    content: @Composable (DashboardTab) -> Unit = { tab ->
+        DefaultDashboardTabContent(
+            tab = tab,
+            onNavigateToPropertyDetails = onNavigateToPropertyDetails,
+            onNavigateToAddProperty = onNavigateToAddProperty,
+            onNavigateToTenantDetails = onNavigateToTenantDetails,
+            onNavigateToAddTenant = onNavigateToAddTenant,
+            onNavigateToLogin = onNavigateToLogin
+        )
+    }
 ) {
     val saveableStateHolder = rememberSaveableStateHolder()
 
@@ -48,28 +58,38 @@ fun DashboardContent(
                 tabSlideTransition(direction = direction)
             }
         ) { tab ->
-            // SaveableStateProvider keeps scroll position, text fields, etc. alive
-            // when switching away from a tab and coming back.
             saveableStateHolder.SaveableStateProvider(key = tab.ordinal) {
-                when (tab) {
-                    DashboardTab.HOME -> HomeScreen()
-                    DashboardTab.PROPERTIES -> PropertyListScreen(
-                        onNavigateToDetails = onNavigateToPropertyDetails,
-                        onNavigateToAddProperty = onNavigateToAddProperty
-                    )
-                    DashboardTab.PAYMENTS -> com.gaatho.rent.features.payment.presentation.add.AddPaymentScreen(
-                        onNavigateBack = { /* Optional: switch to home */ }
-                    )
-                    DashboardTab.TENANTS -> TenantsListScreen(
-                        onNavigateToDetails = onNavigateToTenantDetails,
-                        onNavigateToAddTenant = onNavigateToAddTenant
-                    )
-                    DashboardTab.SETTINGS -> SettingsScreen(
-                        onNavigateToLogin = onNavigateToLogin
-                    )
-                }
+                content(tab)
             }
         }
+    }
+}
+
+@Composable
+private fun DefaultDashboardTabContent(
+    tab: DashboardTab,
+    onNavigateToPropertyDetails: (String) -> Unit,
+    onNavigateToAddProperty: () -> Unit,
+    onNavigateToTenantDetails: (String) -> Unit,
+    onNavigateToAddTenant: () -> Unit,
+    onNavigateToLogin: () -> Unit
+) {
+    when (tab) {
+        DashboardTab.HOME -> HomeScreen()
+        DashboardTab.PROPERTIES -> PropertyListScreen(
+            onNavigateToDetails = onNavigateToPropertyDetails,
+            onNavigateToAddProperty = onNavigateToAddProperty
+        )
+        DashboardTab.PAYMENTS -> com.gaatho.rent.features.payment.presentation.add.AddPaymentScreen(
+            onNavigateBack = { /* Optional: switch to home */ }
+        )
+        DashboardTab.TENANTS -> TenantsListScreen(
+            onNavigateToDetails = onNavigateToTenantDetails,
+            onNavigateToAddTenant = onNavigateToAddTenant
+        )
+        DashboardTab.SETTINGS -> SettingsScreen(
+            onNavigateToLogin = onNavigateToLogin
+        )
     }
 }
 

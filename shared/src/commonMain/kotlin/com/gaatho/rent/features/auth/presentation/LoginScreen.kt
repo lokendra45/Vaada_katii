@@ -117,7 +117,7 @@ fun LoginContent(
                 // Title
                 Text(
                     text = stringResource(Res.string.login_title),
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium),
                     color = MaterialTheme.colorScheme.primary
                 )
 
@@ -150,10 +150,9 @@ fun LoginContent(
                 // White Card (Uses Surface color for proper dark mode support)
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(
                         modifier = Modifier.padding(24.dp),
@@ -166,7 +165,7 @@ fun LoginContent(
                             icon = {
                                 Text(
                                     text = stringResource(Res.string.google_g),
-                                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black),
+                                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium),
                                     color = androidx.compose.ui.graphics.Color(0xFF4285F4), // Keep Google logo colored
                                     modifier = Modifier.padding(end = 12.dp)
                                 )
@@ -183,7 +182,7 @@ fun LoginContent(
                                 modifier = Modifier.padding(horizontal = 16.dp),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Medium
                             )
                             HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
                         }
@@ -196,7 +195,7 @@ fun LoginContent(
                                 text = stringResource(Res.string.email_address_label),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.Medium,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
                             RentManagerTextField(
@@ -214,7 +213,7 @@ fun LoginContent(
                                 text = stringResource(Res.string.password_label),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.Medium,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
                             RentManagerTextField(
@@ -269,7 +268,7 @@ fun LoginContent(
                     Text(
                         text = if (state.isLoginMode) stringResource(Res.string.create_account_action) else stringResource(Res.string.sign_in_action),
                         color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                         modifier = Modifier.clickable { onAction(AuthAction.OnToggleAuthMode) }.padding(4.dp)
                     )
                 }
@@ -284,7 +283,7 @@ fun LoginContent(
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
                     border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                 ) {
-                    Text(stringResource(Res.string.continue_action), fontWeight = FontWeight.Bold)
+                    Text(stringResource(Res.string.continue_action), fontWeight = FontWeight.Medium)
                 }
 
                 Spacer(modifier = Modifier.height(48.dp))

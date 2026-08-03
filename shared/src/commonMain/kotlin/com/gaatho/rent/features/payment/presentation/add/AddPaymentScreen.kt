@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -29,13 +30,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.designsystem.Spacing
+import com.gaatho.rent.core.designsystem.interFontFamily
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.core.ui.components.AppDropdown
 import com.gaatho.rent.core.ui.components.AppTextField
@@ -65,20 +76,31 @@ fun AddPaymentScreen(
 
     AddPaymentContent(
         state = state,
-        onAction = viewModel::onAction
+        onAction = viewModel::onAction,
+        onNavigateBack = onNavigateBack
     )
 }
 
 @Composable
 fun AddPaymentContent(
     state: AddPaymentState,
-    onAction: (AddPaymentAction) -> Unit
+    onAction: (AddPaymentAction) -> Unit,
+    onNavigateBack: () -> Unit
 ) {
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        topBar = {
+            com.gaatho.rent.core.ui.components.AppTopBar(
+                title = stringResource(Res.string.payment_add_title),
+                onBackClick = onNavigateBack,
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
+            )
+        },
         bottomBar = {
             AddPaymentBottomBar(
                 enabled = state.canSubmit,
+                isAgreed = state.isReceiptAgreed,
+                onAgreementToggled = { onAction(AddPaymentAction.OnAgreementToggled(it)) },
                 onClick = { onAction(AddPaymentAction.OnRecordPaymentClicked) }
             )
         }
@@ -87,204 +109,371 @@ fun AddPaymentContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .imePadding() // Add IME padding here for the whole scrollable content
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = Spacing.ScreenPadding),
-            verticalArrangement = Arrangement.spacedBy(Spacing.SectionGap)
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(Spacing.ItemGap))
-            
-            // Custom Back button & Title Row
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                IconButton(
-                    onClick = { onAction(AddPaymentAction.OnBackClicked) },
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(MaterialTheme.colorScheme.surfaceContainerLowest, MaterialTheme.shapes.medium)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack, 
-                        contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-                Text(
-                    text = stringResource(Res.string.payment_add_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
+            Spacer(modifier = Modifier.height(Spacing.SectionGap))
 
+            // Amount Section
             AmountSection(
                 amount = state.amount,
                 onAmountChange = { onAction(AddPaymentAction.OnAmountChanged(it)) }
             )
 
+            Spacer(modifier = Modifier.height(Spacing.SectionGap))
+
+            // Details section grouped in a single card
             PaymentDetailsSection(state = state, onAction = onAction)
-            
+
+            Spacer(modifier = Modifier.height(Spacing.ItemGap))
+
             PaymentMethodSection(
                 selectedMethod = state.selectedPaymentMethod,
                 onMethodSelected = { onAction(AddPaymentAction.OnPaymentMethodSelected(it)) }
             )
 
+            Spacer(modifier = Modifier.height(Spacing.ItemGap))
+
             RemarksSection(
                 remarks = state.remarks,
                 onRemarksChange = { onAction(AddPaymentAction.OnRemarksChanged(it)) }
             )
-            
-            // Info Banner
-            Surface(
-                shape = MaterialTheme.shapes.medium,
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.fillMaxWidth().padding(top = Spacing.ItemGap)
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Info,
-                        contentDescription = "Info",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = stringResource(Res.string.payment_info_banner),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            
+
             Spacer(modifier = Modifier.height(Spacing.SectionGap))
         }
     }
 }
 
+@Composable
+fun FormCard(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        shadowElevation = 0.dp,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f))
+    ) {
+        Column(
+            modifier = Modifier.padding(vertical = 4.dp),
+            content = content
+        )
+    }
+}
 
 @Composable
-private fun AmountSection(amount: String, onAmountChange: (String) -> Unit) {
+ fun FormRow(
+    label: String,
+    value: String,
+    placeholder: String = "",
+    leadingIcon: @Composable (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
+    showDivider: Boolean = true
+) {
+    val isPlaceholder = value.isEmpty()
+    
     Column(
-        modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.ItemGap),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = stringResource(Res.string.payment_currency),
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            if (leadingIcon != null) {
+                Box(modifier = Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+                    leadingIcon()
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+            }
             
-            var textValue by remember(amount) { mutableStateOf(amount) }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = label.uppercase(),
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 0.5.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f)
+                )
+                Text(
+                    text = if (isPlaceholder) placeholder else value,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = if (isPlaceholder) FontWeight.Normal else FontWeight.Medium
+                    ),
+                    color = if (isPlaceholder) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface
+                )
+            }
             
-            BasicTextField(
-                value = textValue,
-                onValueChange = { 
-                    val filtered = it.filter { char -> char.isDigit() }
-                    textValue = filtered
-                    onAmountChange(filtered) 
-                },
-                textStyle = MaterialTheme.typography.displayLarge.copy(
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Start
-                ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                decorationBox = { innerTextField ->
-                    if (textValue.isEmpty()) {
-                        Text(
-                            text = stringResource(Res.string.payment_amount_placeholder),
-                            style = MaterialTheme.typography.displayLarge.copy(
-                                color = MaterialTheme.colorScheme.outline
-                            )
-                        )
-                    }
-                    innerTextField()
-                },
-                modifier = Modifier.width(IntrinsicSize.Min).widthIn(min = 40.dp)
-            )
+            if (trailingIcon != null) {
+                trailingIcon()
+            }
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        Surface(
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f),
-            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
-        ) {
-            Text(
-                text = stringResource(Res.string.payment_total_due, "4,500"),
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        if (showDivider) {
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                thickness = 0.8.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
             )
         }
     }
 }
 
 @Composable
+private fun AmountSection(amount: String, onAmountChange: (String) -> Unit) {
+    var textValue by remember(amount) { mutableStateOf(amount) }
+    val density = LocalDensity.current
+    val textMeasurer = rememberTextMeasurer()
+    val fontFamily = interFontFamily()
+
+    val maxFontSizeSp = 48f
+    val minFontSizeSp = 24f
+    val prefixFontSizeSp = 20f
+    val prefixText = "NPR "
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            val prefixWidthPx = remember {
+                textMeasurer.measure(
+                    text = prefixText,
+                    style = TextStyle(fontFamily = fontFamily, fontWeight = FontWeight.Medium, fontSize = prefixFontSizeSp.sp)
+                ).size.width.toFloat()
+            }
+            val availableWidthPx = with(density) { (maxWidth * 0.9f).toPx() } - prefixWidthPx
+            val displayAmount = textValue.ifEmpty { "0" }
+
+            val digitFontSizeSp = remember(displayAmount, availableWidthPx) {
+                var size = maxFontSizeSp
+                while (size > minFontSizeSp) {
+                    val measured = textMeasurer.measure(
+                        text = displayAmount,
+                        style = TextStyle(fontFamily = fontFamily, fontWeight = FontWeight.Light, fontSize = size.sp)
+                    )
+                    if (measured.size.width <= availableWidthPx) break
+                    size -= 2f
+                }
+                size
+            }
+
+            val visualTransformation = remember(digitFontSizeSp) {
+                VisualTransformation { text ->
+                    val original = text.text.ifEmpty { "0" }
+                    val transformed = buildAnnotatedString {
+                        withStyle(
+                            SpanStyle(
+                                fontSize = prefixFontSizeSp.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.Gray.copy(alpha = 0.7f)
+                            )
+                        ) {
+                            append(prefixText)
+                        }
+                        withStyle(
+                            SpanStyle(
+                                fontSize = digitFontSizeSp.sp,
+                                fontWeight = FontWeight.Normal
+                            )
+                        ) {
+                            append(original)
+                        }
+                    }
+                    val prefixLen = prefixText.length
+
+                    val offsetMapping = object : OffsetMapping {
+                        override fun originalToTransformed(offset: Int): Int = offset + prefixLen
+                        override fun transformedToOriginal(offset: Int): Int =
+                            (offset - prefixLen).coerceIn(0, text.text.length)
+                    }
+
+                    TransformedText(transformed, offsetMapping)
+                }
+            }
+
+            BasicTextField(
+                value = textValue,
+                onValueChange = {
+                    val filtered = it.filter { char -> char.isDigit() }
+                    textValue = filtered
+                    onAmountChange(filtered)
+                },
+                textStyle = TextStyle(
+                    fontFamily = fontFamily,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = digitFontSizeSp.sp,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurface
+                ),
+                visualTransformation = visualTransformation,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                modifier = Modifier.fillMaxWidth(0.9f)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+            contentColor = MaterialTheme.colorScheme.primary
+        ) {
+            Text(
+                text = "Total due: NPR 4,500",
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 private fun PaymentDetailsSection(
     state: AddPaymentState,
     onAction: (AddPaymentAction) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.ItemGap)) {
-        // Property Dropdown
-        val propertyItems = (state.propertiesState as? UiState.Success)?.data ?: persistentListOf()
-        AppDropdown(
+    val propertyItems = (state.propertiesState as? UiState.Success)?.data ?: persistentListOf()
+    val tenantItems = (state.tenantsState as? UiState.Success)?.data ?: persistentListOf()
+    
+    var showPropertySheet by remember { mutableStateOf(false) }
+    var showTenantSheet by remember { mutableStateOf(false) }
+
+    FormCard {
+        FormRow(
             label = stringResource(Res.string.payment_property_label),
+            value = propertyItems.find { it.id == state.selectedPropertyId }?.name ?: "",
             placeholder = stringResource(Res.string.payment_property_placeholder),
-            options = propertyItems,
-            selectedItem = propertyItems.find { it.id == state.selectedPropertyId },
-            onItemSelected = { onAction(AddPaymentAction.OnPropertySelected(it.id)) },
-            itemLabel = { it.name },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Domain,
-                    contentDescription = null
-                )
-            }
+            leadingIcon = { Icon(Icons.Default.Domain, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f)) },
+            onClick = { showPropertySheet = true }
         )
-
-        // Tenant Dropdown
-        val tenantItems = (state.tenantsState as? UiState.Success)?.data ?: persistentListOf()
-        AppDropdown(
+        
+        FormRow(
             label = stringResource(Res.string.payment_tenant_label),
+            value = tenantItems.find { it.id == state.selectedTenantId }?.name ?: "",
             placeholder = stringResource(Res.string.payment_tenant_placeholder),
-            options = tenantItems,
-            selectedItem = tenantItems.find { it.id == state.selectedTenantId },
-            onItemSelected = { onAction(AddPaymentAction.OnTenantSelected(it.id)) },
-            itemLabel = { it.name },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.PersonOutline,
-                    contentDescription = null
-                )
-            }
+            leadingIcon = { Icon(Icons.Default.PersonOutline, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f)) },
+            onClick = { showTenantSheet = true }
         )
-
-        // Date 
-        AppTextField(
-            value = state.paymentDate,
-            onValueChange = { onAction(AddPaymentAction.OnPaymentDateChanged(it)) },
+        
+        FormRow(
             label = stringResource(Res.string.payment_date_label),
+            value = state.paymentDate,
             placeholder = stringResource(Res.string.payment_date_placeholder),
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.CalendarToday,
-                    contentDescription = "Calendar",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f)) },
+            showDivider = false,
+            onClick = { /* Date Picker */ }
         )
+    }
+
+    if (showPropertySheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showPropertySheet = false },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = stringResource(Res.string.payment_property_label),
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(bottom = 4.dp),
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                )
+                propertyItems.forEach { property ->
+                    val isSelected = state.selectedPropertyId == property.id
+                    Surface(
+                        onClick = {
+                            onAction(AddPaymentAction.OnPropertySelected(property.id))
+                            showPropertySheet = false
+                        },
+                        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else Color.Transparent,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth().height(56.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = property.name,
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                                ),
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (showTenantSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showTenantSheet = false },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = stringResource(Res.string.payment_tenant_label),
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(bottom = 4.dp),
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                )
+                tenantItems.forEach { tenant ->
+                    val isSelected = state.selectedTenantId == tenant.id
+                    Surface(
+                        onClick = {
+                            onAction(AddPaymentAction.OnTenantSelected(tenant.id))
+                            showTenantSheet = false
+                        },
+                        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else Color.Transparent,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth().height(56.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = tenant.name,
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                                ),
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -296,99 +485,113 @@ private fun PaymentMethodSection(
 ) {
     var showSheet by remember { mutableStateOf(false) }
 
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.ItemGap)) {
-        Text(
-            text = stringResource(Res.string.payment_method).uppercase(),
-            style = MaterialTheme.typography.labelSmall.copy(
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = 0.5.sp
-            ),
-            modifier = Modifier.padding(bottom = 2.dp)
-        )
-        Surface(
-            onClick = { showSheet = true },
-            shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.surface,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-            modifier = Modifier.fillMaxWidth().height(56.dp)
+    FormCard {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { showSheet = true }
+                .padding(horizontal = 16.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
+            val icon = when (selectedMethod) {
+                PaymentMethod.CASH -> Icons.Filled.Money
+                PaymentMethod.BANK_TRANSFER -> Icons.Filled.AccountBalance
+                PaymentMethod.ESEWA -> Icons.Filled.Wallet
+                PaymentMethod.KHALTI -> Icons.Filled.Payments
+                null -> Icons.Filled.Payments
+            }
+            
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                modifier = Modifier.size(40.dp)
             ) {
-                val icon = when (selectedMethod) {
-                    PaymentMethod.CASH -> Icons.Filled.Money
-                    PaymentMethod.BANK_TRANSFER -> Icons.Filled.AccountBalance
-                    PaymentMethod.ESEWA -> Icons.Filled.Wallet
-                    PaymentMethod.KHALTI -> Icons.Filled.Payments
-                    null -> Icons.Filled.Payments
-                }
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = selectedMethod?.let { stringResource(it.labelRes) } ?: stringResource(Res.string.payment_method),
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Normal,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(8.dp)
                 )
             }
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(Res.string.payment_method).uppercase(),
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 0.5.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f)
+                )
+                Text(
+                    text = selectedMethod?.let { stringResource(it.labelRes) } ?: "Select method",
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            
+            Text(
+                text = "Change",
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 
     if (showSheet) {
         ModalBottomSheet(
             onDismissRequest = { showSheet = false },
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = Spacing.ScreenPadding)
-                    .padding(bottom = Spacing.SectionGap),
-                verticalArrangement = Arrangement.spacedBy(Spacing.ItemGap)
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = stringResource(Res.string.payment_method),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(bottom = Spacing.ItemGap)
+                    text = "Select method",
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(bottom = 4.dp),
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
                 )
                 PaymentMethod.entries.forEach { method ->
                     val isSelected = selectedMethod == method
-                    val icon = when (method) {
-                        PaymentMethod.CASH -> Icons.Filled.Money
-                        PaymentMethod.BANK_TRANSFER -> Icons.Filled.AccountBalance
-                        PaymentMethod.ESEWA -> Icons.Filled.Wallet
-                        PaymentMethod.KHALTI -> Icons.Filled.Payments
-                    }
                     Surface(
                         onClick = {
                             onMethodSelected(method)
                             showSheet = false
                         },
-                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else MaterialTheme.colorScheme.surface,
-                        shape = MaterialTheme.shapes.medium,
-                        modifier = Modifier.fillMaxWidth().height(64.dp)
+                        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else Color.Transparent,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth().height(56.dp)
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = icon,
+                                imageVector = when (method) {
+                                    PaymentMethod.CASH -> Icons.Filled.Money
+                                    PaymentMethod.BANK_TRANSFER -> Icons.Filled.AccountBalance
+                                    PaymentMethod.ESEWA -> Icons.Filled.Wallet
+                                    PaymentMethod.KHALTI -> Icons.Filled.Payments
+                                },
                                 contentDescription = null,
                                 tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
                                 text = stringResource(method.labelRes),
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                                ),
                                 color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
                         }
@@ -400,43 +603,99 @@ private fun PaymentMethodSection(
 }
 
 @Composable
-private fun RemarksSection(remarks: String, onRemarksChange: (String) -> Unit) {
-    AppTextField(
-        value = remarks,
-        onValueChange = onRemarksChange,
-        label = stringResource(Res.string.payment_remarks_label),
-        placeholder = stringResource(Res.string.payment_remarks_placeholder),
-        singleLine = false,
-        modifier = Modifier.height(100.dp)
-    )
+private fun RemarksSection(
+    remarks: String,
+    onRemarksChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    FormCard(modifier = modifier) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+            Text(
+                text = stringResource(Res.string.payment_remarks_label).uppercase(),
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.5.sp
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f)
+            )
+            BasicTextField(
+                value = remarks,
+                onValueChange = onRemarksChange,
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                decorationBox = { innerTextField ->
+                    if (remarks.isEmpty()) {
+                        Text(
+                            text = stringResource(Res.string.payment_remarks_placeholder),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                    innerTextField()
+                }
+            )
+        }
+    }
 }
 
 @Composable
-private fun AddPaymentBottomBar(enabled: Boolean, onClick: () -> Unit) {
+private fun AddPaymentBottomBar(
+    enabled: Boolean,
+    isAgreed: Boolean,
+    onAgreementToggled: (Boolean) -> Unit,
+    onClick: () -> Unit
+) {
     Surface(
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 8.dp
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        shadowElevation = 0.dp
     ) {
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = Spacing.ScreenPadding, vertical = Spacing.ItemGap)
+                .padding(horizontal = 24.dp, vertical = 24.dp)
+                .navigationBarsPadding(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Button(
-                onClick = onClick,
-                modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 56.dp),
-                enabled = enabled,
-                shape = MaterialTheme.shapes.large
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp)
+                    .clickable { onAgreementToggled(!isAgreed) },
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.CheckCircle,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
+                Checkbox(
+                    checked = isAgreed,
+                    onCheckedChange = onAgreementToggled,
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = MaterialTheme.colorScheme.primary,
+                        checkmarkColor = Color.White
+                    )
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
+                    text = stringResource(Res.string.payment_info_banner),
+                    style = MaterialTheme.typography.labelMedium.copy(lineHeight = 16.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                )
+            }
+            
+            Button(
+                onClick = onClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                enabled = enabled,
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = Color.White,
+                    disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                    disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                )
+            ) {
+                Text(
                     text = stringResource(Res.string.payment_record_button),
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )
             }
         }
@@ -449,7 +708,8 @@ private fun AddPaymentScreenPreview() {
     RentManagerTheme {
         AddPaymentContent(
             state = AddPaymentState(),
-            onAction = {}
+            onAction = {},
+            onNavigateBack = {}
         )
     }
 }
@@ -460,8 +720,8 @@ private fun AddPaymentScreenDarkPreview() {
     RentManagerTheme(darkTheme = true) {
         AddPaymentContent(
             state = AddPaymentState(),
-            onAction = {}
+            onAction = {},
+            onNavigateBack = {}
         )
     }
 }
-

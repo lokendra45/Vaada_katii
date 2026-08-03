@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.AddHome
 import androidx.compose.material.icons.outlined.Domain
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.Receipt
@@ -30,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.Radius
 import com.gaatho.rent.core.designsystem.RentManagerTheme
@@ -45,8 +47,31 @@ import rentmanagerapp.shared.generated.resources.*
 @Composable
 fun HomeScreen() {
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = { HomeDashboardTopBar() }
+        containerColor = MaterialTheme.colorScheme.surface,
+        topBar = {
+            com.gaatho.rent.core.ui.components.AppTopBar(
+                title = "Vaada",
+                leadingContent = {
+                    Box(
+                        modifier = Modifier
+                            .padding(start = 16.dp, end = 8.dp)
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("S", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
+                    }
+                },
+                actions = {
+                    Icon(
+                        imageVector = Icons.Outlined.Notifications,
+                        contentDescription = "Notifications",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            )
+        }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -69,60 +94,8 @@ fun HomeScreen() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Top Bar
+// Top Bar — Now using standard AppTopBar
 // ─────────────────────────────────────────────────────────────────────────────
-
-@Composable
-private fun HomeDashboardTopBar() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background)
-            .statusBarsPadding()
-            .padding(horizontal = Spacing.ScreenPadding, vertical = 14.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Avatar + App Name
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            // Profile Avatar
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "S",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            }
-            Text(
-                text = stringResource(Res.string.app_name_dashboard),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-        }
-
-        // Search Icon
-        IconButton(
-            onClick = { /* TODO: Search */ },
-            modifier = Modifier.size(36.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = stringResource(Res.string.search),
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.onBackground
-            )
-        }
-    }
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1. Welcome Section — "Good morning, Sarah"
@@ -130,43 +103,24 @@ private fun HomeDashboardTopBar() {
 
 @Composable
 private fun WelcomeSection() {
-    Row(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                text = stringResource(Res.string.mock_date),
-                style = MaterialTheme.typography.labelSmall,
+        Text(
+            text = stringResource(Res.string.good_morning),
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.Normal,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Text(
-                text = stringResource(Res.string.good_morning),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onBackground
+        )
+        Text(
+            text = stringResource(Res.string.mock_user_name),
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
             )
-            Text(
-                text = stringResource(Res.string.mock_user_name),
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-        }
-        
-        // Add button from Screenshot 1
-        IconButton(
-            onClick = { /* TODO */ },
-            modifier = Modifier
-                .size(48.dp)
-                .background(MaterialTheme.colorScheme.primary, CircleShape)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = stringResource(Res.string.add),
-                tint = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(24.dp)
-            )
-        }
+        )
     }
 }
 
@@ -178,40 +132,33 @@ private fun WelcomeSection() {
 private fun MonthlyOverviewCard() {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        shadowElevation = 0.dp // Flatter design in the mockup
     ) {
         Column(
-            modifier = Modifier.padding(Spacing.ItemGap),
-            verticalArrangement = Arrangement.spacedBy(Spacing.ItemGap)
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Label
+            // Label row
             Text(
-                text = stringResource(Res.string.collected_rent),
-                style = MaterialTheme.typography.labelSmall,
+                text = stringResource(Res.string.collected_rent).uppercase(),
+                style = MaterialTheme.typography.labelMedium.copy(letterSpacing = 1.sp, fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             // Amount row
-            Row(
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = stringResource(Res.string.mock_collected_amount),
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = stringResource(Res.string.mock_expected_amount),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 3.dp)
-                )
-            }
+            Text(
+                text = stringResource(Res.string.mock_collected_amount),
+                style = MaterialTheme.typography.displayMedium.copy(
+                    fontWeight = FontWeight.Light,
+                    fontSize = 48.sp // Huge light font per Google Design Philosophy
+                ),
+                color = MaterialTheme.colorScheme.onSurface
+            )
 
-            // Progress bar — Indigo accent
+            // Progress bar
             LinearProgressIndicator(
                 progress = { 124500f / 450000f },
                 modifier = Modifier
@@ -219,13 +166,13 @@ private fun MonthlyOverviewCard() {
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp)),
                 color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                trackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
                 strokeCap = StrokeCap.Round
             )
 
-            // Stats row
+            // Stats row (Clean, no clunky grey pill container)
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 OverviewStatItem(label = stringResource(Res.string.outstanding), value = stringResource(Res.string.mock_outstanding_amount))
@@ -240,7 +187,7 @@ private fun MonthlyOverviewCard() {
 private fun OverviewStatItem(label: String, value: String) {
     Column(horizontalAlignment = Alignment.Start) {
         Text(
-            text = label,
+            text = label.replace(":", ""), // Ensure no trailing colons
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -253,19 +200,17 @@ private fun OverviewStatItem(label: String, value: String) {
     }
 }
 
-    // Removed divider for cleaner look matching screenshot 1
-
 // ─────────────────────────────────────────────────────────────────────────────
 // 3. Quick Actions — 4 circular tap targets
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun QuickActionsSection() {
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.ItemGap)) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text(
             text = stringResource(Res.string.quick_actions),
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onBackground
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+            color = MaterialTheme.colorScheme.onSurface
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -277,7 +222,7 @@ private fun QuickActionsSection() {
             )
             QuickActionItem(
                 label = stringResource(Res.string.add_property_action),
-                icon = Icons.Outlined.AddHome
+                icon = Icons.Outlined.Home
             )
             QuickActionItem(
                 label = stringResource(Res.string.record_pay_action),
@@ -285,7 +230,7 @@ private fun QuickActionsSection() {
             )
             QuickActionItem(
                 label = stringResource(Res.string.expense_action),
-                icon = Icons.Outlined.Receipt
+                icon = Icons.Outlined.Receipt // AttachMoney/Receipt
             )
         }
     }
@@ -300,25 +245,24 @@ private fun QuickActionItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // 56×56dp circle button
         Box(
             modifier = Modifier
-                .size(56.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                .size(64.dp) // Large circles
+                .clip(CircleShape) // Circle shape as per mockup
+                .background(MaterialTheme.colorScheme.primaryContainer), // Crisp Google Blue/Primary tinted background
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = label,
-                modifier = Modifier.size(22.dp),
-                tint = MaterialTheme.colorScheme.onSurface
+                modifier = Modifier.size(26.dp), // Slightly larger icon for the large circle
+                tint = MaterialTheme.colorScheme.primary // Matches the tinted background
             )
         }
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
@@ -326,7 +270,7 @@ private fun QuickActionItem(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5. Recent Payments Section — Financial ledger style
+// 5. Recent Payments Section
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -340,15 +284,17 @@ private fun RecentPaymentsSection() {
         ) {
             Text(
                 text = stringResource(Res.string.recent_payments_title),
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onBackground
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.SemiBold
+                ),
+                color = MaterialTheme.colorScheme.onSurface
             )
             TextButton(
                 onClick = { /* TODO: See all payments */ },
                 contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp)
             ) {
                 Text(
-                    text = stringResource(Res.string.see_all_action),
+                    text = stringResource(Res.string.see_all), // Make sure it says "See all" not "See All" if possible
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -356,44 +302,31 @@ private fun RecentPaymentsSection() {
         }
 
         // Payment rows
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-            shadowElevation = 0.dp
-        ) {
-            Column {
-                PaymentLedgerRow(
-                    name = "John Doe",
-                    subtitle = "Unit 4B • May 12",
-                    amount = "+Rs. 24,500",
-                    status = "Paid",
-                    initials = "JD",
-                    avatarBg = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    avatarText = MaterialTheme.colorScheme.onSurface
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                PaymentLedgerRow(
-                    name = "Alice Smith",
-                    subtitle = "24 Maple St • May 10",
-                    amount = "+Rs. 18,000",
-                    status = "Paid",
-                    initials = "AS",
-                    avatarBg = MaterialTheme.colorScheme.tertiary,
-                    avatarText = MaterialTheme.colorScheme.onTertiary
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                PaymentLedgerRow(
-                    name = "Mike Wang",
-                    subtitle = "Unit 12A • May 08",
-                    amount = "+Rs. 31,000",
-                    status = "Paid",
-                    initials = "MW",
-                    avatarBg = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    avatarText = MaterialTheme.colorScheme.onSurface
-                )
-            }
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            PaymentLedgerRow(
+                name = "Suman Shrestha",
+                subtitle = "Unit: 13",
+                amount = "NPR 1,24,500",
+                initials = "JIK",
+                avatarBg = Color(0xFFD0D5FA), // Light purple/blue
+                avatarText = Color(0xFF333333)
+            )
+            PaymentLedgerRow(
+                name = "Suman Shrestha",
+                subtitle = "Unit: 13",
+                amount = "NPR 14,500",
+                initials = "AH",
+                avatarBg = Color(0xFFC4E8C2), // Light green
+                avatarText = Color(0xFF333333)
+            )
+            PaymentLedgerRow(
+                name = "Suman Shrestha",
+                subtitle = "Unit: 14",
+                amount = "NPR 7,500",
+                initials = "OS",
+                avatarBg = Color(0xFFF9C6C1), // Light red/orange
+                avatarText = Color(0xFF333333)
+            )
         }
     }
 }
@@ -403,7 +336,6 @@ private fun PaymentLedgerRow(
     name: String,
     subtitle: String,
     amount: String,
-    status: String,
     initials: String,
     avatarBg: Color,
     avatarText: Color
@@ -411,21 +343,21 @@ private fun PaymentLedgerRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(vertical = 12.dp), // No horizontal padding to match edge-to-edge look in mockup
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Avatar
         Box(
             modifier = Modifier
-                .size(40.dp)
+                .size(48.dp) // Larger avatar to match mockup
                 .clip(CircleShape)
                 .background(avatarBg),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = initials,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.titleSmall,
                 color = avatarText
             )
         }
@@ -434,39 +366,22 @@ private fun PaymentLedgerRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = name,
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
-        // Amount + status badge
-        Column(horizontalAlignment = Alignment.End) {
-            Text(
-                text = amount,
-                style = MaterialTheme.typography.titleSmall,
-                color = AppColors.Success
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Box(
-                modifier = Modifier
-                    .background(
-                        color = AppColors.SuccessContainer,
-                        shape = RoundedCornerShape(Radius.Sm)
-                    )
-                    .padding(horizontal = 6.dp, vertical = 2.dp)
-            ) {
-                Text(
-                    text = status,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = AppColors.OnSuccess
-                )
-            }
-        }
+        // Amount
+        Text(
+            text = amount,
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+            color = AppColors.Success
+        )
     }
 }
 

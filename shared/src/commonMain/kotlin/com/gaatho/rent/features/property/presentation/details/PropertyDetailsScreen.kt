@@ -89,23 +89,9 @@ private fun PropertyDetailsContent(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(Res.string.property_details),
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { onAction(PropertyDetailsAction.OnBackClicked) }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                },
+            com.gaatho.rent.core.ui.components.AppTopBar(
+                title = stringResource(Res.string.property_details),
+                onBackClick = { onAction(PropertyDetailsAction.OnBackClicked) },
                 actions = {
                     TextButton(
                         onClick = { onAction(PropertyDetailsAction.OnEditClicked) }
@@ -117,10 +103,7 @@ private fun PropertyDetailsContent(
                             fontSize = 15.sp
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                }
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -291,11 +274,9 @@ private fun MetricCard(
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        tonalElevation = 0.dp,
-        shadowElevation = 1.dp
+        shape = RoundedCornerShape(16.dp), // More rounded
+        color = MaterialTheme.colorScheme.surfaceContainerLowest, // Very light
+        shadowElevation = 0.dp // Flat
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -370,18 +351,15 @@ private fun FinancialSummaryCard(summary: FinancialSummary) {
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        tonalElevation = 0.dp,
-        shadowElevation = 1.dp
+        shape = RoundedCornerShape(16.dp), // More rounded
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        shadowElevation = 0.dp // Flat
     ) {
         Column {
             // Header row with month badge
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -510,19 +488,13 @@ private fun UnitsSection(
         } else {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.surface,
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                shadowElevation = 1.dp
+                shape = RoundedCornerShape(16.dp), // More rounded
+                color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                shadowElevation = 0.dp
             ) {
                 Column {
                     units.forEachIndexed { index, unit ->
                         UnitRow(unit = unit, onClick = { onUnitClick(unit.unitNumber) })
-                        if (index < units.lastIndex) {
-                            HorizontalDivider(
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-                            )
-                        }
                     }
                 }
             }
@@ -665,9 +637,9 @@ private data class ChipStyle(
 private fun EmptyUnitsCard() {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        shadowElevation = 0.dp
     ) {
         Column(
             modifier = Modifier.padding(24.dp),
@@ -700,16 +672,14 @@ private fun EmptyUnitsCard() {
 private fun SectionCard(title: String, content: @Composable ColumnScope.() -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        shadowElevation = 1.dp
+        shape = RoundedCornerShape(16.dp), // More rounded
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        shadowElevation = 0.dp
     ) {
         Column {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 Text(

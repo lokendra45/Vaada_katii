@@ -5,6 +5,7 @@ import com.gaatho.rent.features.tenant.data.repository.LocalTenantRepository
 import com.gaatho.rent.features.tenant.data.repository.ProxyTenantRepository
 import com.gaatho.rent.features.tenant.data.repository.TenantRepository
 import com.gaatho.rent.features.tenant.presentation.list.TenantsListViewModel
+import com.gaatho.rent.features.tenant.presentation.edit.EditTenantViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -15,4 +16,5 @@ val tenantModule = module {
 
     viewModel { TenantsListViewModel(get(), get(), get(), get()) }
     viewModel { params -> com.gaatho.rent.features.tenant.presentation.details.TenantDetailsViewModel(tenantId = params.get()) }
+    viewModel { params -> EditTenantViewModel(tenantId = params.get()) }
 }

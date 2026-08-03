@@ -6,11 +6,13 @@ import com.gaatho.rent.core.network.connectivity.IosConnectivityObserver
 import com.gaatho.rent.core.environment.createDataStore
 import com.gaatho.rent.core.security.BiometricAuthenticator
 import com.gaatho.rent.core.security.IosBiometricAuthenticator
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import org.koin.dsl.module
 
 actual val platformModule = module {
     single { DriverFactory() }
     single<ConnectivityObserver> { IosConnectivityObserver() }
-    single { createDataStore() }
+    single<DataStore<Preferences>> { createDataStore() }
     single<BiometricAuthenticator> { IosBiometricAuthenticator() }
 }

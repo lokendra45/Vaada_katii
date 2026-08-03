@@ -1,11 +1,10 @@
 package com.gaatho.rent.features.splash.presentation
 
-import androidx.lifecycle.ViewModel
 import com.gaatho.rent.core.auth.GuestSessionManager
 import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.core.logging.AppLogger
+import com.gaatho.rent.core.mvi.MviViewModel
 import kotlinx.coroutines.delay
-import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -18,7 +17,7 @@ import kotlin.time.Duration.Companion.milliseconds
 class SplashViewModel(
     private val sessionManager: SessionManager,
     private val guestSessionManager: GuestSessionManager
-) : ContainerHost<SplashState, SplashSideEffect>, ViewModel() {
+) : MviViewModel<SplashState, SplashSideEffect, SplashAction>() {
 
     override val container = orbitContainer<SplashState, SplashSideEffect>(SplashState()) {
         checkSessionAndNavigate()
@@ -41,4 +40,6 @@ class SplashViewModel(
             postSideEffect(SplashSideEffect.NavigateToLogin)
         }
     }
+
+    override fun onAction(action: SplashAction) {}
 }

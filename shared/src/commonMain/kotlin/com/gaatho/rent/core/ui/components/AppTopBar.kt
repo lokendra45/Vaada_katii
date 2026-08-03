@@ -25,6 +25,8 @@ fun AppTopBar(
     subtitle: String? = null,
     modifier: Modifier = Modifier,
     onBackClick: (() -> Unit)? = null,
+    leadingContent: @Composable (() -> Unit)? = null,
+    containerColor: Color = MaterialTheme.colorScheme.surface,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     TopAppBar(
@@ -51,7 +53,9 @@ fun AppTopBar(
             }
         },
         navigationIcon = {
-            if (onBackClick != null) {
+            if (leadingContent != null) {
+                leadingContent()
+            } else if (onBackClick != null) {
                 IconButton(onClick = onBackClick) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -71,8 +75,8 @@ fun AppTopBar(
             )
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            scrolledContainerColor = MaterialTheme.colorScheme.surface
+            containerColor = containerColor,
+            scrolledContainerColor = containerColor
         ),
         modifier = modifier
     )
@@ -86,14 +90,16 @@ fun AppTopBarActionButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    containerColor: Color = Color(0xFF00835C),
-    contentColor: Color = Color.White
+    containerColor: Color = Color.Unspecified,
+    contentColor: Color = Color.Unspecified
 ) {
+    val resolvedContainer = if (containerColor == Color.Unspecified) MaterialTheme.colorScheme.primary else containerColor
+    val resolvedContent = if (contentColor == Color.Unspecified) MaterialTheme.colorScheme.onPrimary else contentColor
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
-            containerColor = containerColor,
-            contentColor = contentColor
+            containerColor = resolvedContainer,
+            contentColor = resolvedContent
         ),
         shape = RoundedCornerShape(18.dp),
         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),

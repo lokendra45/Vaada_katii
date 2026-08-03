@@ -48,50 +48,50 @@ fun rentManagerTypography(): Typography {
             displayLarge = TextStyle(
                 fontFamily = inter,
                 fontWeight = FontWeight.Normal,
-                fontSize = 40.sp,
-                lineHeight = 48.sp,
+                fontSize = 32.sp,
+                lineHeight = 40.sp,
                 letterSpacing = (-0.25).sp
             ),
             displayMedium = TextStyle(
-                fontFamily = inter,
-                fontWeight = FontWeight.Normal,
-                fontSize = 34.sp,
-                lineHeight = 40.sp,
-                letterSpacing = 0.sp
-            ),
-            displaySmall = TextStyle(
                 fontFamily = inter,
                 fontWeight = FontWeight.Normal,
                 fontSize = 28.sp,
                 lineHeight = 36.sp,
                 letterSpacing = 0.sp
             ),
-            headlineLarge = TextStyle(
+            displaySmall = TextStyle(
                 fontFamily = inter,
                 fontWeight = FontWeight.Normal,
                 fontSize = 24.sp,
                 lineHeight = 32.sp,
                 letterSpacing = 0.sp
             ),
-            headlineMedium = TextStyle(
+            headlineLarge = TextStyle(
                 fontFamily = inter,
                 fontWeight = FontWeight.Normal,
-                fontSize = 20.sp,
+                fontSize = 22.sp,
                 lineHeight = 28.sp,
                 letterSpacing = 0.sp
             ),
-            headlineSmall = TextStyle(
+            headlineMedium = TextStyle(
                 fontFamily = inter,
                 fontWeight = FontWeight.Normal,
                 fontSize = 18.sp,
                 lineHeight = 24.sp,
                 letterSpacing = 0.sp
             ),
-            titleLarge = TextStyle(
+            headlineSmall = TextStyle(
                 fontFamily = inter,
                 fontWeight = FontWeight.Normal,
                 fontSize = 16.sp,
                 lineHeight = 22.sp,
+                letterSpacing = 0.sp
+            ),
+            titleLarge = TextStyle(
+                fontFamily = inter,
+                fontWeight = FontWeight.Medium,
+                fontSize = 20.sp,
+                lineHeight = 28.sp,
                 letterSpacing = 0.sp
             ),
             titleMedium = TextStyle(
@@ -103,10 +103,10 @@ fun rentManagerTypography(): Typography {
             ),
             titleSmall = TextStyle(
                 fontFamily = inter,
-                fontWeight = FontWeight.Medium,
-                fontSize = 12.sp,
-                lineHeight = 16.sp,
-                letterSpacing = 0.1.sp
+                fontWeight = FontWeight.Normal,
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
+                letterSpacing = 0.sp
             ),
             bodyLarge = TextStyle(
                 fontFamily = inter,
@@ -125,7 +125,7 @@ fun rentManagerTypography(): Typography {
             bodySmall = TextStyle(
                 fontFamily = inter,
                 fontWeight = FontWeight.Normal,
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 lineHeight = 16.sp,
                 letterSpacing = 0.4.sp
             ),
@@ -141,7 +141,7 @@ fun rentManagerTypography(): Typography {
                 fontWeight = FontWeight.Medium,
                 fontSize = 11.sp,
                 lineHeight = 16.sp,
-                letterSpacing = 0.5.sp
+                letterSpacing = 1.2.sp
             ),
             labelSmall = TextStyle(
                 fontFamily = inter,
@@ -161,8 +161,8 @@ fun rentManagerTypography(): Typography {
 @Composable
 fun monoDataTextStyle(): TextStyle = TextStyle(
     fontFamily = interFontFamily(),
-    fontWeight = FontWeight.SemiBold,
-    fontSize = 24.sp,
-    lineHeight = 32.sp,
+    fontWeight = FontWeight.Medium,
+    fontSize = 20.sp,
+    lineHeight = 28.sp,
     letterSpacing = (-0.02).em
 )

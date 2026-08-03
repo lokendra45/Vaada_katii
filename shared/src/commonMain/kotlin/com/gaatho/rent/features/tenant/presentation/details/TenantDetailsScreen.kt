@@ -119,23 +119,9 @@ private fun TenantDetailsContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TenantTopBar(onAction: (TenantDetailsAction) -> Unit) {
-    TopAppBar(
-        title = {
-            Text(
-                text = stringResource(Res.string.app_name_dashboard),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        },
-        navigationIcon = {
-            IconButton(onClick = { onAction(TenantDetailsAction.OnBackClicked) }) {
-                Icon(
-                    Icons.AutoMirrored.Outlined.ArrowBack,
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        },
+    com.gaatho.rent.core.ui.components.AppTopBar(
+        title = stringResource(Res.string.app_name_dashboard),
+        onBackClick = { onAction(TenantDetailsAction.OnBackClicked) },
         actions = {
             IconButton(onClick = {}) {
                 Icon(
@@ -144,10 +130,7 @@ private fun TenantTopBar(onAction: (TenantDetailsAction) -> Unit) {
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
-        )
+        }
     )
 }
 
@@ -162,18 +145,22 @@ private fun ProfileHeaderSection(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        val initials = profile.name.split(" ")
+            .mapNotNull { it.firstOrNull()?.toString() }
+            .take(2)
+            .joinToString("")
+            
         Box(
             modifier = Modifier
                 .size(80.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                Icons.Outlined.Person,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(36.dp)
+            Text(
+                text = initials,
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Medium),
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
 
@@ -181,9 +168,9 @@ private fun ProfileHeaderSection(
 
         Text(
             text = profile.name,
-            style = MaterialTheme.typography.headlineMedium.copy(
+            style = MaterialTheme.typography.titleLarge.copy(
                 fontWeight = FontWeight.Bold,
-                letterSpacing = (-0.5).sp
+                letterSpacing = 0.sp
             ),
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -227,120 +214,68 @@ private fun ProfileHeaderSection(
 
         Spacer(Modifier.height(24.dp))
 
-        // ── Primary quick-actions ─────────────────────
+        // ── Unified Quick Actions ─────────────────────
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
         ) {
-            TenantQuickAction(
+            TenantActionIcon(
                 icon = Icons.Outlined.AddCard,
                 label = stringResource(Res.string.payment_action),
-                modifier = Modifier.weight(1f),
                 onClick = { onAction(TenantDetailsAction.OnPaymentClicked) }
             )
-            TenantQuickAction(
+            TenantActionIcon(
                 icon = Icons.Outlined.Mail,
                 label = stringResource(Res.string.email_action),
-                modifier = Modifier.weight(1f),
                 onClick = { onAction(TenantDetailsAction.OnEmailClicked) }
             )
-            TenantQuickAction(
+            TenantActionIcon(
                 icon = Icons.Outlined.Call,
                 label = stringResource(Res.string.call_action),
-                modifier = Modifier.weight(1f),
                 onClick = { onAction(TenantDetailsAction.OnCallClicked) }
             )
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        // ── Secondary actions ───────────────────────────
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterHorizontally)
-        ) {
-            TenantSecondaryAction(
+            TenantActionIcon(
                 icon = Icons.AutoMirrored.Outlined.Message,
                 label = "Message",
                 onClick = { onAction(TenantDetailsAction.OnMessageClicked) }
             )
-            TenantSecondaryAction(
+            TenantActionIcon(
                 icon = Icons.Outlined.Build,
-                label = "Maintenance",
+                label = "Repair",
                 onClick = { onAction(TenantDetailsAction.OnMaintenanceClicked) }
             )
         }
     }
 }
 
-// ─── Quick Action Button ─────────────────────────────
+// ─── Circular Quick Action Button ─────────────────────────────
 
 @Composable
-private fun TenantQuickAction(
+private fun TenantActionIcon(
     icon: ImageVector,
     label: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        onClick = onClick,
-        modifier = modifier.height(40.dp),
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLowest,
-        border = androidx.compose.foundation.BorderStroke(
-            1.dp, MaterialTheme.colorScheme.outlineVariant
-        ),
-        tonalElevation = 0.dp,
-        shadowElevation = 1.dp
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.clickable(onClick = onClick)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 6.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.surfaceContainerLowest,
+            modifier = Modifier.size(56.dp)
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = label,
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(Modifier.width(6.dp))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Box(contentAlignment = Alignment.Center) {
+                Icon(icon, contentDescription = label, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+            }
         }
-    }
-}
-
-// ─── Secondary text-only action button ────────────────────────────────────────
-
-@Composable
-private fun TenantSecondaryAction(
-    icon: ImageVector,
-    label: String,
-    onClick: () -> Unit
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 6.dp)
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = label,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(18.dp)
-        )
+        Spacer(Modifier.height(8.dp))
         Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            text = label, 
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium), 
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -361,11 +296,7 @@ private fun LeaseDetailsSection(lease: TenantLeaseDisplayModel) {
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.surfaceContainerLowest,
-            border = androidx.compose.foundation.BorderStroke(
-                1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
-            ),
-            tonalElevation = 0.dp,
-            shadowElevation = 0.dp
+            shadowElevation = 0.dp // Flat and borderless
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
                 Row(modifier = Modifier.fillMaxWidth()) {
@@ -453,15 +384,15 @@ private fun LeaseCell(
         Text(
             text = label.uppercase(),
             style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Medium,
                 letterSpacing = 0.5.sp
             ),
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(6.dp))
         Text(
             text = value,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
             color = valueColor
         )
     }
@@ -514,10 +445,7 @@ private fun TransactionRow(tx: TenantTransactionDisplayModel, onClick: () -> Uni
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surfaceContainerLowest,
-        border = androidx.compose.foundation.BorderStroke(
-            1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
-        ),
-        tonalElevation = 0.dp
+        shadowElevation = 0.dp // Flat
     ) {
         Row(
             modifier = Modifier
