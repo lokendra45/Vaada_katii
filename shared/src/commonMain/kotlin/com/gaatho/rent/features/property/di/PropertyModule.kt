@@ -17,7 +17,7 @@ val propertyModule = module {
     single { CloudPropertyRepository(get()) }
     single<PropertyRepository> { ProxyPropertyRepository(get(), get(), get()) }
 
-    viewModel { PropertyListViewModel(get(), get(), get()) }
+    viewModel { PropertyListViewModel(get(), get(), get(), get(), get()) }
     viewModel { AddPropertyViewModel(get(), get(), get()) }
     viewModel { params ->
         PropertyDetailsViewModel(

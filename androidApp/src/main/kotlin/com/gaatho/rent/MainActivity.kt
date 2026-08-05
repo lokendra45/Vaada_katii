@@ -1,10 +1,12 @@
 package com.gaatho.rent
 
 import android.os.Bundle
+import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.fragment.app.FragmentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.tooling.preview.Preview
 
 import com.gaatho.rent.core.utils.ActivityProvider
@@ -15,7 +17,9 @@ class MainActivity : FragmentActivity() {
         ActivityProvider.activity = this
         enableEdgeToEdge()
         setContent {
-            App()
+            CompositionLocalProvider(LocalActivityResultRegistryOwner provides this) {
+                App()
+            }
         }
     }
 

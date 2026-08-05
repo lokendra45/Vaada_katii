@@ -1,0 +1,484 @@
+package com.gaatho.rent.features.payment.presentation.details
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.gaatho.rent.core.designsystem.AppColors
+import com.gaatho.rent.core.designsystem.AppDimensions
+import com.gaatho.rent.core.designsystem.ExtendedColorHex
+import com.gaatho.rent.core.ui.UiState
+import com.gaatho.rent.core.ui.components.AppTopBar
+import com.gaatho.rent.core.utils.TenantUtils
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
+import org.orbitmvi.orbit.compose.collectAsState
+import org.orbitmvi.orbit.compose.collectSideEffect
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.*
+
+@Composable
+fun PaymentDetailsScreen(
+    paymentId: String,
+    onNavigateBack: () -> Unit
+) {
+    val viewModel: PaymentDetailsViewModel = koinViewModel(parameters = { parametersOf(paymentId) })
+    val state by viewModel.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    viewModel.collectSideEffect { sideEffect ->
+        when (sideEffect) {
+            is PaymentDetailsSideEffect.NavigateBack -> onNavigateBack()
+            is PaymentDetailsSideEffect.ShowError -> {}
+            is PaymentDetailsSideEffect.ShowMessage -> {}
+        }
+    }
+
+    PaymentDetailsContent(
+        state = state,
+        onAction = viewModel::onAction,
+        snackbarHostState = snackbarHostState
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PaymentDetailsContent(
+    state: PaymentDetailsState,
+    onAction: (PaymentDetailsAction) -> Unit,
+    snackbarHostState: SnackbarHostState
+) {
+    val scrollState = rememberScrollState()
+
+    Scaffold(
+        topBar = {
+            AppTopBar(
+                title = "Payment Details",
+                onBackClick = { onAction(PaymentDetailsAction.OnBackClicked) }
+            )
+        },
+        bottomBar = {
+            if (state.paymentState is UiState.Success) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    tonalElevation = 4.dp,
+                    shadowElevation = 8.dp
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(AppDimensions.ScreenHorizontalPadding)
+                            .padding(bottom = 16.dp, top = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { onAction(PaymentDetailsAction.OnDownloadReceipt) },
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(vertical = 14.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(imageVector = Icons.Default.Download, contentDescription = null, modifier = Modifier.size(20.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Download\nReceipt", textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        }
+
+                        Button(
+                            onClick = { onAction(PaymentDetailsAction.OnShareDetails) },
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(vertical = 14.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(imageVector = Icons.Default.Share, contentDescription = null, modifier = Modifier.size(20.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Share Details", textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        }
+                    }
+                }
+            }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(scrollState)
+        ) {
+            when (val result = state.paymentState) {
+                is UiState.Idle -> {}
+                is UiState.Loading -> {
+                    Box(modifier = Modifier.fillMaxWidth().height(300.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+                is UiState.Error -> {
+                    Box(modifier = Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Text(text = result.message, color = MaterialTheme.colorScheme.error)
+                            Button(onClick = { onAction(PaymentDetailsAction.OnRetry) }) {
+                                Text("Retry")
+                            }
+                        }
+                    }
+                }
+                is UiState.Success -> {
+                    val data = result.data
+                    
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = AppDimensions.ScreenHorizontalPadding),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        
+                        PaymentStatusBadge(status = data.payment.status)
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        Text(
+                            text = "NPR ${data.payment.amount}",
+                            style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Text(
+                            text = data.payment.date, // You could format this better
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        // Details Card
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column {
+                                // Tenant Section
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(TenantUtils.getAvatarColors(data.tenant?.name ?: "").first)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = TenantUtils.getInitials(data.tenant?.name ?: "?"),
+                                            style = MaterialTheme.typography.titleMedium.copy(
+                                                color = Color(TenantUtils.getAvatarColors(data.tenant?.name ?: "").second),
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    Column {
+                                        Text(
+                                            text = "TENANT",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Text(
+                                            text = data.tenant?.name ?: "Unknown Tenant",
+                                            style = MaterialTheme.typography.titleMedium
+                                        )
+                                        if (data.property != null) {
+                                            Text(
+                                                text = "${data.tenant?.roomNumber ?: ""} ${data.property.name}",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                }
+
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                                
+                                DetailRow("Payment Month", "Current Month") // Placeholder or derived
+                                
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                                
+                                DetailRow("Payment Method", data.payment.paymentMethod ?: "Bank Transfer", icon = Icons.Default.AccountBalance)
+                                
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                                
+                                TransactionIdRow(transactionId = "#TXN-${data.payment.id.take(8).uppercase()}")
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+                        
+                        // Breakdown Section
+                        Text(
+                            text = "Breakdown",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
+                        )
+
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column {
+                                BreakdownRow("Base Rent", "NPR ${data.payment.amount}")
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                                BreakdownRow("Utilities", "NPR 0")
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                                
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
+                                        .padding(16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = "Total Amount",
+                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                                    )
+                                    Text(
+                                        text = "NPR ${data.payment.amount}",
+                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+                                    )
+                                }
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(32.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PaymentStatusBadge(status: String) {
+    val (bgColor, textColor) = when (status.lowercase()) {
+        "paid" -> AppColors.SuccessContainer to AppColors.Success
+        "pending" -> AppColors.WarningContainer to AppColors.Warning
+        "overdue" -> AppColors.ErrorContainer to AppColors.Error
+        else -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(bgColor)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            if (status.lowercase() == "paid") {
+                Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, tint = textColor, modifier = Modifier.size(14.dp))
+            }
+            Text(
+                text = status,
+                style = MaterialTheme.typography.labelMedium.copy(color = textColor, fontWeight = FontWeight.SemiBold)
+            )
+        }
+    }
+}
+
+@Composable
+private fun DetailRow(label: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector? = null) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (icon != null) {
+                Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+            }
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
+            )
+        }
+    }
+}
+
+@Composable
+private fun TransactionIdRow(transactionId: String) {
+    val clipboardManager = LocalClipboardManager.current
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Transaction ID",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically, 
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.clickable { 
+                clipboardManager.setText(AnnotatedString(transactionId))
+            }
+        ) {
+            Text(
+                text = transactionId,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Icon(
+                imageVector = Icons.Default.ContentCopy, 
+                contentDescription = "Copy", 
+                tint = MaterialTheme.colorScheme.primary, 
+                modifier = Modifier.size(16.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun BreakdownRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+fun PaymentDetailsScreenPreview() {
+    com.gaatho.rent.core.designsystem.RentManagerTheme {
+        PaymentDetailsContent(
+            state = PaymentDetailsState(
+                paymentState = UiState.Success(
+                    PaymentDetailsData(
+                        payment = com.gaatho.rent.features.payment.domain.model.Payment(
+                            id = "txn-12345678",
+                            ownerId = "owner-1",
+                            tenantId = "tenant-1",
+                            propertyId = "prop-1",
+                            amount = 15000,
+                            date = "July 24, 2024 at 10:45 AM",
+                            status = "Paid",
+                            paymentMethod = "Bank Transfer",
+                            notes = null,
+                            createdAt = "2024-07-24T10:45:00Z",
+                            updatedAt = "2024-07-24T10:45:00Z"
+                        ),
+                        tenant = com.gaatho.rent.features.tenant.domain.model.Tenant(
+                            id = "tenant-1",
+                            ownerId = "owner-1",
+                            name = "Anita Basnet",
+                            roomNumber = "Unit 4A",
+                            createdAt = "2024-07-24T10:45:00Z",
+                            updatedAt = "2024-07-24T10:45:00Z"
+                        ),
+                        property = com.gaatho.rent.features.property.domain.model.Property(
+                            id = "prop-1",
+                            ownerId = "owner-1",
+                            name = "Sunrise Residency",
+                            address = "Kathmandu",
+                            propertyType = "Apartment",
+                            createdAt = "2024-07-24T10:45:00Z",
+                            updatedAt = "2024-07-24T10:45:00Z"
+                        )
+                    )
+                )
+            ),
+            onAction = {},
+            snackbarHostState = SnackbarHostState()
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+fun PaymentDetailsScreenDarkPreview() {
+    com.gaatho.rent.core.designsystem.RentManagerTheme(darkTheme = true) {
+        PaymentDetailsContent(
+            state = PaymentDetailsState(
+                paymentState = UiState.Success(
+                    PaymentDetailsData(
+                        payment = com.gaatho.rent.features.payment.domain.model.Payment(
+                            id = "txn-12345678",
+                            ownerId = "owner-1",
+                            tenantId = "tenant-1",
+                            propertyId = "prop-1",
+                            amount = 15000L,
+                            date = "July 24, 2024 at 10:45 AM",
+                            status = "Paid",
+                            paymentMethod = "Bank Transfer",
+                            notes = null,
+                            createdAt = "2024-07-24T10:45:00Z",
+                            updatedAt = "2024-07-24T10:45:00Z"
+                        ),
+                        tenant = com.gaatho.rent.features.tenant.domain.model.Tenant(
+                            id = "tenant-1",
+                            ownerId = "owner-1",
+                            name = "Anita Basnet",
+                            roomNumber = "Unit 4A",
+                            createdAt = "2024-07-24T10:45:00Z",
+                            updatedAt = "2024-07-24T10:45:00Z"
+                        ),
+                        property = com.gaatho.rent.features.property.domain.model.Property(
+                            id = "prop-1",
+                            ownerId = "owner-1",
+                            name = "Sunrise Residency",
+                            address = "Kathmandu",
+                            propertyType = "Apartment",
+                            createdAt = "2024-07-24T10:45:00Z",
+                            updatedAt = "2024-07-24T10:45:00Z"
+                        )
+                    )
+                )
+            ),
+            onAction = {},
+            snackbarHostState = SnackbarHostState()
+        )
+    }
+}

@@ -39,6 +39,7 @@ import org.orbitmvi.orbit.compose.collectSideEffect
 
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.environment.LanguageViewModel
 
 import org.jetbrains.compose.resources.stringResource
@@ -175,8 +176,8 @@ private fun SettingsContent(
                 leading = {
                     IconCircle(
                         icon = Icons.Outlined.Lock,
-                        tint = Color(0xFFE65100),
-                        background = Color(0xFFFFF3E0)
+                        tint = AppColors.Warning,
+                        background = AppColors.WarningContainer
                     )
                 },
                 title = stringResource(Res.string.change_password),
@@ -185,8 +186,8 @@ private fun SettingsContent(
             )
             SettingsToggleRow(
                 icon = Icons.Outlined.Fingerprint,
-                iconTint = Color(0xFFE65100),
-                iconBackground = Color(0xFFFFF3E0),
+                iconTint = AppColors.Warning,
+                iconBackground = AppColors.WarningContainer,
                 title = stringResource(Res.string.biometrics),
                 subtitle = stringResource(Res.string.face_id_touch_id),
                 checked = state.biometricsEnabled,
@@ -211,8 +212,8 @@ private fun SettingsContent(
                 leading = {
                     IconCircle(
                         icon = Icons.Outlined.CurrencyRupee,
-                        tint = Color(0xFF2E7D32),
-                        background = Color(0xFFE8F5E9)
+                        tint = AppColors.Success,
+                        background = AppColors.SuccessContainer
                     )
                 },
                 title = stringResource(Res.string.currency),
@@ -226,8 +227,8 @@ private fun SettingsContent(
                     leading = {
                         IconCircle(
                             icon = Icons.Outlined.Language,
-                            tint = Color(0xFF1565C0),
-                            background = Color(0xFFE3F2FD)
+                            tint = AppColors.Info,
+                            background = AppColors.InfoContainer
                         )
                     },
                     title = stringResource(Res.string.language),
@@ -368,7 +369,7 @@ private fun SettingsNavRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 if (subtitle != null) {
@@ -438,7 +439,7 @@ private fun SettingsToggleRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 if (subtitle != null) {
@@ -529,10 +530,8 @@ private fun ProfileAvatar(
         } else {
             Text(
                 text = displayName.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -568,7 +567,7 @@ private fun LogoutButton(onClick: () -> Unit) {
         Spacer(Modifier.width(8.dp))
         Text(
             text = stringResource(Res.string.logout_action),
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium)
+            style = MaterialTheme.typography.titleMedium,
         )
     }
 }

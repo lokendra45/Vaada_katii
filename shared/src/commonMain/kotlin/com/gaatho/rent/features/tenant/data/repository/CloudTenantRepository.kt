@@ -25,6 +25,10 @@ class CloudTenantRepository(
         emit(dtos.map { it.toDomain() })
     }
 
+    override fun getTenantById(tenantId: String): Flow<Tenant?> {
+        return kotlinx.coroutines.flow.flowOf(null)
+    }
+
     override suspend fun createTenant(tenant: Tenant): ApiResponse<Unit> =
         ApiResponse.suspendOf {
             supabase.postgrest["tenant"].insert(tenant.toDto())

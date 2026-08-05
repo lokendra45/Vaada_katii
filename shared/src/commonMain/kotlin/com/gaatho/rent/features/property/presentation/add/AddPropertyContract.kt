@@ -13,14 +13,16 @@ data class AddPropertyState(
     val name: String = "",
     val streetAddress: String = "",
     val city: String = "",
-    val zipCode: String = "",
     val propertyType: String = "HOUSE",
     val totalUnits: String = "1",
     val billingCycle: String = "1st of the month",
     val selectedAmenities: Set<String> = setOf("Water", "Electricity"),
     val isSaving: Boolean = false,
     val nameError: String? = null,
-    val addressError: String? = null
+    val addressError: String? = null,
+    val cityError: String? = null,
+    val unitsError: String? = null,
+    val imageBytes: ByteArray? = null
 )
 
 /**
@@ -29,6 +31,7 @@ data class AddPropertyState(
 sealed interface AddPropertySideEffect {
     /** Navigates back to the previous screen. */
     data object NavigateBack : AddPropertySideEffect
+    data object ShowSuccessDialog : AddPropertySideEffect
 
     /** Shows a Snackbar with a message (e.g. "No internet connection"). */
     data class ShowSnackbar(val message: String) : AddPropertySideEffect
@@ -41,10 +44,10 @@ sealed interface AddPropertyAction {
     data class OnNameChanged(val name: String) : AddPropertyAction
     data class OnStreetAddressChanged(val address: String) : AddPropertyAction
     data class OnCityChanged(val city: String) : AddPropertyAction
-    data class OnZipCodeChanged(val zip: String) : AddPropertyAction
     data class OnTypeChanged(val type: String) : AddPropertyAction
     data class OnTotalUnitsChanged(val units: String) : AddPropertyAction
     data class OnBillingCycleChanged(val cycle: String) : AddPropertyAction
     data class OnAmenityToggled(val amenity: String) : AddPropertyAction
+    data class OnImagePicked(val bytes: ByteArray?) : AddPropertyAction
     data object OnSaveClicked : AddPropertyAction
 }

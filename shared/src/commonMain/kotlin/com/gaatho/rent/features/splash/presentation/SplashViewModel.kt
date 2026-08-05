@@ -7,12 +7,22 @@ import com.gaatho.rent.core.mvi.MviViewModel
 import kotlinx.coroutines.delay
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TimeSource
 
 /**
  * ViewModel for the Splash screen.
- * Responsible for verifying session validity and initial startup data checks,
- * then directing the user to the appropriate destination ([SplashSideEffect.NavigateToHome]
- * or [SplashSideEffect.NavigateToLogin]).
+ *
+ * ## Flow
+ * 1. Record the start time.
+ * 2. Do real work (check session / ensure a guest identity exists).
+ * 3. Wait for the *remainder* of the minimum brand display window (1 200 ms),
+ *    so we never artificially pad startup beyond what's already elapsed.
+ * 4. Always emit [SplashSideEffect.NavigateToHome] — login is triggered
+ *    later by an explicit user action (e.g. "Sign In" in Settings).
+ *
+ * ## No hardcoded `delay` for production padding
+ * Using [TimeSource] ensures the splash exits as soon as real work finishes
+ * *and* the minimum brand window has elapsed — whichever is longer.
  */
 class SplashViewModel(
     private val sessionManager: SessionManager,
@@ -20,26 +30,33 @@ class SplashViewModel(
 ) : MviViewModel<SplashState, SplashSideEffect, SplashAction>() {
 
     override val container = orbitContainer<SplashState, SplashSideEffect>(SplashState()) {
-        checkSessionAndNavigate()
+        initializeSession()
     }
 
-    private fun checkSessionAndNavigate() = intent {
-        AppLogger.ui.i { "Initializing startup checks on Splash Screen..." }
-        
-        // Brief minimum display time so the rich branded splash experience feels polished
-        // rather than jarringly flashing across the screen.
-        delay(1200.milliseconds)
+    private fun initializeSession() = intent {
+        val mark = TimeSource.Monotonic.markNow()
 
+        // --- Real work (runs immediately, no artificial pause) ---
         val isLoggedIn = sessionManager.isLoggedIn.value
-        val isGuest = guestSessionManager.hasActiveGuestSession()
-        AppLogger.auth.i { "Session validation complete. IsLoggedIn = $isLoggedIn, IsGuest = $isGuest" }
+        AppLogger.auth.i { "Session check complete. isLoggedIn=$isLoggedIn" }
 
-        if (isLoggedIn || isGuest) {
-            postSideEffect(SplashSideEffect.NavigateToHome)
-        } else {
-            postSideEffect(SplashSideEffect.NavigateToLogin)
+        if (!isLoggedIn) {
+            // Guarantee a stable local identity so all features work offline/guest.
+            val guestId = guestSessionManager.getOrCreateGuestId()
+            AppLogger.auth.i { "Guest session ready. guestId=$guestId" }
         }
+
+        // --- Brand window: wait only for the *remaining* time ---
+        // This keeps the splash visually polished without a fixed blocking delay.
+        val minimumDisplayMs = 1_200.milliseconds
+        val elapsed = mark.elapsedNow()
+        if (elapsed < minimumDisplayMs) {
+            delay(minimumDisplayMs - elapsed)
+        }
+
+        postSideEffect(SplashSideEffect.NavigateToHome)
     }
 
     override fun onAction(action: SplashAction) {}
 }
+

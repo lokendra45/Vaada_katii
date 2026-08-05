@@ -1,53 +1,85 @@
 package com.gaatho.rent.features.dashboard.presentation.home
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.AddHome
-import androidx.compose.material.icons.outlined.Domain
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
+import androidx.compose.material.icons.outlined.Business
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.Receipt
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.CurrencyRupee
+import androidx.compose.material.icons.outlined.EventBusy
+import androidx.compose.material.icons.outlined.Money
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gaatho.rent.core.designsystem.AppColors
-import com.gaatho.rent.core.designsystem.Radius
 import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.designsystem.Spacing
 import org.jetbrains.compose.resources.stringResource
 import rentmanagerapp.shared.generated.resources.Res
 import rentmanagerapp.shared.generated.resources.*
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Root Screen
-// ─────────────────────────────────────────────────────────────────────────────
+import org.koin.compose.viewmodel.koinViewModel
+import org.orbitmvi.orbit.compose.collectAsState
+import org.orbitmvi.orbit.compose.collectSideEffect
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    onNavigateToAddTenant: () -> Unit = {},
+    onNavigateToAddProperty: () -> Unit = {},
+    onNavigateToAddPayment: () -> Unit = {},
+    onNavigateToPayments: () -> Unit = {},
+    onNavigateToTenantDetails: (String) -> Unit = {}
+) {
+    val viewModel: HomeViewModel = koinViewModel()
+    val state by viewModel.collectAsState()
+
+    viewModel.collectSideEffect { effect ->
+        when (effect) {
+            is HomeSideEffect.NavigateToAddTenant -> onNavigateToAddTenant()
+            is HomeSideEffect.NavigateToAddProperty -> onNavigateToAddProperty()
+            is HomeSideEffect.NavigateToAddPayment -> onNavigateToAddPayment()
+            is HomeSideEffect.NavigateToPayments -> onNavigateToPayments()
+            is HomeSideEffect.NavigateToTenantDetails -> onNavigateToTenantDetails(effect.tenantId)
+            is HomeSideEffect.NavigateToExpenses -> { /* Handle later */ }
+        }
+    }
+
+    HomeContent(
+        state = state,
+        onAction = viewModel::onAction
+    )
+}
+
+@Composable
+fun HomeContent(
+    state: HomeState,
+    onAction: (HomeAction) -> Unit
+) {
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest, // Pure white background
         topBar = {
             com.gaatho.rent.core.ui.components.AppTopBar(
                 title = "Vaada",
@@ -60,14 +92,19 @@ fun HomeScreen() {
                             .background(MaterialTheme.colorScheme.primaryContainer),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("S", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
+                        val initial = state.userName.firstOrNull()?.toString()?.uppercase() ?: "U"
+                        Text(
+                            text = initial,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                 },
                 actions = {
                     Icon(
                         imageVector = Icons.Outlined.Notifications,
                         contentDescription = "Notifications",
-                        tint = MaterialTheme.colorScheme.onSurface
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             )
@@ -80,157 +117,100 @@ fun HomeScreen() {
             contentPadding = PaddingValues(
                 start = Spacing.ScreenPadding,
                 end = Spacing.ScreenPadding,
-                top = Spacing.StackLoose,
+                top = 8.dp,
                 bottom = 32.dp
             ),
             verticalArrangement = Arrangement.spacedBy(Spacing.SectionGap)
         ) {
-            item { WelcomeSection() }
-            item { MonthlyOverviewCard() }
-            item { QuickActionsSection() }
-            item { RecentPaymentsSection() }
-        }
-    }
-}
+            item { 
+                com.gaatho.rent.core.ui.components.AppSearchBar(
+                    query = state.searchQuery,
+                    onQueryChange = { onAction(HomeAction.OnSearchQueryChanged(it)) },
+                    placeholderText = "Search tenants, properties",
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Top Bar — Now using standard AppTopBar
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 1. Welcome Section — "Good morning, Sarah"
-// ─────────────────────────────────────────────────────────────────────────────
-
-@Composable
-private fun WelcomeSection() {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(2.dp)
-    ) {
-        Text(
-            text = stringResource(Res.string.good_morning),
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.Normal,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        )
-        Text(
-            text = stringResource(Res.string.mock_user_name),
-            style = MaterialTheme.typography.headlineMedium.copy(
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        )
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 2. Monthly Overview Card
-// ─────────────────────────────────────────────────────────────────────────────
-
-@Composable
-private fun MonthlyOverviewCard() {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
-        shadowElevation = 0.dp // Flatter design in the mockup
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Label row
-            Text(
-                text = stringResource(Res.string.collected_rent).uppercase(),
-                style = MaterialTheme.typography.labelMedium.copy(letterSpacing = 1.sp, fontWeight = FontWeight.SemiBold),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            // Amount row
-            Text(
-                text = stringResource(Res.string.mock_collected_amount),
-                style = MaterialTheme.typography.displayMedium.copy(
-                    fontWeight = FontWeight.Light,
-                    fontSize = 48.sp // Huge light font per Google Design Philosophy
-                ),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            // Progress bar
-            LinearProgressIndicator(
-                progress = { 124500f / 450000f },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(3.dp)),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-                strokeCap = StrokeCap.Round
-            )
-
-            // Stats row (Clean, no clunky grey pill container)
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                OverviewStatItem(label = stringResource(Res.string.outstanding), value = stringResource(Res.string.mock_outstanding_amount))
-                OverviewStatItem(label = stringResource(Res.string.properties_label), value = "24")
-                OverviewStatItem(label = stringResource(Res.string.tenants_label), value = "23")
+            if (state.propertiesCount == 0) {
+                // Empty State Layout
+                item { EmptyStateSection(onAction) }
+                item { QuickActionsSection(onAction, isDisabled = true) }
+                item { RecentPaymentsEmpty() }
+            } else {
+                // Filled State Layout
+                item { QuickActionsSection(onAction, isDisabled = false) }
+                item { DashboardCard(state) }
+                if (state.overdueTenantsCount > 0) {
+                    item { OverdueAlertBanner(state.overdueTenantsCount) }
+                }
+                item { RecentPaymentsSection(state, onAction) }
             }
         }
     }
 }
 
+// We removed SearchBarSection because we are using AppSearchBar
+
 @Composable
-private fun OverviewStatItem(label: String, value: String) {
-    Column(horizontalAlignment = Alignment.Start) {
-        Text(
-            text = label.replace(":", ""), // Ensure no trailing colons
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-    }
+private fun EmptyStateSection(onAction: (HomeAction) -> Unit) {
+    com.gaatho.rent.core.ui.components.EmptyStateCard(
+        icon = Icons.Outlined.Business,
+        title = "No properties found",
+        description = "Start by adding a property to track rent, tenants, and payments.",
+        buttonText = "Add property",
+        onButtonClick = { onAction(HomeAction.OnAddPropertyClicked) }
+    )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 3. Quick Actions — 4 circular tap targets
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
-private fun QuickActionsSection() {
+private fun QuickActionsSection(onAction: (HomeAction) -> Unit, isDisabled: Boolean) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text(
-            text = stringResource(Res.string.quick_actions),
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        if (isDisabled) {
+            Text(
+                text = "Quick actions",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
+            val disabledContainer = Color(0xFFF8F9FA)
+            val disabledIcon = Color(0xFF9AA0A6)
+            val disabledText = Color(0xFFBDC1C6)
+            
             QuickActionItem(
-                label = stringResource(Res.string.add_tenant_action),
-                icon = Icons.Outlined.PersonAdd
+                label = "Property",
+                icon = Icons.Outlined.Business,
+                containerColor = if (isDisabled) MaterialTheme.colorScheme.primary else AppColors.InfoContainer,
+                iconColor = if (isDisabled) MaterialTheme.colorScheme.onPrimary else AppColors.Info,
+                textColor = MaterialTheme.colorScheme.onSurface,
+                onClick = { if (!isDisabled) onAction(HomeAction.OnAddPropertyClicked) }
             )
             QuickActionItem(
-                label = stringResource(Res.string.add_property_action),
-                icon = Icons.Outlined.Home
+                label = "Record pay",
+                icon = Icons.Outlined.AccountBalanceWallet,
+                containerColor = if (isDisabled) disabledContainer else AppColors.SuccessContainer,
+                iconColor = if (isDisabled) disabledIcon else AppColors.Success,
+                textColor = if (isDisabled) disabledText else MaterialTheme.colorScheme.onSurface,
+                onClick = { if (!isDisabled) onAction(HomeAction.OnRecordPaymentClicked) }
             )
             QuickActionItem(
-                label = stringResource(Res.string.record_pay_action),
-                icon = Icons.Outlined.Payments
+                label = "Expense",
+                icon = Icons.Outlined.Receipt,
+                containerColor = if (isDisabled) disabledContainer else AppColors.ErrorContainer,
+                iconColor = if (isDisabled) disabledIcon else AppColors.Error,
+                textColor = if (isDisabled) disabledText else MaterialTheme.colorScheme.onSurface,
+                onClick = { if (!isDisabled) onAction(HomeAction.OnExpenseClicked) }
             )
             QuickActionItem(
-                label = stringResource(Res.string.expense_action),
-                icon = Icons.Outlined.Receipt // AttachMoney/Receipt
+                label = "Add tenant",
+                icon = Icons.Outlined.PersonAdd,
+                containerColor = if (isDisabled) disabledContainer else AppColors.WarningContainer,
+                iconColor = if (isDisabled) disabledIcon else AppColors.Warning,
+                textColor = if (isDisabled) disabledText else MaterialTheme.colorScheme.onSurface,
+                onClick = { if (!isDisabled) onAction(HomeAction.OnAddTenantClicked) }
             )
         }
     }
@@ -239,151 +219,278 @@ private fun QuickActionsSection() {
 @Composable
 private fun QuickActionItem(
     label: String,
-    icon: ImageVector
+    icon: ImageVector,
+    containerColor: Color,
+    iconColor: Color,
+    textColor: Color,
+    onClick: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier.clickable(onClick = onClick)
     ) {
         Box(
             modifier = Modifier
-                .size(64.dp) // Large circles
-                .clip(CircleShape) // Circle shape as per mockup
-                .background(MaterialTheme.colorScheme.primaryContainer), // Crisp Google Blue/Primary tinted background
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(containerColor),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = label,
-                modifier = Modifier.size(26.dp), // Slightly larger icon for the large circle
-                tint = MaterialTheme.colorScheme.primary // Matches the tinted background
+                modifier = Modifier.size(20.dp),
+                tint = iconColor
             )
         }
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 2,
+            style = MaterialTheme.typography.bodySmall,
+            color = textColor,
+            maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 5. Recent Payments Section
-// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun DashboardCard(state: HomeState) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.primary, // Solid primary blue
+        shadowElevation = 0.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Label row
+            Text(
+                text = "Collected this month",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
+            )
+
+            // Amount row
+            Text(
+                text = "NPR ${state.collectedRent}",
+                style = MaterialTheme.typography.displayLarge,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Progress bar
+            val progressVal = if (state.totalRent > 0) (state.collectedRent.toFloat() / state.totalRent.toFloat()) else 0f
+            LinearProgressIndicator(
+                progress = { progressVal },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(3.dp)),
+                color = MaterialTheme.colorScheme.onPrimary,
+                trackColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f),
+                strokeCap = StrokeCap.Round
+            )
+
+            // Bottom stats row
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "72% of NPR ${state.totalRent}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
+                )
+                Text(
+                    text = "${state.propertiesCount} properties · ${state.tenantsCount} tenants",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
+                )
+            }
+        }
+    }
+}
 
 @Composable
-private fun RecentPaymentsSection() {
+private fun OverdueAlertBanner(count: Int) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = AppColors.WarningContainer,
+        contentColor = AppColors.OnWarning
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Info,
+                contentDescription = null,
+                tint = AppColors.Warning,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = "$count tenants overdue by 5+ days",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                imageVector = Icons.Outlined.ChevronRight,
+                contentDescription = null,
+                tint = AppColors.Warning,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun RecentPaymentsEmpty() {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(
+            text = "Recent activity",
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 24.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.CurrencyRupee,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "No payments yet",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecentPaymentsSection(state: HomeState, onAction: (HomeAction) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        // Section header
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = stringResource(Res.string.recent_payments_title),
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.SemiBold
-                ),
+                text = "Recent activity",
+                style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
             TextButton(
-                onClick = { /* TODO: See all payments */ },
-                contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp)
+                onClick = { onAction(HomeAction.OnSeeAllPaymentsClicked) },
+                contentPadding = PaddingValues(0.dp)
             ) {
                 Text(
-                    text = stringResource(Res.string.see_all), // Make sure it says "See all" not "See All" if possible
-                    style = MaterialTheme.typography.labelMedium,
+                    text = "See all",
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
         }
 
-        // Payment rows
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            PaymentLedgerRow(
-                name = "Suman Shrestha",
-                subtitle = "Unit: 13",
-                amount = "NPR 1,24,500",
-                initials = "JIK",
-                avatarBg = Color(0xFFD0D5FA), // Light purple/blue
-                avatarText = Color(0xFF333333)
+        if (state.recentPayments.isEmpty()) {
+            Text(
+                text = "No recent payments",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = 16.dp)
             )
-            PaymentLedgerRow(
-                name = "Suman Shrestha",
-                subtitle = "Unit: 13",
-                amount = "NPR 14,500",
-                initials = "AH",
-                avatarBg = Color(0xFFC4E8C2), // Light green
-                avatarText = Color(0xFF333333)
-            )
-            PaymentLedgerRow(
-                name = "Suman Shrestha",
-                subtitle = "Unit: 14",
-                amount = "NPR 7,500",
-                initials = "OS",
-                avatarBg = Color(0xFFF9C6C1), // Light red/orange
-                avatarText = Color(0xFF333333)
-            )
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                state.recentPayments.forEachIndexed { index, payment ->
+                    val avatarPair = com.gaatho.rent.core.designsystem.ExtendedColorHex.AvatarPairs[index % com.gaatho.rent.core.designsystem.ExtendedColorHex.AvatarPairs.size]
+                    RecentPaymentItemRow(
+                        item = payment,
+                        avatarColor = Color(avatarPair.first),
+                        avatarText = Color(avatarPair.second),
+                        onClick = { onAction(HomeAction.OnRecentPaymentClicked(payment.tenantId)) }
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun PaymentLedgerRow(
-    name: String,
-    subtitle: String,
-    amount: String,
-    initials: String,
-    avatarBg: Color,
-    avatarText: Color
+private fun RecentPaymentItemRow(
+    item: RecentPaymentItem,
+    avatarColor: Color,
+    avatarText: Color,
+    onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp), // No horizontal padding to match edge-to-edge look in mockup
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Avatar
         Box(
             modifier = Modifier
-                .size(48.dp) // Larger avatar to match mockup
+                .size(48.dp)
                 .clip(CircleShape)
-                .background(avatarBg),
+                .background(avatarColor),
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = initials,
+                text = item.tenantName.take(2).uppercase(),
                 style = MaterialTheme.typography.titleSmall,
                 color = avatarText
             )
         }
 
-        // Name + subtitle
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = name,
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                color = MaterialTheme.colorScheme.onSurface
+                text = item.tenantName,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "${item.propertyName} · ${item.dateLabel}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
 
-        // Amount
         Text(
-            text = amount,
-            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+            text = "+NPR ${item.amount}",
+            style = MaterialTheme.typography.titleMedium,
             color = AppColors.Success
         )
     }
-}
+    }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Previews
@@ -393,7 +500,26 @@ private fun PaymentLedgerRow(
 @Composable
 fun HomeScreenLightPreview() {
     RentManagerTheme(darkTheme = false) {
-        HomeScreen()
+        HomeContent(
+            state = HomeState(
+                propertiesCount = 6,
+                tenantsCount = 11,
+                collectedRent = 184000L,
+                totalRent = 255500L,
+                overdueTenantsCount = 3,
+                recentPayments = kotlinx.collections.immutable.persistentListOf(
+                    RecentPaymentItem(
+                        tenantId = "1",
+                        tenantName = "Sarah Jenkins",
+                        propertyName = "Sunset Residency",
+                        dateLabel = "yesterday",
+                        amount = 18000L,
+                        isPaid = true
+                    )
+                )
+            ),
+            onAction = {}
+        )
     }
 }
 
@@ -401,6 +527,33 @@ fun HomeScreenLightPreview() {
 @Composable
 fun HomeScreenDarkPreview() {
     RentManagerTheme(darkTheme = true) {
-        HomeScreen()
+        HomeContent(
+            state = HomeState(
+                propertiesCount = 6,
+                tenantsCount = 11,
+                collectedRent = 184000L,
+                totalRent = 255500L,
+                overdueTenantsCount = 3
+            ),
+            onAction = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun HomeScreenEmptyPreview() {
+    RentManagerTheme(darkTheme = false) {
+        HomeContent(
+            state = HomeState(
+                propertiesCount = 0,
+                tenantsCount = 0,
+                collectedRent = 0L,
+                totalRent = 0L,
+                overdueTenantsCount = 0,
+                recentPayments = kotlinx.collections.immutable.persistentListOf()
+            ),
+            onAction = {}
+        )
     }
 }

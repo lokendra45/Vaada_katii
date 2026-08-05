@@ -14,15 +14,10 @@
     <!-- Dashboard -->
     <string name="app_name_dashboard">रेन्ट म्यानेजर</string>
     <string name="search">खोज्नुहोस्</string>
-    <string name="mock_date">मे २०२४</string>
     <string name="good_morning">शुभ प्रभात,</string>
-    <string name="mock_user_name">सारा</string>
     <string name="add">थप्नुहोस्</string>
     <string name="collected_rent">उठाइएको भाडा</string>
-    <string name="mock_collected_amount">रु. १,२४,५००</string>
-    <string name="mock_expected_amount">/ रु. ४,५०,००० अनुमानित</string>
     <string name="outstanding">बाँकी</string>
-    <string name="mock_outstanding_amount">रु. ३,२५,५००</string>
     <string name="properties_label">सम्पत्तिहरू</string>
     <string name="tenants_label">भाडावालहरू</string>
     <string name="quick_actions">द्रुत कार्यहरू</string>

@@ -26,6 +26,7 @@ data class PropertyDisplayModel(
     val id: String,
     val name: String,
     val address: String,
+    val imageUrl: String?,
     val totalUnits: Int,
     val occUnits: Int,
     val statusBadge: String,

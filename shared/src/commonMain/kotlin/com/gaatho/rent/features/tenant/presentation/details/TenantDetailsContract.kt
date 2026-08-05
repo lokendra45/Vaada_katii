@@ -52,6 +52,7 @@ data class TenantDetailsState(
  */
 sealed interface TenantDetailsAction {
     data object OnBackClicked : TenantDetailsAction
+    data object OnEditClicked : TenantDetailsAction
     data object OnPaymentClicked : TenantDetailsAction
     data object OnEmailClicked : TenantDetailsAction
     data object OnCallClicked : TenantDetailsAction
@@ -66,6 +67,7 @@ sealed interface TenantDetailsAction {
  */
 sealed interface TenantDetailsEffect {
     data object NavigateBack : TenantDetailsEffect
+    data class NavigateToEdit(val tenantId: String) : TenantDetailsEffect
     data class OpenEmailApp(val email: String) : TenantDetailsEffect
     data class OpenPhoneApp(val phone: String) : TenantDetailsEffect
     data class NavigateToTransactions(val tenantId: String) : TenantDetailsEffect

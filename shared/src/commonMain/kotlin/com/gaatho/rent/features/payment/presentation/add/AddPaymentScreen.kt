@@ -204,7 +204,7 @@ fun FormCard(
                 )
                 Text(
                     text = if (isPlaceholder) placeholder else value,
-                    style = MaterialTheme.typography.bodyLarge.copy(
+                    style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = if (isPlaceholder) FontWeight.Normal else FontWeight.Medium
                     ),
                     color = if (isPlaceholder) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface
@@ -330,7 +330,7 @@ private fun AmountSection(amount: String, onAmountChange: (String) -> Unit) {
         ) {
             Text(
                 text = "Total due: NPR 4,500",
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
             )
         }
@@ -390,7 +390,7 @@ private fun PaymentDetailsSection(
             ) {
                 Text(
                     text = stringResource(Res.string.payment_property_label),
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                    style = MaterialTheme.typography.headlineMedium
                 )
                 HorizontalDivider(
                     modifier = Modifier.padding(bottom = 4.dp),
@@ -414,7 +414,7 @@ private fun PaymentDetailsSection(
                         ) {
                             Text(
                                 text = property.name,
-                                style = MaterialTheme.typography.bodyLarge.copy(
+                                style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                                 ),
                                 color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
@@ -440,7 +440,7 @@ private fun PaymentDetailsSection(
             ) {
                 Text(
                     text = stringResource(Res.string.payment_tenant_label),
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                    style = MaterialTheme.typography.headlineMedium
                 )
                 HorizontalDivider(
                     modifier = Modifier.padding(bottom = 4.dp),
@@ -464,7 +464,7 @@ private fun PaymentDetailsSection(
                         ) {
                             Text(
                                 text = tenant.name,
-                                style = MaterialTheme.typography.bodyLarge.copy(
+                                style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                                 ),
                                 color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
@@ -527,14 +527,14 @@ private fun PaymentMethodSection(
                 )
                 Text(
                     text = selectedMethod?.let { stringResource(it.labelRes) } ?: "Select method",
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
             
             Text(
                 text = "Change",
-                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
         }
@@ -554,7 +554,7 @@ private fun PaymentMethodSection(
             ) {
                 Text(
                     text = "Select method",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                    style = MaterialTheme.typography.headlineMedium
                 )
                 HorizontalDivider(
                     modifier = Modifier.padding(bottom = 4.dp),
@@ -589,7 +589,7 @@ private fun PaymentMethodSection(
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
                                 text = stringResource(method.labelRes),
-                                style = MaterialTheme.typography.bodyLarge.copy(
+                                style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                                 ),
                                 color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
@@ -621,13 +621,13 @@ private fun RemarksSection(
             BasicTextField(
                 value = remarks,
                 onValueChange = onRemarksChange,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                 decorationBox = { innerTextField ->
                     if (remarks.isEmpty()) {
                         Text(
                             text = stringResource(Res.string.payment_remarks_placeholder),
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )
                     }
@@ -674,7 +674,7 @@ private fun AddPaymentBottomBar(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = stringResource(Res.string.payment_info_banner),
-                    style = MaterialTheme.typography.labelMedium.copy(lineHeight = 16.sp),
+                    style = MaterialTheme.typography.bodySmall.copy(lineHeight = 16.sp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                 )
             }

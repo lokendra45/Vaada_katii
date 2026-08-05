@@ -11,6 +11,9 @@ import com.skydoves.sandwich.onSuccess
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 import com.skydoves.sandwich.ApiResponse
 import com.gaatho.rent.core.utils.UuidUtil
+import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.compressImage
+import io.github.vinceglb.filekit.ImageFormat
 
 class AddPropertyViewModel(
     private val repository: PropertyRepository,
@@ -34,39 +37,42 @@ class AddPropertyViewModel(
     override fun onAction(action: AddPropertyAction) {
         when (action) {
             is AddPropertyAction.OnNameChanged -> intent {
-                reduce { state.copy(name = action.name, nameError = null) }
+                val error = if (action.name.isBlank()) "Property name is required" else null
+                reduce { state.copy(name = action.name, nameError = error) }
             }
             is AddPropertyAction.OnStreetAddressChanged -> intent {
-                reduce { state.copy(streetAddress = action.address, addressError = null) }
+                val error = if (action.address.isBlank()) "Street address is required" else null
+                reduce { state.copy(streetAddress = action.address, addressError = error) }
             }
             is AddPropertyAction.OnCityChanged -> intent {
-                reduce { state.copy(city = action.city) }
-            }
-            is AddPropertyAction.OnZipCodeChanged -> intent {
-                reduce { state.copy(zipCode = action.zip) }
+                val error = if (action.city.isBlank()) "City is required" else null
+                reduce { state.copy(city = action.city, cityError = error) }
             }
             is AddPropertyAction.OnTypeChanged -> intent {
                 reduce { state.copy(propertyType = action.type) }
             }
             is AddPropertyAction.OnTotalUnitsChanged -> intent {
-                reduce { state.copy(totalUnits = action.units) }
+                val isNumber = action.units.toIntOrNull() != null
+                val error = if (action.units.isBlank()) "Units is required" else if (!isNumber) "Invalid number" else null
+                reduce { state.copy(totalUnits = action.units, unitsError = error) }
             }
             is AddPropertyAction.OnBillingCycleChanged -> intent {
                 reduce { state.copy(billingCycle = action.cycle) }
             }
             is AddPropertyAction.OnAmenityToggled -> intent {
                 val amenities = state.selectedAmenities.toMutableSet()
-                if (amenities.contains(action.amenity)) {
-                    amenities.remove(action.amenity)
-                } else {
-                    amenities.add(action.amenity)
-                }
+                if (amenities.contains(action.amenity)) amenities.remove(action.amenity)
+                else amenities.add(action.amenity)
                 reduce { state.copy(selectedAmenities = amenities) }
+            }
+            is AddPropertyAction.OnImagePicked -> intent {
+                reduce { state.copy(imageBytes = action.bytes) }
             }
             is AddPropertyAction.OnSaveClicked -> handleSave()
         }
     }
 
+    @OptIn(kotlin.io.encoding.ExperimentalEncodingApi::class)
     private fun handleSave() = intent {
         val currentState = state
         var hasError = false
@@ -80,22 +86,47 @@ class AddPropertyViewModel(
             reduce { state.copy(addressError = "Street address is required") }
             hasError = true
         }
+        
+        if (currentState.city.isBlank()) {
+            reduce { state.copy(cityError = "City is required") }
+            hasError = true
+        }
+        
+        if (currentState.totalUnits.toIntOrNull() == null) {
+            reduce { state.copy(unitsError = "Invalid number of units") }
+            hasError = true
+        }
 
         if (hasError) return@intent
 
         reduce { state.copy(isSaving = true) }
 
+        val base64Image = currentState.imageBytes?.let { bytes ->
+            val compressedBytes = FileKit.compressImage(
+                bytes = bytes,
+                quality = 80,
+                maxWidth = 1024,
+                maxHeight = 1024,
+                imageFormat = ImageFormat.JPEG
+            )
+            "base64:" + kotlin.io.encoding.Base64.Default.encode(compressedBytes)
+        }
+
         val property = Property(
             id = UuidUtil.generateV7String(), 
             ownerId = ownerId,
             name = currentState.name.trim(),
-            address = "${currentState.streetAddress.trim()}, ${currentState.city.trim()} ${currentState.zipCode.trim()}".trim(',' , ' '),
-            propertyType = currentState.propertyType
+            address = "${currentState.streetAddress.trim()}, ${currentState.city.trim()}".trim(',' , ' '),
+            propertyType = currentState.propertyType,
+            totalUnits = currentState.totalUnits.toIntOrNull() ?: 1,
+            billingCycle = currentState.billingCycle,
+            amenities = currentState.selectedAmenities,
+            imageUrl = base64Image
         )
 
         when (val response = repository.createProperty(property)) {
             is ApiResponse.Success -> {
-                postSideEffect(AddPropertySideEffect.NavigateBack)
+                postSideEffect(AddPropertySideEffect.ShowSuccessDialog)
             }
             is ApiResponse.Failure.Error -> {
                 reduce { state.copy(isSaving = false) }

@@ -32,9 +32,11 @@ import kotlinx.serialization.json.Json.Default.serializersModule
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import com.gaatho.rent.features.dashboard.presentation.MainDashboardScreen
+import com.gaatho.rent.features.payment.presentation.details.PaymentDetailsScreen
 import com.gaatho.rent.features.paywall.presentation.PaywallScreen
 import com.gaatho.rent.features.property.presentation.details.PropertyDetailsScreen
 import com.gaatho.rent.features.property.presentation.edit.EditPropertyScreen
+import com.gaatho.rent.features.tenant.presentation.edit.EditTenantScreen
 import com.gaatho.rent.features.tenant.presentation.list.TenantsListScreen
 import org.koin.compose.koinInject
 
@@ -69,10 +71,6 @@ fun AppNavigation() {
                     onNavigateToHome = {
                         backStack.clear()
                         backStack.add(MainDashboardRoute)
-                    },
-                    onNavigateToLogin = {
-                        backStack.clear()
-                        backStack.add(LoginRoute)
                     }
                 )
             }
@@ -90,6 +88,12 @@ fun AppNavigation() {
                     },
                     onNavigateToAddTenant = {
                         backStack.add(AddTenantRoute)
+                    },
+                    onNavigateToAddPayment = {
+                        backStack.add(AddPaymentRoute)
+                    },
+                    onNavigateToPaymentDetails = { paymentId ->
+                        backStack.add(PaymentDetailRoute(paymentId))
                     },
                     onNavigateToLogin = {
                         backStack.clear()
@@ -170,12 +174,38 @@ fun AppNavigation() {
             entry<TenantDetailRoute> { route ->
                 com.gaatho.rent.features.tenant.presentation.details.TenantDetailsScreen(
                     tenantId = route.tenantId,
-                    onNavigateBack = { backStack.removeLastOrNull() }
+                    onNavigateBack = { backStack.removeLastOrNull() },
+                    onNavigateToEdit = { tenantId ->
+                        backStack.add(EditTenantRoute(tenantId))
+                    }
                 )
             }
 
             entry<AddTenantRoute> {
-                PlaceholderScreen("Add Tenant Screen")
+                EditTenantScreen(
+                    tenantId = "new",
+                    onNavigateBack = { backStack.removeLastOrNull() }
+                )
+            }
+
+            entry<EditTenantRoute> { route ->
+                EditTenantScreen(
+                    tenantId = route.tenantId,
+                    onNavigateBack = { backStack.removeLastOrNull() }
+                )
+            }
+
+            entry<AddPaymentRoute> {
+                com.gaatho.rent.features.payment.presentation.add.AddPaymentScreen(
+                    onNavigateBack = { backStack.removeLastOrNull() }
+                )
+            }
+
+            entry<PaymentDetailRoute> { route ->
+                PaymentDetailsScreen(
+                    paymentId = route.paymentId,
+                    onNavigateBack = { backStack.removeLastOrNull() }
+                )
             }
         }
     )

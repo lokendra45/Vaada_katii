@@ -106,6 +106,20 @@ data object TenantListRoute : Route
 @Serializable
 data class TenantDetailRoute(val tenantId: String) : Route
 
-/** Form for adding/assigning a new tenant. */
+/** Form for adding a new tenant (uses EditTenantScreen with tenantId = "new"). */
 @Serializable
 data object AddTenantRoute : Route
+
+/** Form for editing an existing tenant. */
+@Serializable
+data class EditTenantRoute(val tenantId: String) : Route
+
+/** Form for adding a payment. */
+@Serializable
+data object AddPaymentRoute : Route
+
+/** Detail view for a single payment. */
+@Serializable
+data class PaymentDetailRoute(val paymentId: String) : Route
+
+

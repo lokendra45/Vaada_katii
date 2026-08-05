@@ -24,6 +24,9 @@ class ProxyPropertyRepository(
     override fun getProperties(ownerId: String): Flow<List<Property>> =
         activeRepository.getProperties(ownerId)
 
+    override fun getPropertyById(propertyId: String): Flow<Property?> =
+        activeRepository.getPropertyById(propertyId)
+
     override suspend fun createProperty(property: Property): ApiResponse<Unit> =
         activeRepository.createProperty(property)
 

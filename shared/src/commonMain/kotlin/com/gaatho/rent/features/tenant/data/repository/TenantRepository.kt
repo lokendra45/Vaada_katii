@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
  */
 interface TenantRepository {
     fun getTenants(ownerId: String): Flow<List<Tenant>>
+    fun getTenantById(tenantId: String): Flow<Tenant?>
     suspend fun createTenant(tenant: Tenant): ApiResponse<Unit>
     suspend fun updateTenant(tenant: Tenant): ApiResponse<Unit>
     suspend fun deleteTenant(tenantId: String): ApiResponse<Unit>

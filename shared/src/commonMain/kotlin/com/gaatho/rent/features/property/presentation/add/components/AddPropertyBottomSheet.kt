@@ -30,12 +30,15 @@ import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 import rentmanagerapp.shared.generated.resources.Res
 import rentmanagerapp.shared.generated.resources.*
+import com.gaatho.rent.core.utils.toImageBitmap
+import androidx.compose.ui.layout.ContentScale
 
 @Composable
 fun AddPropertyBottomSheet(
     state: AddPropertyState,
     onAction: (AddPropertyAction) -> Unit,
     onDismiss: () -> Unit,
+    onPickImage: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
@@ -44,7 +47,6 @@ fun AddPropertyBottomSheet(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .imePadding()
             .background(MaterialTheme.colorScheme.surface)
     ) {
         // Header
@@ -72,10 +74,8 @@ fun AddPropertyBottomSheet(
             ) {
                 Text(
                     text = "Add Property",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 IconButton(
@@ -110,12 +110,13 @@ fun AddPropertyBottomSheet(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
-                    modifier = Modifier.size(90.dp),
+                    modifier = Modifier.size(90.dp).clickable { onPickImage() },
                     contentAlignment = Alignment.Center
                 ) {
+                    val primaryColor = MaterialTheme.colorScheme.primary
                     Canvas(modifier = Modifier.fillMaxSize()) {
                         drawCircle(
-                            color = Color.LightGray,
+                            color = if (state.imageBytes != null) primaryColor else Color.LightGray,
                             style = Stroke(
                                 width = 1.dp.toPx(),
                                 pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
@@ -127,24 +128,43 @@ fun AddPropertyBottomSheet(
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
                         modifier = Modifier.size(82.dp)
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.AddAPhoto,
-                                contentDescription = null,
-                                tint = iconTint,
-                                modifier = Modifier.size(26.dp)
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "Add Photo",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    color = iconTint,
-                                    fontWeight = FontWeight.Medium
+                        if (state.imageBytes != null) {
+                            val bitmap = remember(state.imageBytes) { state.imageBytes.toImageBitmap() }
+                            if (bitmap != null) {
+                                Image(
+                                    bitmap = bitmap,
+                                    contentDescription = "Selected image",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
                                 )
-                            )
+                            } else {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(26.dp))
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text("Added", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                }
+                            }
+                        } else {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AddAPhoto,
+                                    contentDescription = null,
+                                    tint = iconTint,
+                                    modifier = Modifier.size(26.dp)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Add Photo",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = iconTint
+                                )
+                            }
                         }
                     }
                 }
@@ -163,6 +183,7 @@ fun AddPropertyBottomSheet(
                 onValueChange = { onAction(AddPropertyAction.OnNameChanged(it)) },
                 label = "Property Name",
                 placeholder = "e.g. Sunset Residency",
+                errorMessage = state.nameError,
                 leadingIcon = { Icon(Icons.Default.Business, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp)) }
             )
 
@@ -173,30 +194,20 @@ fun AddPropertyBottomSheet(
                 onValueChange = { onAction(AddPropertyAction.OnStreetAddressChanged(it)) },
                 label = "Street Address",
                 placeholder = "e.g. 123 Main St",
+                errorMessage = state.addressError,
                 leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp)) }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                AppTextField(
-                    value = state.city,
-                    onValueChange = { onAction(AddPropertyAction.OnCityChanged(it)) },
-                    label = "City / Area",
-                    placeholder = "e.g. Kathmandu",
-                    modifier = Modifier.weight(1f)
-                )
-                AppTextField(
-                    value = state.zipCode,
-                    onValueChange = { onAction(AddPropertyAction.OnZipCodeChanged(it)) },
-                    label = "Zip Code",
-                    placeholder = "44600",
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            AppTextField(
+                value = state.city,
+                onValueChange = { onAction(AddPropertyAction.OnCityChanged(it)) },
+                label = "City / Area",
+                placeholder = "e.g. Kathmandu",
+                errorMessage = state.cityError,
+                modifier = Modifier.fillMaxWidth()
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -218,8 +229,9 @@ fun AddPropertyBottomSheet(
                 AppTextField(
                     value = state.totalUnits,
                     onValueChange = { onAction(AddPropertyAction.OnTotalUnitsChanged(it)) },
-                    label = "Total Units",
+                    label = "Number of Units (Rooms/Flats)",
                     placeholder = "1",
+                    errorMessage = state.unitsError,
                     modifier = Modifier.weight(1f),
                     leadingIcon = { Icon(Icons.Default.GridView, contentDescription = null, tint = iconTint, modifier = Modifier.size(18.dp)) }
                 )
@@ -241,10 +253,8 @@ fun AddPropertyBottomSheet(
             
             Text(
                 text = "Amenities & Utilities Managed",
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                ),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
@@ -297,16 +307,17 @@ fun AddPropertyBottomSheet(
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
                 ) {
-                    Text(stringResource(Res.string.cancel), style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(Res.string.cancel), style = MaterialTheme.typography.titleMedium)
                 }
 
                 com.gaatho.rent.core.designsystem.components.RentManagerButton(
                     onClick = { onAction(AddPropertyAction.OnSaveClicked) },
-                    modifier = Modifier.weight(1.5f)
+                    modifier = Modifier.weight(1.5f),
+                    enabled = state.name.isNotBlank() && state.streetAddress.isNotBlank() && state.city.isNotBlank() && state.totalUnits.isNotBlank() && !state.isSaving
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Text(stringResource(Res.string.property_create_button), style = MaterialTheme.typography.labelLarge)
+                        Text(stringResource(Res.string.property_create_button), style = MaterialTheme.typography.titleMedium)
                     }
                 }
             }

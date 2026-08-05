@@ -42,6 +42,7 @@ import rentmanagerapp.shared.generated.resources.*
 fun TenantDetailsScreen(
     tenantId: String,
     onNavigateBack: () -> Unit,
+    onNavigateToEdit: (String) -> Unit = {},
     viewModel: TenantDetailsViewModel = koinInject(parameters = { parametersOf(tenantId) })
 ) {
     val state by viewModel.container.stateFlow.collectAsState()
@@ -50,6 +51,7 @@ fun TenantDetailsScreen(
         viewModel.container.sideEffectFlow.collect { effect ->
             when (effect) {
                 is TenantDetailsEffect.NavigateBack          -> onNavigateBack()
+                is TenantDetailsEffect.NavigateToEdit        -> onNavigateToEdit(effect.tenantId)
                 is TenantDetailsEffect.OpenEmailApp          -> {}
                 is TenantDetailsEffect.OpenPhoneApp          -> {}
                 is TenantDetailsEffect.NavigateToTransactions -> {}
@@ -69,7 +71,21 @@ private fun TenantDetailsContent(
     onAction: (TenantDetailsAction) -> Unit
 ) {
     Scaffold(
-        topBar = { TenantTopBar(onAction) },
+        topBar = {
+            com.gaatho.rent.core.ui.components.AppTopBar(
+                title = stringResource(Res.string.app_name_dashboard),
+                onBackClick = { onAction(TenantDetailsAction.OnBackClicked) },
+                actions = {
+                    TextButton(onClick = { onAction(TenantDetailsAction.OnEditClicked) }) {
+                        Text(
+                            text = "Edit",
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                }
+            )
+        },
         // Use surface instead of background to avoid pure black in dark mode
         containerColor = MaterialTheme.colorScheme.surface
     ) { paddings ->
@@ -159,7 +175,7 @@ private fun ProfileHeaderSection(
         ) {
             Text(
                 text = initials,
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Medium),
+                style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
@@ -168,10 +184,7 @@ private fun ProfileHeaderSection(
 
         Text(
             text = profile.name,
-            style = MaterialTheme.typography.titleLarge.copy(
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 0.sp
-            ),
+            style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
 
@@ -183,7 +196,7 @@ private fun ProfileHeaderSection(
         ) {
             Text(
                 text = profile.address,
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Box(
@@ -205,7 +218,7 @@ private fun ProfileHeaderSection(
                     )
                     Text(
                         text = stringResource(Res.string.tenant_verified),
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -287,7 +300,7 @@ private fun LeaseDetailsSection(lease: TenantLeaseDisplayModel) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = stringResource(Res.string.lease_details),
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 16.dp)
         )
@@ -338,10 +351,7 @@ private fun LeaseDetailsSection(lease: TenantLeaseDisplayModel) {
 
                 Text(
                     text = stringResource(Res.string.lease_term).uppercase(),
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        letterSpacing = 0.5.sp
-                    ),
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(Modifier.height(4.dp))
@@ -392,7 +402,7 @@ private fun LeaseCell(
         Spacer(Modifier.height(6.dp))
         Text(
             text = value,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
+            style = MaterialTheme.typography.titleMedium,
             color = valueColor
         )
     }
@@ -413,12 +423,12 @@ private fun TransactionsSection(
         ) {
             Text(
                 text = stringResource(Res.string.recent_transactions),
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = stringResource(Res.string.view_all_action),
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .clickable { onAction(TenantDetailsAction.OnViewAllTransactionsClicked) }
@@ -476,13 +486,13 @@ private fun TransactionRow(tx: TenantTransactionDisplayModel, onClick: () -> Uni
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = tx.type,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
                     text = tx.date,
-                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -490,7 +500,7 @@ private fun TransactionRow(tx: TenantTransactionDisplayModel, onClick: () -> Uni
             Column(horizontalAlignment = Alignment.End) {
                 Text(
                     text = tx.amount,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(Modifier.height(2.dp))

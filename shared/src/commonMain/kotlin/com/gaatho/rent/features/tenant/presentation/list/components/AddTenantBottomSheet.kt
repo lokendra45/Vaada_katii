@@ -84,10 +84,8 @@ fun AddTenantBottomSheet(
             ) {
                 Text(
                     text = stringResource(Res.string.add_tenant),
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 IconButton(
@@ -153,10 +151,8 @@ fun AddTenantBottomSheet(
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = stringResource(Res.string.add_photo),
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                    fontWeight = FontWeight.Medium
-                                )
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                             )
                         }
                     }
@@ -298,10 +294,7 @@ fun AddTenantBottomSheet(
                     ) {
                         Text(
                             text = stringResource(Res.string.tenant_add_button).uppercase(),
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp
-                            )
+                            style = MaterialTheme.typography.titleMedium
                         )
                     }
                 }

@@ -5,45 +5,60 @@ import kotlinx.coroutines.delay
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 import kotlin.time.Duration.Companion.milliseconds
 
+import com.gaatho.rent.features.tenant.data.repository.TenantRepository
+import com.gaatho.rent.features.property.data.repository.PropertyRepository
+import com.gaatho.rent.core.auth.UserIdentityProvider
+import com.gaatho.rent.features.tenant.domain.model.Tenant
+import com.gaatho.rent.core.utils.UuidUtil
+import com.gaatho.rent.core.utils.DateTimeUtil
+import com.skydoves.sandwich.ApiResponse
+import kotlinx.coroutines.flow.firstOrNull
+
 class EditTenantViewModel(
-    private val tenantId: String
+    private val tenantId: String,
+    private val tenantRepository: TenantRepository,
+    private val propertyRepository: PropertyRepository,
+    private val userIdentityProvider: UserIdentityProvider
 ) : MviViewModel<EditTenantState, EditTenantSideEffect, EditTenantAction>() {
+
+    private val ownerId: String
+        get() = userIdentityProvider.currentUserId()
 
     override val container = orbitContainer<EditTenantState, EditTenantSideEffect>(EditTenantState()) {
         loadTenant()
     }
 
     private fun loadTenant() = intent {
-        // Simulate loading from repository
         reduce { state.copy(isLoading = true) }
-        delay(800.milliseconds) // Mock network delay
         
-        // Mock data
-        val mockProperties = listOf(
-            PropertyOption("prop-1", "Sunrise Residency"),
-            PropertyOption("prop-2", "Green Valley Flats")
-        )
+        val properties = propertyRepository.getProperties(ownerId).firstOrNull() ?: emptyList()
+        val propertyOptions = properties.map { PropertyOption(it.id, it.name) }
         
         if (tenantId == "new") {
             reduce { 
                 state.copy(
                     isLoading = false,
-                    propertyOptions = mockProperties
+                    propertyOptions = propertyOptions
                 ) 
             }
         } else {
-            reduce {
-                state.copy(
-                    isLoading = false,
-                    name = "Suman Shrestha",
-                    phone = "+977-9841234567",
-                    email = "suman@example.com",
-                    rentAmount = "15000",
-                    propertyId = "prop-1",
-                    roomNumber = "2A",
-                    status = "Active",
-                    propertyOptions = mockProperties
-                )
+            val tenant = tenantRepository.getTenantById(tenantId).firstOrNull()
+            if (tenant != null) {
+                reduce {
+                    state.copy(
+                        isLoading = false,
+                        name = tenant.name,
+                        phone = tenant.phone ?: "",
+                        email = tenant.email ?: "",
+                        rentAmount = tenant.rentAmount.toString(),
+                        propertyId = tenant.propertyId ?: "",
+                        roomNumber = tenant.roomNumber ?: "",
+                        status = tenant.status,
+                        propertyOptions = propertyOptions
+                    )
+                }
+            } else {
+                reduce { state.copy(isLoading = false, propertyOptions = propertyOptions) }
             }
         }
     }
@@ -100,9 +115,40 @@ class EditTenantViewModel(
         }
         
         reduce { state.copy(isSaving = true) }
-        delay(1000) // Mock network delay
+        
+        val propertyName = currentState.propertyOptions.find { it.id == currentState.propertyId }?.name ?: ""
+        
+        val tenantToSave = Tenant(
+            id = if (tenantId == "new") UuidUtil.generateV7String() else tenantId,
+            ownerId = ownerId,
+            name = currentState.name,
+            email = currentState.email.takeIf { it.isNotBlank() },
+            phone = currentState.phone.takeIf { it.isNotBlank() },
+            propertyId = currentState.propertyId?.takeIf { it.isNotBlank() },
+            propertyName = propertyName.takeIf { it.isNotBlank() },
+            roomNumber = currentState.roomNumber.takeIf { it.isNotBlank() },
+            rentAmount = currentState.rentAmount.toLongOrNull() ?: 0L,
+            status = currentState.status,
+            createdAt = DateTimeUtil.nowIsoString(),
+            updatedAt = DateTimeUtil.nowIsoString()
+        )
+        
+        val response = if (tenantId == "new") {
+            tenantRepository.createTenant(tenantToSave)
+        } else {
+            tenantRepository.updateTenant(tenantToSave)
+        }
+        
         reduce { state.copy(isSaving = false) }
-        postSideEffect(EditTenantSideEffect.ShowSnackbar("Tenant saved successfully"))
-        postSideEffect(EditTenantSideEffect.NavigateBack)
+        
+        when (response) {
+            is ApiResponse.Success -> {
+                postSideEffect(EditTenantSideEffect.ShowSnackbar("Tenant saved successfully"))
+                postSideEffect(EditTenantSideEffect.NavigateBack)
+            }
+            is ApiResponse.Failure.Error, is ApiResponse.Failure.Exception -> {
+                postSideEffect(EditTenantSideEffect.ShowSnackbar("Failed to save tenant"))
+            }
+        }
     }
 }

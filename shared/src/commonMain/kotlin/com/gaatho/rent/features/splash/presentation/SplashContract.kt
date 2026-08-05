@@ -8,12 +8,13 @@ data class SplashState(
 )
 
 /**
- * One-shot side effects emitted by the Splash screen to trigger navigation after initial validation.
+ * One-shot side effects emitted by the Splash screen.
+ *
+ * The app always navigates to Home after splash.
+ * Login is only triggered later by the user via an explicit action (e.g. "Sign In").
  */
 sealed interface SplashSideEffect {
-    /** Navigate directly to the main dashboard (user has a valid session). */
+    /** Navigate to the main dashboard. Always fires — guest session is auto-created if needed. */
     data object NavigateToHome : SplashSideEffect
-
-    /** Navigate to the login screen (no valid session or session expired). */
-    data object NavigateToLogin : SplashSideEffect
 }
+

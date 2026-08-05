@@ -6,7 +6,8 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinSerialization)
-    alias(libs.plugins.sqldelight)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.androidx.room3)
 }
 
 kotlin {
@@ -47,14 +48,10 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.ktor.client.okhttp)
-            implementation(libs.sqldelight.android.driver)
-            implementation(libs.sqlcipher.android)
-            implementation(libs.androidx.sqlite)
             implementation(libs.androidx.biometric)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
-            implementation(libs.sqldelight.native.driver)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -82,9 +79,15 @@ kotlin {
             implementation(libs.supabase.storage)
             implementation(libs.supabase.compose.auth)
 
-            // SQLDelight
-            implementation(libs.sqldelight.coroutines)
-            implementation(libs.sqldelight.runtime)
+            // Room & SQLite
+            implementation(libs.room3.runtime)
+            implementation(libs.room3.paging)
+            implementation(libs.androidx.sqlite.bundled)
+            implementation(libs.androidx.sqlite)
+
+            // FileKit
+            implementation(libs.filekit.core)
+            implementation(libs.filekit.dialogs.compose)
 
             // Ktor & Logging
             implementation(libs.ktor.client.core)
@@ -128,12 +131,14 @@ kotlin {
     }
 }
 
-sqldelight {
-    databases {
-        create("RentManagerDatabase") {
-            packageName.set("com.gaatho.rent.database")
-        }
-    }
+room3 {
+    schemaDirectory("$projectDir/schemas")
+}
+
+dependencies {
+    add("kspAndroid", libs.room3.compiler)
+    add("kspIosSimulatorArm64", libs.room3.compiler)
+    add("kspIosArm64", libs.room3.compiler)
 }
 
 dependencies {

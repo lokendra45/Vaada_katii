@@ -13,6 +13,7 @@ import com.gaatho.rent.core.ui.animation.tabSlideTransition
 import com.gaatho.rent.features.dashboard.presentation.home.HomeScreen
 import com.gaatho.rent.features.dashboard.presentation.model.DashboardTab
 import com.gaatho.rent.features.property.presentation.list.PropertyListScreen
+import com.gaatho.rent.features.payment.presentation.list.PaymentsListScreen
 import com.gaatho.rent.features.settings.presentation.SettingsScreen
 import com.gaatho.rent.features.tenant.presentation.list.TenantsListScreen
 
@@ -33,6 +34,9 @@ fun DashboardContent(
     onNavigateToAddProperty: () -> Unit,
     onNavigateToTenantDetails: (String) -> Unit = {},
     onNavigateToAddTenant: () -> Unit = {},
+    onNavigateToAddPayment: () -> Unit = {},
+    onNavigateToPaymentDetails: (String) -> Unit = {},
+    onNavigateToPayments: () -> Unit = {},
     onNavigateToLogin: () -> Unit = {},
     content: @Composable (DashboardTab) -> Unit = { tab ->
         DefaultDashboardTabContent(
@@ -41,6 +45,9 @@ fun DashboardContent(
             onNavigateToAddProperty = onNavigateToAddProperty,
             onNavigateToTenantDetails = onNavigateToTenantDetails,
             onNavigateToAddTenant = onNavigateToAddTenant,
+            onNavigateToAddPayment = onNavigateToAddPayment,
+            onNavigateToPaymentDetails = onNavigateToPaymentDetails,
+            onNavigateToPayments = onNavigateToPayments,
             onNavigateToLogin = onNavigateToLogin
         )
     }
@@ -72,16 +79,26 @@ private fun DefaultDashboardTabContent(
     onNavigateToAddProperty: () -> Unit,
     onNavigateToTenantDetails: (String) -> Unit,
     onNavigateToAddTenant: () -> Unit,
+    onNavigateToAddPayment: () -> Unit,
+    onNavigateToPaymentDetails: (String) -> Unit,
+    onNavigateToPayments: () -> Unit = {},
     onNavigateToLogin: () -> Unit
 ) {
     when (tab) {
-        DashboardTab.HOME -> HomeScreen()
+        DashboardTab.HOME -> HomeScreen(
+            onNavigateToAddTenant = onNavigateToAddTenant,
+            onNavigateToAddProperty = onNavigateToAddProperty,
+            onNavigateToAddPayment = onNavigateToAddPayment,
+            onNavigateToPayments = onNavigateToPayments,
+            onNavigateToTenantDetails = onNavigateToTenantDetails
+        )
         DashboardTab.PROPERTIES -> PropertyListScreen(
             onNavigateToDetails = onNavigateToPropertyDetails,
             onNavigateToAddProperty = onNavigateToAddProperty
         )
-        DashboardTab.PAYMENTS -> com.gaatho.rent.features.payment.presentation.add.AddPaymentScreen(
-            onNavigateBack = { /* Optional: switch to home */ }
+        DashboardTab.PAYMENTS -> PaymentsListScreen(
+            onNavigateToAddPayment = onNavigateToAddPayment,
+            onNavigateToDetails = onNavigateToPaymentDetails
         )
         DashboardTab.TENANTS -> TenantsListScreen(
             onNavigateToDetails = onNavigateToTenantDetails,

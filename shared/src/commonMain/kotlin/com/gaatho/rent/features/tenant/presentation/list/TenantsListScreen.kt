@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -78,21 +79,10 @@ fun TenantsListContent(
     onAction: (TenantsListAction) -> Unit,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberStandardBottomSheetState(
-            initialValue = SheetValue.Hidden,
-            skipHiddenState = false
-        )
-    )
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    BottomSheetScaffold(
-        scaffoldState = scaffoldState,
-        sheetPeekHeight = 0.dp,
-        sheetDragHandle = null,
-        sheetContainerColor = MaterialTheme.colorScheme.surface,
-        sheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-        sheetSwipeEnabled = true,
+    Scaffold(
         topBar = {
             com.gaatho.rent.core.ui.components.AppTopBar(
                 title = stringResource(Res.string.tenants_title),
@@ -100,27 +90,15 @@ fun TenantsListContent(
                 actions = {
                     com.gaatho.rent.core.ui.components.AppTopBarActionButton(
                         text = stringResource(Res.string.add_tenant),
-                        onClick = {
-                            coroutineScope.launch { scaffoldState.bottomSheetState.expand() }
-                        }
+                        onClick = { showBottomSheet = true }
                     )
                 }
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-        sheetContent = {
-            com.gaatho.rent.features.tenant.presentation.list.components.AddTenantBottomSheet(
-                onDismiss = { coroutineScope.launch { scaffoldState.bottomSheetState.hide() } },
-                onSave = { coroutineScope.launch { scaffoldState.bottomSheetState.hide() } },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.92f)
-            )
-        }
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
     ) { padding ->
-
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
@@ -130,7 +108,7 @@ fun TenantsListContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .widthIn(max = 800.dp)
-                    .align(Alignment.TopCenter)
+                    .align(Alignment.CenterHorizontally)
             ) {
                 // 1. Search & Filter Section with clean layout
                 Column(
@@ -205,19 +183,13 @@ fun TenantsListContent(
                                     .weight(1f)
                                     .padding(32.dp)
                             ) {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Text(
-                                        text = stringResource(Res.string.no_tenants_found),
-                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium)
-                                    )
-                                    Text(
-                                        text = stringResource(Res.string.no_tenants_found_subtitle),
-                                        style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    )
-                                }
+                                com.gaatho.rent.core.ui.components.EmptyStateCard(
+                                    icon = Icons.Outlined.Group,
+                                    title = stringResource(Res.string.no_tenants_found),
+                                    description = stringResource(Res.string.no_tenants_found_subtitle),
+                                    buttonText = "Add Tenant",
+                                    onButtonClick = { showBottomSheet = true }
+                                )
                             }
                         } else {
                             LazyColumn(
@@ -250,8 +222,26 @@ fun TenantsListContent(
                 }
             }
 
-        } // Box
-    } // BottomSheetScaffold content
+        } // Column
+    } // Scaffold content
+
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+            dragHandle = null,
+            contentWindowInsets = { WindowInsets.ime }
+        ) {
+            com.gaatho.rent.features.tenant.presentation.list.components.AddTenantBottomSheet(
+                onDismiss = { showBottomSheet = false },
+                onSave = { showBottomSheet = false },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.92f)
+            )
+        }
+    }
 } // TenantsListContent
 
 @Composable
@@ -296,7 +286,7 @@ private fun TenantsFilterStrip(
             ) {
                 Text(
                     text = if (isPropertyFiltered) state.selectedProperty else stringResource(Res.string.properties_label),
-                    style = MaterialTheme.typography.labelMedium.copy(
+                    style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = if (isPropertyFiltered) FontWeight.Bold else FontWeight.Medium,
                         color = if (isPropertyFiltered) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     ),
@@ -376,20 +366,16 @@ private fun TenantRowItem(
             ) {
                 Text(
                     text = tenant.name,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Medium
-                    ),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
                 Text(
                     text = tenant.subtitle,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.Medium
-                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

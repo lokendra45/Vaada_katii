@@ -178,26 +178,15 @@ private fun EditPropertyContent(
 
             Spacer(Modifier.height(16.dp))
 
-            // City + Zip
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                AppTextField(
-                    value = state.city,
-                    onValueChange = { onAction(EditPropertyAction.OnCityChanged(it)) },
-                    label = "City / Area",
-                    placeholder = "e.g. Kathmandu",
-                    modifier = Modifier.weight(1f)
-                )
-                AppTextField(
-                    value = state.zipCode,
-                    onValueChange = { onAction(EditPropertyAction.OnZipCodeChanged(it)) },
-                    label = "Zip Code",
-                    placeholder = "44600",
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            // City
+            AppTextField(
+                value = state.city,
+                onValueChange = { onAction(EditPropertyAction.OnCityChanged(it)) },
+                label = "City / Area",
+                placeholder = "e.g. Kathmandu",
+                modifier = Modifier.fillMaxWidth()
+            )
+
 
             Spacer(Modifier.height(16.dp))
 
@@ -261,10 +250,8 @@ private fun EditPropertyContent(
             // Amenities
             Text(
                 text = "Amenities & Utilities Managed",
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                ),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
@@ -322,9 +309,7 @@ private fun EditPropertyContent(
                     ) {
                         Text(
                             text = "Cancel",
-                            style = MaterialTheme.typography.labelLarge.copy(
-                                fontWeight = FontWeight.Bold
-                            )
+                            style = MaterialTheme.typography.titleMedium
                         )
                     }
 
@@ -350,9 +335,8 @@ private fun EditPropertyContent(
                                 )
                                 Text(
                                     text = "Update Property",
-                                    style = MaterialTheme.typography.labelLarge.copy(
-                                        fontWeight = FontWeight.Bold
-                                    )
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onPrimary
                                 )
                             }
                         }
@@ -403,11 +387,9 @@ private fun EditAmenityChip(
             }
             Text(
                 text = label,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
-                    color = if (isSelected) MaterialTheme.colorScheme.onSurface
-                    else MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                style = MaterialTheme.typography.bodySmall,
+                color = if (isSelected) MaterialTheme.colorScheme.onSurface
+                else MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -424,10 +406,8 @@ private fun EditPropertyFilledPreview() {
                 name = "Peaceful Villa",
                 streetAddress = "Koteshwor",
                 city = "Kathmandu",
-                zipCode = "44600",
                 propertyType = "HOUSE",
                 totalUnits = "4",
-                selectedAmenities = setOf("Water", "Electricity"),
                 isLoading = false
             ),
             onAction = {}

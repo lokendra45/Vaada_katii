@@ -28,6 +28,8 @@ fun MainDashboardScreen(
     onNavigateToAddProperty: () -> Unit,
     onNavigateToTenantDetails: (String) -> Unit = {},
     onNavigateToAddTenant: () -> Unit = {},
+    onNavigateToAddPayment: () -> Unit = {},
+    onNavigateToPaymentDetails: (String) -> Unit = {},
     onNavigateToLogin: () -> Unit = {}
 ) {
     val viewModel: MainDashboardViewModel = koinViewModel()
@@ -40,6 +42,8 @@ fun MainDashboardScreen(
         onNavigateToAddProperty = onNavigateToAddProperty,
         onNavigateToTenantDetails = onNavigateToTenantDetails,
         onNavigateToAddTenant = onNavigateToAddTenant,
+        onNavigateToAddPayment = onNavigateToAddPayment,
+        onNavigateToPaymentDetails = onNavigateToPaymentDetails,
         onNavigateToLogin = onNavigateToLogin
     )
 }
@@ -51,7 +55,9 @@ fun MainDashboardContent(
     onNavigateToPropertyDetails: (String) -> Unit,
     onNavigateToAddProperty: () -> Unit,
     onNavigateToTenantDetails: (String) -> Unit = {},
-    onNavigateToAddTenant: () -> Unit = {},
+    onNavigateToAddTenant: () -> Unit,
+    onNavigateToAddPayment: () -> Unit,
+    onNavigateToPaymentDetails: (String) -> Unit,
     onNavigateToLogin: () -> Unit = {},
     tabContent: @Composable (DashboardTab) -> Unit = { tab ->
         DashboardContent(
@@ -60,6 +66,9 @@ fun MainDashboardContent(
             onNavigateToAddProperty = onNavigateToAddProperty,
             onNavigateToTenantDetails = onNavigateToTenantDetails,
             onNavigateToAddTenant = onNavigateToAddTenant,
+            onNavigateToAddPayment = onNavigateToAddPayment,
+            onNavigateToPaymentDetails = onNavigateToPaymentDetails,
+            onNavigateToPayments = { onAction(MainDashboardAction.OnTabSelected(DashboardTab.PAYMENTS)) },
             onNavigateToLogin = onNavigateToLogin
         )
     }
@@ -96,6 +105,8 @@ fun MainDashboardScreenPreview() {
             onNavigateToAddProperty = {},
             onNavigateToTenantDetails = {},
             onNavigateToAddTenant = {},
+            onNavigateToAddPayment = {},
+            onNavigateToPaymentDetails = {},
             onNavigateToLogin = {},
             tabContent = { tab ->
                 com.gaatho.rent.features.dashboard.presentation.home.HomeScreen()
@@ -115,6 +126,8 @@ fun MainDashboardScreenDarkPreview() {
             onNavigateToAddProperty = {},
             onNavigateToTenantDetails = {},
             onNavigateToAddTenant = {},
+            onNavigateToAddPayment = {},
+            onNavigateToPaymentDetails = {},
             onNavigateToLogin = {},
             tabContent = {
                 com.gaatho.rent.features.dashboard.presentation.home.HomeScreen()

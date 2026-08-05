@@ -6,77 +6,76 @@ import kotlinx.coroutines.delay
 import kotlinx.collections.immutable.persistentListOf
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 
+import com.gaatho.rent.features.tenant.data.repository.TenantRepository
+import com.gaatho.rent.features.property.data.repository.PropertyRepository
+import com.gaatho.rent.features.payment.domain.repository.PaymentRepository
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.collections.immutable.toImmutableList
+import com.gaatho.rent.core.utils.DateTimeUtil
+
 class TenantDetailsViewModel(
-    private val tenantId: String
+    private val tenantId: String,
+    private val tenantRepository: TenantRepository,
+    private val propertyRepository: PropertyRepository,
+    private val paymentRepository: PaymentRepository
 ) : MviViewModel<TenantDetailsState, TenantDetailsEffect, TenantDetailsAction>() {
 
     override val container = orbitContainer<TenantDetailsState, TenantDetailsEffect>(
         initialState = TenantDetailsState(tenantId = tenantId)
     ) {
-        loadMockData()
+        loadData()
     }
 
-    private fun loadMockData() = intent {
-        reduce {
-            state.copy(
-                profileState = UiState.Loading,
-                leaseState = UiState.Loading,
-                transactionsState = UiState.Loading
-            )
-        }
+    private fun loadData() = intent(registerIdling = false) {
+        val tenantFlow = tenantRepository.getTenantById(tenantId)
+        val paymentsFlow = paymentRepository.getPaymentsByTenant(tenantId)
 
-        // Simulate network delay
-        delay(800)
-
-        reduce {
-            state.copy(
-                profileState = UiState.Success(
-                    TenantProfileDisplayModel(
-                        id = tenantId,
-                        name = "Suman Shrestha",
-                        address = "Bakhundole, Lalitpur",
-                        isVerified = true,
-                        avatarUrl = null
-                    )
-                ),
-                leaseState = UiState.Success(
-                    TenantLeaseDisplayModel(
-                        monthlyRent = "Rs. 45,000",
-                        status = "Active",
-                        isActive = true,
-                        startDate = "Sept 1, 2023",
-                        endDate = "Aug 31, 2024"
-                    )
-                ),
-                transactionsState = UiState.Success(
-                    persistentListOf(
-                        TenantTransactionDisplayModel(
-                            id = "t1",
-                            type = "Rent Payment",
-                            date = "Nov 1, 2023",
-                            amount = "Rs. 45,000",
-                            status = "Paid",
-                            isPaid = true
-                        ),
-                        TenantTransactionDisplayModel(
-                            id = "t2",
-                            type = "Rent Payment",
-                            date = "Oct 1, 2023",
-                            amount = "Rs. 45,000",
-                            status = "Paid",
-                            isPaid = true
-                        ),
-                        TenantTransactionDisplayModel(
-                            id = "t3",
-                            type = "Maintenance Fee",
-                            date = "Sep 15, 2023",
-                            amount = "Rs. 2,500",
-                            status = "Paid",
-                            isPaid = true
-                        )
-                    )
+        kotlinx.coroutines.flow.combine(tenantFlow, paymentsFlow) { tenant, payments ->
+            if (tenant == null) {
+                return@combine TenantDetailsState(
+                    tenantId = tenantId,
+                    profileState = UiState.Error("Tenant not found"),
+                    leaseState = UiState.Error("Tenant not found"),
+                    transactionsState = UiState.Error("Tenant not found")
                 )
+            }
+            
+            val profile = TenantProfileDisplayModel(
+                id = tenant.id,
+                name = tenant.name,
+                address = tenant.propertyName ?: "Unknown Property",
+                isVerified = true,
+                avatarUrl = null
             )
+            
+            val lease = TenantLeaseDisplayModel(
+                monthlyRent = "Rs. ${tenant.rentAmount}",
+                status = tenant.status,
+                isActive = tenant.status == "Active",
+                startDate = DateTimeUtil.formatReadableDate(tenant.createdAt),
+                endDate = "Ongoing"
+            )
+            
+            val txs = payments.map {
+                TenantTransactionDisplayModel(
+                    id = it.id,
+                    type = if (it.paymentMethod == "Deposit") "Deposit" else "Rent Payment",
+                    date = DateTimeUtil.formatReadableDate(it.date),
+                    amount = "Rs. ${it.amount}",
+                    status = it.status,
+                    isPaid = it.status == "Paid"
+                )
+            }.toImmutableList()
+
+            TenantDetailsState(
+                tenantId = tenantId,
+                profileState = UiState.Success(profile),
+                leaseState = UiState.Success(lease),
+                transactionsState = UiState.Success(txs)
+            )
+        }.collectLatest { newState ->
+            reduce { newState }
         }
     }
 
@@ -85,6 +84,9 @@ class TenantDetailsViewModel(
             when (action) {
                 is TenantDetailsAction.OnBackClicked -> {
                     postSideEffect(TenantDetailsEffect.NavigateBack)
+                }
+                is TenantDetailsAction.OnEditClicked -> {
+                    postSideEffect(TenantDetailsEffect.NavigateToEdit(tenantId))
                 }
                 is TenantDetailsAction.OnPaymentClicked -> {
                     postSideEffect(TenantDetailsEffect.ShowToast("Payment clicked"))

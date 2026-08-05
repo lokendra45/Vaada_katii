@@ -57,8 +57,6 @@ class EditPropertyViewModel(
                 intent { reduce { state.copy(streetAddress = action.address, addressError = null) } }
             is EditPropertyAction.OnCityChanged ->
                 intent { reduce { state.copy(city = action.city) } }
-            is EditPropertyAction.OnZipCodeChanged ->
-                intent { reduce { state.copy(zipCode = action.zip) } }
             is EditPropertyAction.OnTypeChanged ->
                 intent { reduce { state.copy(propertyType = action.type) } }
             is EditPropertyAction.OnTotalUnitsChanged ->
@@ -100,7 +98,6 @@ class EditPropertyViewModel(
             address = buildString {
                 append(s.streetAddress.trim())
                 if (s.city.isNotBlank()) append(", ${s.city.trim()}")
-                if (s.zipCode.isNotBlank()) append(" ${s.zipCode.trim()}")
             },
             propertyType = s.propertyType
         )

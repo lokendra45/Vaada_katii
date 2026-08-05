@@ -40,6 +40,7 @@ fun AppTextField(
     label: String? = null,
     topRightLabel: String? = null,
     placeholder: String? = null,
+    errorMessage: String? = null,
     prefix: String? = null,
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
@@ -166,12 +167,22 @@ fun AppTextField(
                     // Thin horizontal divider below the input
                     HorizontalDivider(
                         modifier = Modifier.fillMaxWidth(),
-                        thickness = 1.dp,
-                        color = MaterialTheme.colorScheme.surfaceVariant
+                        thickness = if (errorMessage != null) 2.dp else 1.dp,
+                        color = if (errorMessage != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.surfaceVariant
                     )
                 }
             }
         )
+        
+        // Error Message
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+            )
+        }
     }
 }
 

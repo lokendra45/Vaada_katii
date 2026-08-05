@@ -27,6 +27,10 @@ class CloudPropertyRepository(
         emit(dtos.map { it.toDomain() }.toPersistentList())
     }
 
+    override fun getPropertyById(propertyId: String): Flow<Property?> {
+        return kotlinx.coroutines.flow.flowOf(null)
+    }
+
     override suspend fun createProperty(property: Property): ApiResponse<Unit> =
         ApiResponse.suspendOf {
             supabase.postgrest["property"].insert(property.toDto())

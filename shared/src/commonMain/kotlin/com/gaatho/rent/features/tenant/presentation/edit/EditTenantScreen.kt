@@ -118,7 +118,7 @@ private fun EditTenantContent(
                 ) {
                     Text(
                         text = initials,
-                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Medium),
+                        style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
@@ -268,9 +268,7 @@ private fun EditTenantContent(
                     ) {
                         Text(
                             text = "Cancel",
-                            style = MaterialTheme.typography.labelLarge.copy(
-                                fontWeight = FontWeight.Bold
-                            )
+                            style = MaterialTheme.typography.titleMedium
                         )
                     }
 
@@ -295,10 +293,9 @@ private fun EditTenantContent(
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Text(
-                                    text = "Save Tenant",
-                                    style = MaterialTheme.typography.labelLarge.copy(
-                                        fontWeight = FontWeight.Bold
-                                    )
+                                    text = "Save",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onPrimary
                                 )
                             }
                         }

@@ -46,17 +46,21 @@ class TenantsListViewModel(
                 val newState = state.copy(searchQuery = action.query)
                 reduce { newState.copy(filteredTenants = computeFilteredTenants(newState)) }
             }
+
             is TenantsListAction.OnStatusFilterChanged -> intent {
                 val newState = state.copy(selectedStatus = action.status)
                 reduce { newState.copy(filteredTenants = computeFilteredTenants(newState)) }
             }
+
             is TenantsListAction.OnPropertyFilterChanged -> intent {
                 val newState = state.copy(selectedProperty = action.propertyName)
                 reduce { newState.copy(filteredTenants = computeFilteredTenants(newState)) }
             }
+
             is TenantsListAction.OnTenantClicked -> intent {
                 postSideEffect(TenantsListSideEffect.NavigateToTenantDetails(action.tenantId))
             }
+
             is TenantsListAction.OnRetry -> {
                 observeTenants()
                 observeProperties()
@@ -69,18 +73,15 @@ class TenantsListViewModel(
         tenantRepository.getTenants(ownerId)
             // IO dispatching is handled by LocalTenantRepository.flowOn(Dispatchers.IO)
             .catch { e ->
-                val msg = ErrorMessageExtractor.extract(e, "Could not load tenants. Please try again.")
+                val msg =
+                    ErrorMessageExtractor.extract(e, "Could not load tenants. Please try again.")
                 reduce { state.copy(tenantsState = UiState.Error(msg)) }
                 postSideEffect(TenantsListSideEffect.ShowError(msg))
             }
             .collect { tenants ->
-                if (tenants.isEmpty()) {
-                    seedInitialTenantsIfEmpty()
-                } else {
-                    val displayModels = tenants.map { mapToDisplayModel(it) }.toImmutableList()
-                    val newState = state.copy(tenantsState = UiState.Success(displayModels))
-                    reduce { newState.copy(filteredTenants = computeFilteredTenants(newState)) }
-                }
+                val displayModels = tenants.map { mapToDisplayModel(it) }.toImmutableList()
+                val newState = state.copy(tenantsState = UiState.Success(displayModels))
+                reduce { newState.copy(filteredTenants = computeFilteredTenants(newState)) }
             }
     }
 
@@ -107,10 +108,10 @@ class TenantsListViewModel(
             } else {
                 val q = s.searchQuery.trim().lowercase()
                 tenant.name.lowercase().contains(q) ||
-                    (tenant.email?.lowercase()?.contains(q) == true) ||
-                    (tenant.phone?.lowercase()?.contains(q) == true) ||
-                    (tenant.propertyName?.lowercase()?.contains(q) == true) ||
-                    (tenant.roomNumber?.lowercase()?.contains(q) == true)
+                        (tenant.email?.lowercase()?.contains(q) == true) ||
+                        (tenant.phone?.lowercase()?.contains(q) == true) ||
+                        (tenant.propertyName?.lowercase()?.contains(q) == true) ||
+                        (tenant.roomNumber?.lowercase()?.contains(q) == true)
             }
             val matchesStatus = when (s.selectedStatus) {
                 "All statuses" -> true
@@ -131,7 +132,9 @@ class TenantsListViewModel(
         val (bgColor, textColor) = colors[index]
         val parts = tenant.name.trim().split(Regex("\\s+"))
         val initials = if (parts.size >= 2) {
-            "${parts[0].firstOrNull()?.uppercaseChar() ?: ""}${parts[1].firstOrNull()?.uppercaseChar() ?: ""}"
+            "${parts[0].firstOrNull()?.uppercaseChar() ?: ""}${
+                parts[1].firstOrNull()?.uppercaseChar() ?: ""
+            }"
         } else {
             tenant.name.take(2).uppercase()
         }
@@ -146,23 +149,6 @@ class TenantsListViewModel(
             propertyName = tenant.propertyName, roomNumber = tenant.roomNumber,
             email = tenant.email, phone = tenant.phone
         )
-    }
 
-    private suspend fun seedInitialTenantsIfEmpty() {
-        val now = DateTimeUtil.nowIsoString()
-        val sampleTenants = listOf(
-            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Anita Basnet", propertyName = "Sunrise Residency", roomNumber = "Room 4A", status = "Active", createdAt = now, updatedAt = now),
-            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Bikash Lama", propertyName = "Ganga Nivas", roomNumber = "Room 5", status = "Active", createdAt = now, updatedAt = now),
-            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Bipin Karki", propertyName = "Sunrise Residency", roomNumber = "Room 1A", status = "Active", createdAt = now, updatedAt = now),
-            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Deepak Thapa", propertyName = "Ganga Nivas", roomNumber = "Room 1", status = "Active", createdAt = now, updatedAt = now),
-            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Kamala Shrestha", propertyName = "Ganga Nivas", roomNumber = "Room 4", status = "Active", createdAt = now, updatedAt = now),
-            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Manoj Poudel", propertyName = "Ganga Nivas", roomNumber = "Room 3", status = "Active", createdAt = now, updatedAt = now),
-            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Nisha Tamang", propertyName = "Sunrise Residency", roomNumber = "Room 3A", status = "Active", createdAt = now, updatedAt = now),
-            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Prakash Adhikari", propertyName = "Sunrise Residency", roomNumber = "Room 2A", status = "Active", createdAt = now, updatedAt = now),
-            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Ramesh Koirala", propertyName = "Sunrise Residency", roomNumber = "Room 1B", status = "Active", createdAt = now, updatedAt = now),
-            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Sita Gurung", propertyName = "Ganga Nivas", roomNumber = "Room 2", status = "Active", createdAt = now, updatedAt = now),
-            Tenant(id = UuidUtil.randomGuestId(), ownerId = ownerId, name = "Suresh Shrestha", propertyName = "Sunrise Residency", roomNumber = "Room 5B", status = "Inactive", createdAt = now, updatedAt = now)
-        )
-        sampleTenants.forEach { tenantRepository.createTenant(it) }
     }
 }

@@ -21,6 +21,9 @@ class ProxyTenantRepository(
     override fun getTenants(ownerId: String): Flow<List<Tenant>> =
         activeRepository.getTenants(ownerId)
 
+    override fun getTenantById(tenantId: String): Flow<Tenant?> =
+        activeRepository.getTenantById(tenantId)
+
     override suspend fun createTenant(tenant: Tenant): ApiResponse<Unit> =
         activeRepository.createTenant(tenant)
 

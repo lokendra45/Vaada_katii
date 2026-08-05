@@ -16,7 +16,8 @@ material3 = "1.11.0-alpha07"
 
 koin = "4.2.2"
 supabase = "3.7.0"
-sqldelight = "2.3.2"
+ksp = "2.3.10"
+room3 = "3.0.1"
 ktor = "3.5.2"
 kotlinx-serialization = "1.11.0"
 kotlinx-datetime = "0.8.0"
@@ -27,6 +28,7 @@ sandwich = "2.4.0"
 kermit = "2.1.0"
 sqlcipher = "4.17.0"
 androidx-sqlite = "2.7.0"
+filekit = "0.14.2"
 
 # Navigation 3 — Compose Multiplatform (JetBrains dev repo: packages.jetbrains.team/maven/p/cmp/dev)
 multiplatform-nav3 = "1.1.1"
@@ -70,13 +72,12 @@ supabase-realtime = { module = "io.github.jan-tennert.supabase:realtime-kt", ver
 supabase-storage = { module = "io.github.jan-tennert.supabase:storage-kt", version.ref = "supabase" }
 supabase-compose-auth = { module = "io.github.jan-tennert.supabase:compose-auth-ui", version.ref = "supabase" }
 
-# SQLDelight & SQLCipher Encryption
-sqldelight-android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
-sqldelight-native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqldelight" }
-sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
-sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqldelight" }
-sqlcipher-android = { module = "net.zetetic:sqlcipher-android", version.ref = "sqlcipher" }
+# Room Database
+room3-runtime = { module = "androidx.room3:room3-runtime", version.ref = "room3" }
+room3-compiler = { module = "androidx.room3:room3-compiler", version.ref = "room3" }
+room3-paging = { module = "androidx.room3:room3-paging", version.ref = "room3" }
 androidx-sqlite = { module = "androidx.sqlite:sqlite", version.ref = "androidx-sqlite" }
+androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "androidx-sqlite" }
 
 # Ktor
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
@@ -98,6 +99,11 @@ coil-network = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "
 # RevenueCat
 purchases-core = { module = "com.revenuecat.purchases:purchases-kmp-core", version.ref = "purchases-kmp" }
 purchases-result = { module = "com.revenuecat.purchases:purchases-kmp-result", version.ref = "purchases-kmp" }
+
+# FileKit
+filekit-core = { module = "io.github.vinceglb:filekit-core", version = "0.14.2" }
+filekit-dialogs-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version = "0.14.2" }
+
 purchases-ui = { module = "com.revenuecat.purchases:purchases-kmp-ui", version.ref = "purchases-kmp" }
 
 # Orbit MVI
@@ -117,7 +123,7 @@ navigation3-browser = { module = "com.github.terrakok:navigation3-browser", vers
 
 # DataStore
 androidx-datastore = { module = "androidx.datastore:datastore", version = "1.2.1" }
-androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version = "1.1.1" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version = "1.2.1" }
 
 # Biometric
 androidx-biometric = { module = "androidx.biometric:biometric", version = "1.2.0-alpha05" }
@@ -129,4 +135,5 @@ composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMul
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+androidx-room3 = { id = "androidx.room3", version.ref = "room3" }

@@ -30,15 +30,13 @@ import org.orbitmvi.orbit.compose.collectSideEffect
  */
 @Composable
 fun SplashScreen(
-    onNavigateToHome: () -> Unit,
-    onNavigateToLogin: () -> Unit
+    onNavigateToHome: () -> Unit
 ) {
     val viewModel: SplashViewModel = koinViewModel()
 
     viewModel.collectSideEffect { effect ->
         when (effect) {
             is SplashSideEffect.NavigateToHome -> onNavigateToHome()
-            is SplashSideEffect.NavigateToLogin -> onNavigateToLogin()
         }
     }
 
@@ -61,7 +59,6 @@ fun SplashContent() {
         Text(
             text = "KOTHA",
             style = MaterialTheme.typography.displayLarge.copy(
-                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
                 letterSpacing = 2.sp
             )
@@ -87,7 +84,7 @@ fun SplashContent() {
 
             Text(
                 text = "Property management,\nsimplified.",
-                style = MaterialTheme.typography.bodyLarge.copy(
+                style = MaterialTheme.typography.bodyMedium.copy(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 24.sp
                 ),

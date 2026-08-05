@@ -6,6 +6,7 @@ import com.gaatho.rent.core.navigation.AppNavigation
 
 import com.gaatho.rent.core.environment.AppEnvironment
 import com.gaatho.rent.core.security.presentation.components.BiometricGate
+import io.github.vinceglb.filekit.FileKit
 
 /**
  * Root composable entry point for the entire application.
