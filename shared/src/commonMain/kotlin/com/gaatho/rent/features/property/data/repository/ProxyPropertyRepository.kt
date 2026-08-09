@@ -4,6 +4,7 @@ import com.gaatho.rent.features.paywall.data.repository.PaywallRepository
 import com.gaatho.rent.features.property.domain.model.Property
 import com.skydoves.sandwich.ApiResponse
 import kotlinx.coroutines.flow.Flow
+import androidx.paging.PagingData
 
 /**
  * Routes property data operations to either the local database (Free)
@@ -23,6 +24,12 @@ class ProxyPropertyRepository(
 
     override fun getProperties(ownerId: String): Flow<List<Property>> =
         activeRepository.getProperties(ownerId)
+
+    override fun getPagedProperties(
+        ownerId: String,
+        searchQuery: String,
+        locationFilter: String
+    ): Flow<PagingData<Property>> = activeRepository.getPagedProperties(ownerId, searchQuery, locationFilter)
 
     override fun getPropertyById(propertyId: String): Flow<Property?> =
         activeRepository.getPropertyById(propertyId)

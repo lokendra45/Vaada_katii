@@ -6,19 +6,23 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -36,6 +40,57 @@ import com.gaatho.rent.core.designsystem.RentManagerTheme
 fun AppTextField(
     value: String,
     onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    label: String? = null,
+    topRightLabel: String? = null,
+    placeholder: String? = null,
+    errorMessage: String? = null,
+    prefix: String? = null,
+    leadingIcon: @Composable (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    singleLine: Boolean = true,
+    minLines: Int = 1,
+    maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
+    readOnly: Boolean = false,
+    enabled: Boolean = true,
+    textStyle: TextStyle = LocalTextStyle.current
+) {
+    var textFieldValueState by remember { mutableStateOf(TextFieldValue(text = value)) }
+    val textFieldValue = textFieldValueState.copy(text = value)
+
+    AppTextField(
+        value = textFieldValue,
+        onValueChange = {
+            textFieldValueState = it
+            if (value != it.text) {
+                onValueChange(it.text)
+            }
+        },
+        modifier = modifier,
+        label = label,
+        topRightLabel = topRightLabel,
+        placeholder = placeholder,
+        errorMessage = errorMessage,
+        prefix = prefix,
+        leadingIcon = leadingIcon,
+        trailingIcon = trailingIcon,
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
+        singleLine = singleLine,
+        minLines = minLines,
+        maxLines = maxLines,
+        readOnly = readOnly,
+        enabled = enabled,
+        textStyle = textStyle
+    )
+}
+
+@Composable
+fun AppTextField(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier,
     label: String? = null,
     topRightLabel: String? = null,
@@ -145,7 +200,7 @@ fun AppTextField(
 
                         // Text input or placeholder
                         Box(modifier = Modifier.weight(1f)) {
-                            if (value.isEmpty() && placeholder != null) {
+                            if (value.text.isEmpty() && placeholder != null) {
                                 Text(
                                     text = placeholder,
                                     style = MaterialTheme.typography.bodyMedium.copy(

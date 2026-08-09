@@ -3,6 +3,8 @@ package com.gaatho.rent.features.payment.presentation.add
 import com.gaatho.rent.core.ui.UiState
 import kotlinx.collections.immutable.ImmutableList
 import org.jetbrains.compose.resources.StringResource
+import androidx.compose.ui.text.input.TextFieldValue
+import kotlinx.serialization.Transient
 import rentmanagerapp.shared.generated.resources.Res
 import rentmanagerapp.shared.generated.resources.payment_method_bank_transfer
 import rentmanagerapp.shared.generated.resources.payment_method_cash
@@ -10,7 +12,7 @@ import rentmanagerapp.shared.generated.resources.payment_method_esewa
 import rentmanagerapp.shared.generated.resources.payment_method_khalti
 
 data class AddPaymentState(
-    val amount: String = "",
+    @Transient val amount: TextFieldValue = TextFieldValue(),
     // All active tenants from DB (unfiltered)
     val allTenants: ImmutableList<TenantSelectionModel> = kotlinx.collections.immutable.persistentListOf(),
     // Tenants filtered by selectedPropertyId for display
@@ -22,7 +24,7 @@ data class AddPaymentState(
 
     val paymentDate: String = "",
     val selectedPaymentMethod: PaymentMethod? = null,
-    val remarks: String = "",
+    @Transient val remarks: TextFieldValue = TextFieldValue(),
     val isReceiptAgreed: Boolean = true,
 
     val isSaving: Boolean = false,
@@ -30,7 +32,7 @@ data class AddPaymentState(
     val showDatePicker: Boolean = false
 ) {
     val canSubmit: Boolean
-        get() = amount.isNotBlank() && amount != "0" &&
+        get() = amount.text.isNotBlank() && amount.text != "0" &&
                 selectedTenantId != null &&
                 selectedPropertyId != null &&
                 paymentDate.isNotBlank() &&
@@ -66,12 +68,12 @@ enum class PaymentMethod(val labelRes: StringResource) {
 }
 
 sealed class AddPaymentAction {
-    data class OnAmountChanged(val amount: String) : AddPaymentAction()
+    data class OnAmountChanged(val value: TextFieldValue) : AddPaymentAction()
     data class OnTenantSelected(val id: String) : AddPaymentAction()
     data class OnPropertySelected(val id: String) : AddPaymentAction()
     data class OnPaymentDateChanged(val date: String) : AddPaymentAction()
     data class OnPaymentMethodSelected(val method: PaymentMethod) : AddPaymentAction()
-    data class OnRemarksChanged(val remarks: String) : AddPaymentAction()
+    data class OnRemarksChanged(val value: TextFieldValue) : AddPaymentAction()
     data class OnAgreementToggled(val agreed: Boolean) : AddPaymentAction()
     data object OnDateFieldClicked : AddPaymentAction()
     data object OnDatePickerDismissed : AddPaymentAction()

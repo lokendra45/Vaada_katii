@@ -11,6 +11,8 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import androidx.paging.PagingData
+import kotlinx.coroutines.flow.emptyFlow
 
 class CloudPropertyRepository(
     private val supabase: SupabaseClient
@@ -25,6 +27,15 @@ class CloudPropertyRepository(
             }
             .decodeList<PropertyDto>()
         emit(dtos.map { it.toDomain() }.toPersistentList())
+    }
+
+    override fun getPagedProperties(
+        ownerId: String,
+        searchQuery: String,
+        locationFilter: String
+    ): Flow<PagingData<Property>> {
+        // TODO: Implement Supabase cursor-based pagination
+        return emptyFlow()
     }
 
     override fun getPropertyById(propertyId: String): Flow<Property?> {

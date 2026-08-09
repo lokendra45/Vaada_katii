@@ -10,6 +10,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
+import androidx.paging.PagingSource
+import androidx.paging.PagingState
 import com.gaatho.rent.database.entity.PropertyEntity
 import com.gaatho.rent.core.utils.DateTimeUtil
 import com.gaatho.rent.core.database.security.SecretString
@@ -22,6 +28,29 @@ class LocalPropertyRepository(
         return propertyDao.selectPropertiesByOwner(ownerId)
             .map { entities -> entities.map { it.toDomain() } }
             .flowOn(Dispatchers.IO)
+    }
+
+    override fun getPagedProperties(
+        ownerId: String,
+        searchQuery: String,
+        locationFilter: String
+    ): Flow<PagingData<Property>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 20,
+                enablePlaceholders = false
+            ),
+            pagingSourceFactory = {
+                propertyDao.selectPagedProperties(
+                    ownerId = ownerId,
+                    searchQuery = searchQuery,
+                    locationFilter = locationFilter
+                )
+            }
+        ).flow
+            .map { pagingData ->
+                pagingData.map { it.toDomain() }
+            }
     }
 
     override fun getPropertyById(propertyId: String): Flow<Property?> {

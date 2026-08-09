@@ -21,7 +21,7 @@ val paymentModule = module {
         )
     }
 
-    viewModel { AddPaymentViewModel(get(), get(), get(), get()) }
+    viewModel { AddPaymentViewModel(get(), get(), get(), get(), get()) }
     viewModel { PaymentsListViewModel(get(), get(), get(), get(), get()) }
     viewModel { parameters -> PaymentDetailsViewModel(parameters.get(), get(), get(), get(), get()) }
 }

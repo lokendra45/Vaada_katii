@@ -29,6 +29,7 @@ kermit = "2.1.0"
 sqlcipher = "4.17.0"
 androidx-sqlite = "2.7.0"
 filekit = "0.14.2"
+androidx-paging = "3.5.0"
 
 # Navigation 3 — Compose Multiplatform (JetBrains dev repo: packages.jetbrains.team/maven/p/cmp/dev)
 multiplatform-nav3 = "1.1.1"
@@ -78,6 +79,8 @@ room3-compiler = { module = "androidx.room3:room3-compiler", version.ref = "room
 room3-paging = { module = "androidx.room3:room3-paging", version.ref = "room3" }
 androidx-sqlite = { module = "androidx.sqlite:sqlite", version.ref = "androidx-sqlite" }
 androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "androidx-sqlite" }
+androidx-paging-common = { module = "androidx.paging:paging-common", version.ref = "androidx-paging" }
+androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "androidx-paging" }
 
 # Ktor
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }

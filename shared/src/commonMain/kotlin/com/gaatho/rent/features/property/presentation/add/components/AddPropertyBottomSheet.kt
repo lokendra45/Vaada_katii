@@ -313,7 +313,7 @@ fun AddPropertyBottomSheet(
                 com.gaatho.rent.core.designsystem.components.RentManagerButton(
                     onClick = { onAction(AddPropertyAction.OnSaveClicked) },
                     modifier = Modifier.weight(1.5f),
-                    enabled = state.name.isNotBlank() && state.streetAddress.isNotBlank() && state.city.isNotBlank() && state.totalUnits.isNotBlank() && !state.isSaving
+                    enabled = state.name.text.isNotBlank() && state.streetAddress.text.isNotBlank() && state.city.text.isNotBlank() && state.totalUnits.text.isNotBlank() && !state.isSaving
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))

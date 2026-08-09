@@ -37,24 +37,24 @@ class AddPropertyViewModel(
     override fun onAction(action: AddPropertyAction) {
         when (action) {
             is AddPropertyAction.OnNameChanged -> intent {
-                val error = if (action.name.isBlank()) "Property name is required" else null
-                reduce { state.copy(name = action.name, nameError = error) }
+                val error = if (action.value.text.isBlank()) "Property name is required" else null
+                reduce { state.copy(name = action.value, nameError = error) }
             }
             is AddPropertyAction.OnStreetAddressChanged -> intent {
-                val error = if (action.address.isBlank()) "Street address is required" else null
-                reduce { state.copy(streetAddress = action.address, addressError = error) }
+                val error = if (action.value.text.isBlank()) "Street address is required" else null
+                reduce { state.copy(streetAddress = action.value, addressError = error) }
             }
             is AddPropertyAction.OnCityChanged -> intent {
-                val error = if (action.city.isBlank()) "City is required" else null
-                reduce { state.copy(city = action.city, cityError = error) }
+                val error = if (action.value.text.isBlank()) "City is required" else null
+                reduce { state.copy(city = action.value, cityError = error) }
             }
             is AddPropertyAction.OnTypeChanged -> intent {
                 reduce { state.copy(propertyType = action.type) }
             }
             is AddPropertyAction.OnTotalUnitsChanged -> intent {
-                val isNumber = action.units.toIntOrNull() != null
-                val error = if (action.units.isBlank()) "Units is required" else if (!isNumber) "Invalid number" else null
-                reduce { state.copy(totalUnits = action.units, unitsError = error) }
+                val isNumber = action.value.text.toIntOrNull() != null
+                val error = if (action.value.text.isBlank()) "Units is required" else if (!isNumber) "Invalid number" else null
+                reduce { state.copy(totalUnits = action.value, unitsError = error) }
             }
             is AddPropertyAction.OnBillingCycleChanged -> intent {
                 reduce { state.copy(billingCycle = action.cycle) }
@@ -77,22 +77,22 @@ class AddPropertyViewModel(
         val currentState = state
         var hasError = false
 
-        if (currentState.name.isBlank()) {
+        if (currentState.name.text.isBlank()) {
             reduce { state.copy(nameError = "Property name is required") }
             hasError = true
         }
         
-        if (currentState.streetAddress.isBlank()) {
+        if (currentState.streetAddress.text.isBlank()) {
             reduce { state.copy(addressError = "Street address is required") }
             hasError = true
         }
         
-        if (currentState.city.isBlank()) {
+        if (currentState.city.text.isBlank()) {
             reduce { state.copy(cityError = "City is required") }
             hasError = true
         }
         
-        if (currentState.totalUnits.toIntOrNull() == null) {
+        if (currentState.totalUnits.text.toIntOrNull() == null) {
             reduce { state.copy(unitsError = "Invalid number of units") }
             hasError = true
         }
@@ -115,10 +115,10 @@ class AddPropertyViewModel(
         val property = Property(
             id = UuidUtil.generateV7String(), 
             ownerId = ownerId,
-            name = currentState.name.trim(),
-            address = "${currentState.streetAddress.trim()}, ${currentState.city.trim()}".trim(',' , ' '),
+            name = currentState.name.text.trim(),
+            address = "${currentState.streetAddress.text.trim()}, ${currentState.city.text.trim()}".trim(',' , ' '),
             propertyType = currentState.propertyType,
-            totalUnits = currentState.totalUnits.toIntOrNull() ?: 1,
+            totalUnits = currentState.totalUnits.text.toIntOrNull() ?: 1,
             billingCycle = currentState.billingCycle,
             amenities = currentState.selectedAmenities,
             imageUrl = base64Image

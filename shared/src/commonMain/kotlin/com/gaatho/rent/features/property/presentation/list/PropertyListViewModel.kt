@@ -14,6 +14,16 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.catch
 import org.orbitmvi.orbit.viewmodel.orbitContainer
+import androidx.paging.PagingData
+import androidx.paging.map
+import androidx.paging.cachedIn
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import androidx.lifecycle.viewModelScope
 
 import com.gaatho.rent.features.tenant.data.repository.TenantRepository
 import com.gaatho.rent.features.payment.domain.repository.PaymentRepository
@@ -44,8 +54,51 @@ class PropertyListViewModel(
         savedStateHandle = savedStateHandle,
         serializer = PropertyListState.serializer()
     ) {
-        observeProperties()
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val pagedPropertiesFlow: Flow<PagingData<PropertyDisplayModel>> = combine(
+        container.stateFlow
+            .map { state -> Pair(state.searchQuery, state.selectedLocation) }
+            .distinctUntilChanged(),
+        tenantRepository.getTenants(ownerId)
+    ) { (search, location), tenants ->
+        Triple(search, location, tenants)
+    }
+        .flatMapLatest { (search, location, tenants) ->
+            val locationFilter = if (location == "All properties") "" else location
+            repository.getPagedProperties(ownerId, search, locationFilter)
+                .map { pagingData ->
+                    pagingData.map { property ->
+                        val propertyTenants = tenants.filter { it.propertyId == property.id }
+                        val activeTenants = propertyTenants.filter { it.status == "Active" }
+                        val overdueTenants = propertyTenants.filter { it.status == "Overdue" }
+
+                        val occUnits = activeTenants.size + overdueTenants.size
+                        val tUnits = property.totalUnits
+                        val vac = maxOf(0, tUnits - occUnits)
+
+                        val badge = if (tUnits == 0) "• 0 Units" else if (vac > 0) "• $vac Vacant" else "• Fully Occupied"
+
+                        val pendingAmount = overdueTenants.sumOf { it.rentAmount }
+                        val pText = if (pendingAmount > 0) "Rs. $pendingAmount Due" else "No Dues"
+
+                        PropertyDisplayModel(
+                            id = property.id,
+                            name = property.name,
+                            address = property.address,
+                            imageUrl = property.imageUrl,
+                            totalUnits = tUnits,
+                            occUnits = occUnits,
+                            statusBadge = badge,
+                            isVacant = vac > 0,
+                            pendingText = pText,
+                            isPending = pendingAmount > 0
+                        )
+                    }
+                }
+        }
+        .cachedIn(viewModelScope)
 
     override fun onAction(action: PropertyListAction) {
         when (action) {
@@ -58,82 +111,16 @@ class PropertyListViewModel(
         }
     }
 
-    /**
-     * Long-lived reactive observer. Subscribes once via `onCreate`.
-     * IO dispatching is handled by [LocalPropertyRepository] via flowOn(Dispatchers.IO).
-     */
-    private fun observeProperties() = intent(registerIdling = false) {
-        val propertiesFlow = repository.getProperties(ownerId)
-        val tenantsFlow = tenantRepository.getTenants(ownerId)
-        val paymentsFlow = paymentRepository.getPaymentsByOwner(ownerId)
-
-        kotlinx.coroutines.flow.combine(propertiesFlow, tenantsFlow, paymentsFlow) { properties, tenants, payments ->
-            properties.map { property ->
-                val propertyTenants = tenants.filter { it.propertyId == property.id }
-                val activeTenants = propertyTenants.filter { it.status == "Active" }
-                val overdueTenants = propertyTenants.filter { it.status == "Overdue" }
-
-                // Use real totalUnits from database
-                val occUnits = activeTenants.size + overdueTenants.size
-                val tUnits = property.totalUnits
-                val vac = maxOf(0, tUnits - occUnits)
-
-                val badge = if (tUnits == 0) "• 0 Units" else if (vac > 0) "• $vac Vacant" else "• Fully Occupied"
-
-                val pendingAmount = overdueTenants.sumOf { it.rentAmount }
-                val pText = if (pendingAmount > 0) "Rs. $pendingAmount Due" else "No Dues"
-
-                PropertyDisplayModel(
-                    id = property.id,
-                    name = property.name,
-                    address = property.address,
-                    imageUrl = property.imageUrl,
-                    totalUnits = tUnits,
-                    occUnits = occUnits,
-                    statusBadge = badge,
-                    isVacant = vac > 0,
-                    pendingText = pText,
-                    isPending = pendingAmount > 0
-                )
-            }.toImmutableList()
-        }
-        .catch { e ->
-            val msg = ErrorMessageExtractor.extract(e, "Could not load your properties. Please try again.")
-            reduce { state.copy(propertiesState = UiState.Error(msg)) }
-            postSideEffect(PropertyListSideEffect.ShowError(msg))
-        }
-        .collect { displayModels ->
-            val newState = state.copy(propertiesState = UiState.Success(displayModels))
-            reduce { newState.copy(filteredProperties = computeFilteredProperties(newState)) }
-        }
+    private fun handleSearchQueryChange(query: String) = intent {
+        reduce { state.copy(searchQuery = query) }
     }
 
-    /**
-     * Pure filtering — runs on the Orbit Default dispatcher (never Main).
-     * Result stored as a state field so Compose reads zero logic on recomposition.
-     */
-    private fun computeFilteredProperties(s: PropertyListState): ImmutableList<PropertyDisplayModel> {
-        val raw = (s.propertiesState as? UiState.Success)?.data ?: return persistentListOf()
-        return raw.filter { prop ->
-            val matchesSearch = if (s.searchQuery.isBlank()) {
-                true
-            } else {
-                val q = s.searchQuery.trim().lowercase()
-                prop.name.lowercase().contains(q) || prop.address.lowercase().contains(q)
-            }
-            val matchesLocation = if (s.selectedLocation == "All properties" || s.selectedLocation.isBlank()) {
-                true
-            } else {
-                prop.address.lowercase().contains(s.selectedLocation.lowercase()) ||
-                    prop.name.lowercase().contains(s.selectedLocation.lowercase())
-            }
-            matchesSearch && matchesLocation
-        }.toImmutableList()
+    private fun handleLocationFilterSelect(location: String) = intent {
+        reduce { state.copy(selectedLocation = location) }
     }
 
     private fun handleRetry() = intent {
-        reduce { state.copy(propertiesState = UiState.Loading) }
-        observeProperties()
+        // Handled by UI retry logic
     }
 
     private fun handlePropertyClick(propertyId: String) = intent {
@@ -144,15 +131,7 @@ class PropertyListViewModel(
         postSideEffect(PropertyListSideEffect.NavigateToAddProperty)
     }
 
-    private fun handleSearchQueryChange(query: String) = intent {
-        val newState = state.copy(searchQuery = query)
-        reduce { newState.copy(filteredProperties = computeFilteredProperties(newState)) }
-    }
 
-    private fun handleLocationFilterSelect(location: String) = intent {
-        val newState = state.copy(selectedLocation = location)
-        reduce { newState.copy(filteredProperties = computeFilteredProperties(newState)) }
-    }
 
     private fun handleQuickAction(message: String) = intent {
         postSideEffect(PropertyListSideEffect.ShowMessage(message))

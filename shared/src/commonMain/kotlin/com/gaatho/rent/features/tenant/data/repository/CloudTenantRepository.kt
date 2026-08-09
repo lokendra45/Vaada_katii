@@ -10,6 +10,9 @@ import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
+import androidx.paging.PagingData
+import kotlinx.coroutines.flow.emptyFlow
+
 class CloudTenantRepository(
     private val supabase: SupabaseClient
 ) : TenantRepository {
@@ -23,6 +26,16 @@ class CloudTenantRepository(
             }
             .decodeList<TenantDto>()
         emit(dtos.map { it.toDomain() })
+    }
+
+    override fun getPagedTenants(
+        ownerId: String,
+        searchQuery: String,
+        statusFilter: String,
+        propertyId: String
+    ): Flow<PagingData<Tenant>> {
+        // TODO: Implement Supabase cursor-based pagination or offset pagination
+        return emptyFlow()
     }
 
     override fun getTenantById(tenantId: String): Flow<Tenant?> {

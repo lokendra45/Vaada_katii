@@ -4,6 +4,7 @@ import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.features.property.domain.model.Property
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 // ─── Unit display model ───────────────────────────────────────────────────────
 
@@ -31,8 +32,11 @@ data class FinancialSummary(
 
 @Serializable
 data class PropertyDetailsState(
+    @Transient
     val propertyState: UiState<Property> = UiState.Loading,
+    @Transient
     val unitsState: UiState<ImmutableList<UnitDisplayModel>> = UiState.Loading,
+    @Transient
     val financialState: UiState<FinancialSummary> = UiState.Loading,
     val monthlyIncome: Long = 0L,
     val occupiedUnits: Int = 0,

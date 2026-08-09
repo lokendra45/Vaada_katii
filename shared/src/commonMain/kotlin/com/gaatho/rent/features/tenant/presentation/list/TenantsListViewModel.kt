@@ -15,6 +15,15 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.catch
 import org.orbitmvi.orbit.viewmodel.orbitContainer
+import androidx.paging.PagingData
+import androidx.paging.map
+import androidx.paging.cachedIn
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import androidx.lifecycle.viewModelScope
 
 class TenantsListViewModel(
     private val tenantRepository: TenantRepository,
@@ -36,25 +45,55 @@ class TenantsListViewModel(
         savedStateHandle = savedStateHandle,
         serializer = TenantsListState.serializer()
     ) {
-        observeTenants()
         observeProperties()
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val pagedTenantsFlow: Flow<PagingData<TenantDisplayModel>> = container.stateFlow
+        .map { state ->
+            FilterParams(
+                search = state.searchQuery,
+                status = state.selectedStatus,
+                propertyName = state.selectedProperty,
+                properties = (state.propertiesState as? UiState.Success)?.data
+            )
+        }
+        .distinctUntilChanged()
+        .flatMapLatest { params ->
+            val statusFilter = if (params.status == "All statuses") "" else params.status
+            val propertyId = if (params.propertyName == "All properties") ""
+            else params.properties?.find { it.name == params.propertyName }?.id ?: ""
+
+            tenantRepository.getPagedTenants(
+                ownerId = ownerId,
+                searchQuery = params.search,
+                statusFilter = statusFilter,
+                propertyId = propertyId
+            ).map { pagingData ->
+                pagingData.map { mapToDisplayModel(it) }
+            }
+        }
+        .cachedIn(viewModelScope)
+
+    private data class FilterParams(
+        val search: String,
+        val status: String,
+        val propertyName: String,
+        val properties: List<com.gaatho.rent.features.property.domain.model.Property>?
+    )
 
     override fun onAction(action: TenantsListAction) {
         when (action) {
             is TenantsListAction.OnSearchQueryChanged -> intent {
-                val newState = state.copy(searchQuery = action.query)
-                reduce { newState.copy(filteredTenants = computeFilteredTenants(newState)) }
+                reduce { state.copy(searchQuery = action.query) }
             }
 
             is TenantsListAction.OnStatusFilterChanged -> intent {
-                val newState = state.copy(selectedStatus = action.status)
-                reduce { newState.copy(filteredTenants = computeFilteredTenants(newState)) }
+                reduce { state.copy(selectedStatus = action.status) }
             }
 
             is TenantsListAction.OnPropertyFilterChanged -> intent {
-                val newState = state.copy(selectedProperty = action.propertyName)
-                reduce { newState.copy(filteredTenants = computeFilteredTenants(newState)) }
+                reduce { state.copy(selectedProperty = action.propertyName) }
             }
 
             is TenantsListAction.OnTenantClicked -> intent {
@@ -62,28 +101,12 @@ class TenantsListViewModel(
             }
 
             is TenantsListAction.OnRetry -> {
-                observeTenants()
                 observeProperties()
             }
         }
     }
 
-    private fun observeTenants() = intent(registerIdling = false) {
-        reduce { state.copy(tenantsState = UiState.Loading) }
-        tenantRepository.getTenants(ownerId)
-            // IO dispatching is handled by LocalTenantRepository.flowOn(Dispatchers.IO)
-            .catch { e ->
-                val msg =
-                    ErrorMessageExtractor.extract(e, "Could not load tenants. Please try again.")
-                reduce { state.copy(tenantsState = UiState.Error(msg)) }
-                postSideEffect(TenantsListSideEffect.ShowError(msg))
-            }
-            .collect { tenants ->
-                val displayModels = tenants.map { mapToDisplayModel(it) }.toImmutableList()
-                val newState = state.copy(tenantsState = UiState.Success(displayModels))
-                reduce { newState.copy(filteredTenants = computeFilteredTenants(newState)) }
-            }
-    }
+
 
     private fun observeProperties() = intent(registerIdling = false) {
         propertyRepository.getProperties(ownerId)
@@ -96,34 +119,7 @@ class TenantsListViewModel(
             }
     }
 
-    /**
-     * Pure filtering function — runs on the Orbit Default dispatcher, never on Main.
-     * The result is stored as a state field so Compose reads zero logic on recomposition.
-     */
-    private fun computeFilteredTenants(s: TenantsListState): ImmutableList<TenantDisplayModel> {
-        val raw = (s.tenantsState as? UiState.Success)?.data ?: return persistentListOf()
-        return raw.filter { tenant ->
-            val matchesSearch = if (s.searchQuery.isBlank()) {
-                true
-            } else {
-                val q = s.searchQuery.trim().lowercase()
-                tenant.name.lowercase().contains(q) ||
-                        (tenant.email?.lowercase()?.contains(q) == true) ||
-                        (tenant.phone?.lowercase()?.contains(q) == true) ||
-                        (tenant.propertyName?.lowercase()?.contains(q) == true) ||
-                        (tenant.roomNumber?.lowercase()?.contains(q) == true)
-            }
-            val matchesStatus = when (s.selectedStatus) {
-                "All statuses" -> true
-                else -> tenant.status.equals(s.selectedStatus, ignoreCase = true)
-            }
-            val matchesProperty = when (s.selectedProperty) {
-                "All properties" -> true
-                else -> tenant.propertyName?.equals(s.selectedProperty, ignoreCase = true) == true
-            }
-            matchesSearch && matchesStatus && matchesProperty
-        }.toImmutableList()
-    }
+
 
     private fun mapToDisplayModel(tenant: Tenant): TenantDisplayModel {
         val isActive = tenant.status.equals("Active", ignoreCase = true)

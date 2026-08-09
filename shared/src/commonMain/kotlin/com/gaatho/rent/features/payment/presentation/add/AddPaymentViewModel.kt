@@ -15,10 +15,12 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import org.orbitmvi.orbit.viewmodel.orbitContainer
+import com.gaatho.rent.core.auth.UserIdentityProvider
 import com.gaatho.rent.core.utils.UuidUtil
 
 class AddPaymentViewModel(
     private val sessionManager: SessionManager,
+    private val userIdentityProvider: UserIdentityProvider,
     private val tenantRepository: TenantRepository,
     private val propertyRepository: PropertyRepository,
     private val paymentRepository: PaymentRepository
@@ -32,43 +34,42 @@ class AddPaymentViewModel(
         // Set default date to today
         reduce { state.copy(paymentDate = DateTimeUtil.nowIsoString().substring(0, 10)) }
 
-        sessionManager.currentUser.filterNotNull().collectLatest { user ->
-            val ownerId = user.id
+        val ownerId = userIdentityProvider.currentUserId()
 
-            val tenantsFlow = tenantRepository.getTenants(ownerId)
-            val propertiesFlow = propertyRepository.getProperties(ownerId)
+        val tenantsFlow = tenantRepository.getTenants(ownerId)
+        val propertiesFlow = propertyRepository.getProperties(ownerId)
 
-            combine(tenantsFlow, propertiesFlow) { tenants, properties ->
-                val tenantModels = tenants.filter { it.status == "Active" }.map { t ->
-                    TenantSelectionModel(
-                        id = t.id,
-                        name = t.name,
-                        propertyId = t.propertyId,
-                        rentAmount = t.rentAmount,
-                        roomNumber = t.roomNumber
-                    )
-                }.toImmutableList()
+        combine(tenantsFlow, propertiesFlow) { tenants, properties ->
+            val tenantModels = tenants.filter { it.status == "Active" }.map { t ->
+                TenantSelectionModel(
+                    id = t.id,
+                    name = t.name,
+                    propertyId = t.propertyId,
+                    rentAmount = t.rentAmount,
+                    roomNumber = t.roomNumber
+                )
+            }.toImmutableList()
 
-                val propertyModels = properties.map { p ->
-                    PropertySelectionModel(p.id, p.name)
-                }.toImmutableList()
+            val propertyModels = properties.map { p ->
+                PropertySelectionModel(p.id, p.name)
+            }.toImmutableList()
 
-                tenantModels to propertyModels
-            }.collectLatest { (tenantModels, propertyModels) ->
-                reduce {
-                    val filteredTenants = filterTenants(tenantModels, state.selectedPropertyId)
-                    state.copy(
-                        allTenants = tenantModels,
-                        tenantsState = UiState.Success(filteredTenants),
-                        propertiesState = UiState.Success(propertyModels),
-                        // Auto-select if only 1 property
-                        selectedPropertyId = state.selectedPropertyId
-                            ?: if (propertyModels.size == 1) propertyModels.first().id else null,
-                        // Auto-select if only 1 active tenant
-                        selectedTenantId = state.selectedTenantId
-                            ?: if (tenantModels.size == 1) tenantModels.first().id else null
-                    )
-                }
+            tenantModels to propertyModels
+        }.collectLatest { (tenantModels, propertyModels) ->
+            reduce {
+                val currentPropertyId = state.selectedPropertyId
+                    ?: if (propertyModels.size == 1) propertyModels.first().id else null
+                
+                val filteredTenants = filterTenants(tenantModels, currentPropertyId)
+                
+                state.copy(
+                    allTenants = tenantModels,
+                    tenantsState = UiState.Success(filteredTenants),
+                    propertiesState = UiState.Success(propertyModels),
+                    selectedPropertyId = currentPropertyId,
+                    selectedTenantId = state.selectedTenantId
+                        ?: if (filteredTenants.size == 1) filteredTenants.first().id else null
+                )
             }
         }
     }
@@ -76,7 +77,7 @@ class AddPaymentViewModel(
     override fun onAction(action: AddPaymentAction) {
         when (action) {
             is AddPaymentAction.OnAmountChanged -> intent {
-                reduce { state.copy(amount = action.amount) }
+                reduce { state.copy(amount = action.value) }
             }
 
             is AddPaymentAction.OnPropertySelected -> intent {
@@ -100,8 +101,8 @@ class AddPaymentViewModel(
                         // Auto-select property from tenant's assignment if not already set
                         selectedPropertyId = state.selectedPropertyId ?: tenant?.propertyId,
                         // Auto-fill amount only if user hasn't typed one yet
-                        amount = if (state.amount.isBlank() || state.amount == "0")
-                            (tenant?.rentAmount ?: 0L).toString()
+                        amount = if (state.amount.text.isBlank() || state.amount.text == "0")
+                            state.amount.copy(text = (tenant?.rentAmount ?: 0L).toString())
                         else state.amount
                     )
                 }
@@ -124,7 +125,7 @@ class AddPaymentViewModel(
             }
 
             is AddPaymentAction.OnRemarksChanged -> intent {
-                reduce { state.copy(remarks = action.remarks) }
+                reduce { state.copy(remarks = action.value) }
             }
 
             is AddPaymentAction.OnAgreementToggled -> intent {
@@ -138,7 +139,7 @@ class AddPaymentViewModel(
                 }
                 reduce { state.copy(isSaving = true) }
 
-                val amountLong = state.amount.toLongOrNull() ?: 0L
+                val amountLong = state.amount.text.toLongOrNull() ?: 0L
                 val ownerId = sessionManager.currentUserId() ?: return@intent
 
                 val payment = Payment(
@@ -150,7 +151,7 @@ class AddPaymentViewModel(
                     date = state.paymentDate,
                     status = "Paid",
                     paymentMethod = state.selectedPaymentMethod?.name,
-                    notes = state.remarks.ifBlank { null },
+                    notes = state.remarks.text.ifBlank { null },
                     createdAt = DateTimeUtil.nowIsoString(),
                     updatedAt = DateTimeUtil.nowIsoString()
                 )

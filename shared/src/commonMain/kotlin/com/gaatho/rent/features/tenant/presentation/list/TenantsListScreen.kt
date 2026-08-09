@@ -3,6 +3,7 @@ package com.gaatho.rent.features.tenant.presentation.list
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -14,6 +15,13 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material3.*
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemContentType
+import androidx.paging.compose.itemKey
+import androidx.paging.LoadState
+import androidx.paging.PagingData
+import kotlinx.coroutines.flow.flowOf
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +52,10 @@ import rentmanagerapp.shared.generated.resources.*
 import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
 import com.gaatho.rent.core.ui.components.AppSegmentedControl
+import com.gaatho.rent.features.tenant.presentation.add.AddTenantViewModel
+import com.gaatho.rent.features.tenant.presentation.add.AddTenantSideEffect
+import com.gaatho.rent.features.tenant.presentation.add.AddTenantState
+import com.gaatho.rent.features.tenant.presentation.add.AddTenantAction
 
 @Composable
 fun TenantsListScreen(
@@ -53,6 +65,8 @@ fun TenantsListScreen(
     val viewModel: TenantsListViewModel = koinViewModel()
     val state by viewModel.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    var showAddTenantSheet by remember { mutableStateOf(false) }
 
     viewModel.collectSideEffect { sideEffect ->
         when (sideEffect) {
@@ -65,9 +79,30 @@ fun TenantsListScreen(
         }
     }
 
+    val addTenantViewModel: AddTenantViewModel = koinViewModel()
+    
+    addTenantViewModel.collectSideEffect { sideEffect ->
+        when (sideEffect) {
+            is AddTenantSideEffect.NavigateBack -> {
+                showAddTenantSheet = false
+            }
+            is AddTenantSideEffect.ShowSnackbar -> {
+                snackbarHostState.showSnackbar(sideEffect.message)
+            }
+        }
+    }
+
+    val addTenantState by addTenantViewModel.collectAsState()
+    val pagedTenants = viewModel.pagedTenantsFlow.collectAsLazyPagingItems()
+
     TenantsListContent(
         state = state,
+        pagedTenants = pagedTenants,
+        addTenantState = addTenantState,
+        showAddTenantSheet = showAddTenantSheet,
+        onShowAddTenantSheetChange = { showAddTenantSheet = it },
         onAction = viewModel::onAction,
+        onAddTenantAction = addTenantViewModel::onAction,
         snackbarHostState = snackbarHostState
     )
 }
@@ -76,21 +111,25 @@ fun TenantsListScreen(
 @Composable
 fun TenantsListContent(
     state: TenantsListState,
+    pagedTenants: LazyPagingItems<TenantDisplayModel>,
+    addTenantState: AddTenantState,
+    showAddTenantSheet: Boolean,
+    onShowAddTenantSheetChange: (Boolean) -> Unit,
     onAction: (TenantsListAction) -> Unit,
+    onAddTenantAction: (AddTenantAction) -> Unit,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
-    var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     Scaffold(
         topBar = {
             com.gaatho.rent.core.ui.components.AppTopBar(
                 title = stringResource(Res.string.tenants_title),
-                subtitle = "${state.totalCount} total · ${state.activeCount} active",
+                subtitle = "${pagedTenants.itemCount} loaded",
                 actions = {
                     com.gaatho.rent.core.ui.components.AppTopBarActionButton(
                         text = stringResource(Res.string.add_tenant),
-                        onClick = { showBottomSheet = true }
+                        onClick = { onShowAddTenantSheetChange(true) }
                     )
                 }
             )
@@ -118,23 +157,7 @@ fun TenantsListContent(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     // Pixel-Perfect Material 3 Search Bar (with vertical Results & < Back arrow on focus)
-                    val searchSuggestions = remember(state.allTenants) {
-                        val tenantSuggestions = state.allTenants.take(3).map { tenant ->
-                            com.gaatho.rent.core.ui.components.SearchSuggestionItem(
-                                title = tenant.name,
-                                subtitle = tenant.propertyName ?: "Assigned Room",
-                                category = "Tenant"
-                            )
-                        }
-                        val propertySuggestions = state.allTenants.mapNotNull { it.propertyName }.distinct().take(2).map { prop ->
-                            com.gaatho.rent.core.ui.components.SearchSuggestionItem(
-                                title = prop,
-                                subtitle = "Filter by Property",
-                                category = "Property"
-                            )
-                        }
-                        (tenantSuggestions + propertySuggestions).take(5)
-                    }
+                    val searchSuggestions = remember { emptyList<com.gaatho.rent.core.ui.components.SearchSuggestionItem>() }
 
                     AppSearchBar(
                         query = state.searchQuery,
@@ -156,26 +179,26 @@ fun TenantsListContent(
                 }
 
                 // 2. List Section without outer card container (clean edge-to-edge native rows)
-                when (state.tenantsState) {
-                    is UiState.Loading -> {
+                when (pagedTenants.loadState.refresh) {
+                    is LoadState.Loading -> {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             com.gaatho.rent.core.ui.components.AppExpressiveLoadingIndicator()
                         }
                     }
 
-                    is UiState.Error -> {
+                    is LoadState.Error -> {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 Text(stringResource(Res.string.tenant_failed_load), style = MaterialTheme.typography.titleMedium)
-                                Button(onClick = { onAction(TenantsListAction.OnRetry) }) {
+                                Button(onClick = { pagedTenants.retry() }) {
                                     Text(stringResource(Res.string.retry))
                                 }
                             }
                         }
                     }
 
-                    is UiState.Success, is UiState.Idle -> {
-                        if (state.filteredTenants.isEmpty()) {
+                    is LoadState.NotLoading -> {
+                        if (pagedTenants.itemCount == 0) {
                             Box(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier
@@ -188,7 +211,7 @@ fun TenantsListContent(
                                     title = stringResource(Res.string.no_tenants_found),
                                     description = stringResource(Res.string.no_tenants_found_subtitle),
                                     buttonText = "Add Tenant",
-                                    onButtonClick = { showBottomSheet = true }
+                                    onButtonClick = { onShowAddTenantSheetChange(true) }
                                 )
                             }
                         } else {
@@ -198,22 +221,36 @@ fun TenantsListContent(
                                     .weight(1f),
                                 contentPadding = PaddingValues(bottom = 24.dp)
                             ) {
-                                itemsIndexed(
-                                    items = state.filteredTenants,
-                                    key = { _, tenant -> tenant.id },
-                                    contentType = { _, _ -> "tenantRow" }
-                                ) { index, tenant ->
-                                    TenantRowItem(
-                                        tenant = tenant,
-                                        onClick = { onAction(TenantsListAction.OnTenantClicked(tenant.id)) }
-                                    )
-
-                                    if (index < state.filteredTenants.lastIndex) {
-                                        HorizontalDivider(
-                                            modifier = Modifier.padding(horizontal = 24.dp),
-                                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
-                                            thickness = 0.5.dp
+                                items(
+                                    count = pagedTenants.itemCount,
+                                    key = pagedTenants.itemKey { it.id },
+                                    contentType = pagedTenants.itemContentType { "tenantRow" }
+                                ) { index ->
+                                    val tenant = pagedTenants[index]
+                                    if (tenant != null) {
+                                        TenantRowItem(
+                                            tenant = tenant,
+                                            onClick = { onAction(TenantsListAction.OnTenantClicked(tenant.id)) }
                                         )
+
+                                        if (index < pagedTenants.itemCount - 1) {
+                                            HorizontalDivider(
+                                                modifier = Modifier.padding(horizontal = 24.dp),
+                                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                                                thickness = 0.5.dp
+                                            )
+                                        }
+                                    }
+                                }
+                                
+                                if (pagedTenants.loadState.append is LoadState.Loading) {
+                                    item {
+                                        Box(
+                                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                                        }
                                     }
                                 }
                             }
@@ -225,17 +262,18 @@ fun TenantsListContent(
         } // Column
     } // Scaffold content
 
-    if (showBottomSheet) {
+    if (showAddTenantSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showBottomSheet = false },
+            onDismissRequest = { onShowAddTenantSheetChange(false) },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
             dragHandle = { BottomSheetDefaults.DragHandle() },
             contentWindowInsets = { WindowInsets.ime }
         ) {
             com.gaatho.rent.features.tenant.presentation.list.components.AddTenantBottomSheet(
-                onDismiss = { showBottomSheet = false },
-                onSave = { showBottomSheet = false },
+                state = addTenantState,
+                onAction = onAddTenantAction,
+                onDismiss = { onShowAddTenantSheetChange(false) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.92f)
@@ -302,8 +340,8 @@ private fun TenantsFilterStrip(
                 )
             }
 
-            val propertyOptions = remember(state.allTenants) {
-                listOf("All properties") + state.allTenants.mapNotNull { it.propertyName }.distinct()
+            val propertyOptions = remember(state.propertiesState) {
+                listOf("All properties") + ((state.propertiesState as? UiState.Success)?.data?.map { it.name } ?: emptyList())
             }
 
             DropdownMenu(
@@ -470,12 +508,19 @@ fun TenantsListScreenPreview() {
             )
         )
         val dummyState = TenantsListState(
-            tenantsState = com.gaatho.rent.core.ui.UiState.Success(dummyTenants),
-            filteredTenants = dummyTenants,
             selectedStatus = "All statuses",
             selectedProperty = "All properties"
         )
-        TenantsListContent(state = dummyState, onAction = {})
+        val pagedTenants = flowOf(PagingData.from(dummyTenants)).collectAsLazyPagingItems()
+        TenantsListContent(
+            state = dummyState, 
+            pagedTenants = pagedTenants, 
+            addTenantState = AddTenantState(), 
+            showAddTenantSheet = false,
+            onShowAddTenantSheetChange = {},
+            onAction = {}, 
+            onAddTenantAction = {}
+        )
     }
 }
 

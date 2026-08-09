@@ -11,8 +11,15 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import com.gaatho.rent.database.entity.TenantEntity
+import com.gaatho.rent.database.entity.TenantWithPropertyName
 import com.gaatho.rent.core.utils.DateTimeUtil
 import com.gaatho.rent.core.database.security.SecretString
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
+import androidx.paging.PagingSource
+import androidx.paging.PagingState
 
 class LocalTenantRepository(
     private val tenantDao: TenantDao
@@ -20,20 +27,40 @@ class LocalTenantRepository(
 
     override fun getTenants(ownerId: String): Flow<List<Tenant>> {
         return tenantDao.selectTenantsWithProperties(ownerId)
-            .map { map ->
-                map.flatMap { (property, tenants) ->
-                    tenants.map { it.toDomain(property?.name) }
-                }
+            .map { list ->
+                list.map { it.tenant.toDomain(it.propertyName) }
             }
             .flowOn(Dispatchers.IO)
     }
 
+    override fun getPagedTenants(
+        ownerId: String,
+        searchQuery: String,
+        statusFilter: String,
+        propertyId: String
+    ): Flow<PagingData<Tenant>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 20,
+                enablePlaceholders = false
+            ),
+            pagingSourceFactory = {
+                tenantDao.selectPagedTenantsWithProperties(
+                    ownerId = ownerId,
+                    searchQuery = searchQuery,
+                    statusFilter = statusFilter,
+                    propertyId = propertyId
+                )
+            }
+        ).flow.map { pagingData ->
+            pagingData.map { it.tenant.toDomain(it.propertyName) }
+        }
+    }
+
     override fun getTenantById(tenantId: String): Flow<Tenant?> {
         return tenantDao.selectTenantWithPropertyById(tenantId)
-            .map { map ->
-                map.flatMap { (property, tenants) ->
-                    tenants.map { it.toDomain(property?.name) }
-                }.firstOrNull()
+            .map { pojo ->
+                pojo?.tenant?.toDomain(pojo.propertyName)
             }
             .flowOn(Dispatchers.IO)
     }

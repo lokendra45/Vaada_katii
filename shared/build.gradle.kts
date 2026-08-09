@@ -84,6 +84,10 @@ kotlin {
             implementation(libs.room3.paging)
             implementation(libs.androidx.sqlite.bundled)
             implementation(libs.androidx.sqlite)
+            
+            // Paging
+            implementation(libs.androidx.paging.common)
+            implementation(libs.androidx.paging.compose)
 
             // FileKit
             implementation(libs.filekit.core)
@@ -137,8 +141,11 @@ room3 {
 
 dependencies {
     add("kspAndroid", libs.room3.compiler)
+    add("kspAndroid", libs.room3.paging)
     add("kspIosSimulatorArm64", libs.room3.compiler)
+    add("kspIosSimulatorArm64", libs.room3.paging)
     add("kspIosArm64", libs.room3.compiler)
+    add("kspIosArm64", libs.room3.paging)
 }
 
 dependencies {

@@ -38,16 +38,9 @@ data class PropertyDisplayModel(
 @Serializable
 @Immutable
 data class PropertyListState(
-    // We map raw Property to PropertyDisplayModel so the UI does zero logic
-    val propertiesState: UiState<ImmutableList<PropertyDisplayModel>> = UiState.Idle,
     val searchQuery: String = "",
-    val selectedLocation: String = "All properties",
-    // Pre-computed by ViewModel on Dispatchers.Default — never on the UI thread
-    val filteredProperties: ImmutableList<PropertyDisplayModel> = persistentListOf()
-) {
-    val allProperties: ImmutableList<PropertyDisplayModel>
-        get() = (propertiesState as? UiState.Success)?.data ?: persistentListOf()
-}
+    val selectedLocation: String = "All properties"
+)
 
 /**
  * One-time side effects for the Property List screen.

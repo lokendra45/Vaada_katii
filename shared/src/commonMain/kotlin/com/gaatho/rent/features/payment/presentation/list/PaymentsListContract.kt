@@ -8,6 +8,7 @@ import com.gaatho.rent.features.tenant.domain.model.Tenant
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Serializable
 data class PaymentDisplayModel(
@@ -21,14 +22,17 @@ data class PaymentDisplayModel(
 )
 
 @Serializable
-@Immutable
 data class PaymentsListState(
+    @Transient
     val paymentsState: UiState<ImmutableList<PaymentDisplayModel>> = UiState.Idle,
+    @Transient
     val propertiesState: UiState<ImmutableList<Property>> = UiState.Idle,
+    @Transient
     val tenantsState: UiState<ImmutableList<Tenant>> = UiState.Idle,
     val searchQuery: String = "",
     val selectedStatus: String = "All statuses",
     val selectedProperty: String = "All properties",
+    @Transient
     val filteredPayments: ImmutableList<PaymentDisplayModel> = persistentListOf()
 ) {
     val allPayments: ImmutableList<PaymentDisplayModel>

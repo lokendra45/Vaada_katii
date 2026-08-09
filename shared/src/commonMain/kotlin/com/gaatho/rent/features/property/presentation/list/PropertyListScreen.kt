@@ -60,6 +60,9 @@ import com.gaatho.rent.features.property.presentation.list.PropertyListAction.*
 import io.github.vinceglb.filekit.readBytes
 import kotlinx.collections.immutable.immutableListOf
 import kotlinx.collections.immutable.persistentListOf
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.LoadState
 
 import org.koin.compose.viewmodel.koinViewModel
 import org.jetbrains.compose.resources.stringResource
@@ -134,8 +137,11 @@ fun PropertyListScreen(
         }
     }
 
+    val pagedProperties = viewModel.pagedPropertiesFlow.collectAsLazyPagingItems()
+
     PropertyListContent(
         state = state,
+        pagedProperties = pagedProperties,
         snackbarHostState = snackbarHostState,
         onAction = viewModel::onAction,
         onAddPropertyAction = addPropertyViewModel::onAction
@@ -189,6 +195,7 @@ fun PropertyListScreen(
 @Composable
 fun PropertyListContent(
     state: PropertyListState,
+    pagedProperties: LazyPagingItems<PropertyDisplayModel>? = null,
     onAction: (PropertyListAction) -> Unit,
     onAddPropertyAction: (com.gaatho.rent.features.property.presentation.add.AddPropertyAction) -> Unit,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
@@ -197,7 +204,7 @@ fun PropertyListContent(
         topBar = {
             com.gaatho.rent.core.ui.components.AppTopBar(
                 title = stringResource(Res.string.properties_title),
-                subtitle = stringResource(Res.string.total_properties_subtitle, state.allProperties.size),
+                subtitle = stringResource(Res.string.total_properties_subtitle, pagedProperties?.itemCount ?: 0),
                 actions = {
                     com.gaatho.rent.core.ui.components.AppTopBarActionButton(
                         text = stringResource(Res.string.add_property),
@@ -216,127 +223,102 @@ fun PropertyListContent(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            val filterOptions = persistentListOf("All Properties", "Active", "Pending Dues", "Vacant")
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .widthIn(max = 800.dp)
                     .align(Alignment.CenterHorizontally)
             ) {
-                when (val propertiesState = state.propertiesState) {
-                    is UiState.Loading -> {
-                        com.gaatho.rent.core.ui.components.AppExpressiveLoadingIndicator(modifier = Modifier.align(Alignment.Center))
-                    }
+                if (pagedProperties == null) {
+                    com.gaatho.rent.core.ui.components.AppExpressiveLoadingIndicator(modifier = Modifier.align(Alignment.Center))
+                    return@Box
+                }
 
-                    is UiState.Success -> {
-                        if (propertiesState.data.isEmpty() && state.searchQuery.isEmpty() && state.selectedLocation == "All properties") {
-                            EmptyPropertiesState(
-                                onAddProperty = { onAction(PropertyListAction.OnAddPropertyClicked) },
-                                modifier = Modifier.align(Alignment.Center)
+                val refreshState = pagedProperties.loadState.refresh
+                val appendState = pagedProperties.loadState.append
+                val isEmpty = pagedProperties.itemCount == 0
+
+                if (refreshState is LoadState.Loading) {
+                    com.gaatho.rent.core.ui.components.AppExpressiveLoadingIndicator(modifier = Modifier.align(Alignment.Center))
+                } else if (refreshState is LoadState.Error) {
+                    ErrorState(
+                        message = refreshState.error.message ?: "Failed to load",
+                        onRetry = { pagedProperties.retry() },
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                } else if (isEmpty && state.searchQuery.isEmpty() && state.selectedLocation == "All properties") {
+                    EmptyPropertiesState(
+                        onAddProperty = { onAction(PropertyListAction.OnAddPropertyClicked) },
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 24.dp)
+                    ) {
+                        item {
+                            com.gaatho.rent.core.ui.components.AppSearchBar(
+                                query = state.searchQuery,
+                                onQueryChange = { onAction(PropertyListAction.OnSearchQueryChanged(it)) },
+                                placeholderText = stringResource(Res.string.search_properties_hint),
+                                suggestions = emptyList(), // Suggestions disabled for infinite scroll
+                                onSuggestionSelected = {},
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 4.dp, vertical = 4.dp)
                             )
-                        } else {
-                            LazyColumn(
-                                modifier = Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(bottom = 24.dp)
+                        }
+
+                        item {
+                            // Simplified hardcoded filters for demo
+                            val locationFilters = listOf("All properties", "Kathmandu", "Lalitpur", "Bhaktapur")
+
+                            LazyRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = AppDimensions.ScreenHorizontalPadding)
+                                    .padding(top = 4.dp, bottom = 12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-
-                                // Pixel-Perfect Material 3 Expressive AppSearchBar
-                                item {
-                                    val locationFilterText = stringResource(Res.string.filter_by_location)
-                                    val searchSuggestions = remember(state.allProperties, locationFilterText) {
-                                        val nameSuggestions = state.allProperties.take(3).map { prop ->
-                                            com.gaatho.rent.core.ui.components.SearchSuggestionItem(
-                                                title = prop.name,
-                                                subtitle = prop.address,
-                                                category = "Property"
-                                            )
-                                        }
-                                        val locationSuggestions = state.allProperties.map { it.address.substringBefore(",").trim() }.distinct().take(2).map { loc ->
-                                            com.gaatho.rent.core.ui.components.SearchSuggestionItem(
-                                                title = loc,
-                                                subtitle = locationFilterText,
-                                                category = "Location"
-
-                                            )
-                                        }
-                                        (nameSuggestions + locationSuggestions).take(5)
-                                    }
-
-                                    com.gaatho.rent.core.ui.components.AppSearchBar(
-                                        query = state.searchQuery,
-                                        onQueryChange = { onAction(PropertyListAction.OnSearchQueryChanged(it)) },
-                                        placeholderText = stringResource(Res.string.search_properties_hint),
-                                        suggestions = searchSuggestions,
-                                        onSuggestionSelected = { item ->
-                                            onAction(PropertyListAction.OnSearchQueryChanged(item.title))
-                                        },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 4.dp, vertical = 4.dp)
-                                    )
-                                }
-
-                                // Location Filter Pills Strip
-                                item {
-                                    val locationFilters = remember(state.allProperties) {
-                                        listOf("All properties") + state.allProperties.map {
-                                            if (it.address.contains(",")) it.address.substringAfterLast(",").trim() else it.address.trim()
-                                        }.distinct().filter { it.isNotEmpty() }
-                                    }
-
-                                    // Scrollable Filter Chips for Location Filter
-                                    LazyRow(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = AppDimensions.ScreenHorizontalPadding)
-                                            .padding(top = 4.dp, bottom = 12.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        items(locationFilters) { location ->
-                                            val displayOption = if (location.equals("All properties", ignoreCase = true)) stringResource(Res.string.filter_all_locations) else location
-                                            FilterChip(
-                                                selected = state.selectedLocation == location,
-                                                onClick = { onAction(PropertyListAction.OnLocationFilterSelected(location)) },
-                                                label = { Text(displayOption) },
-                                                colors = FilterChipDefaults.filterChipColors(
-                                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                                )
-                                            )
-                                        }
-                                    }
-                                }
-
-                                // High Craftsmanship List Row Items
-                                items(
-                                    items = state.filteredProperties,
-                                    key = { it.id },
-                                    contentType = { "propertyRow" }
-                                ) { property ->
-                                    PropertyRowItem(
-                                        property = property,
-                                        onClick = { onAction(PropertyListAction.OnPropertyClicked(property.id)) },
-                                        modifier = Modifier.padding(horizontal = AppDimensions.ScreenHorizontalPadding)
-                                    )
-                                    HorizontalDivider(
-                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f),
-                                        thickness = 1.dp,
-                                        modifier = Modifier.padding(horizontal = AppDimensions.ScreenHorizontalPadding)
+                                items(locationFilters) { location ->
+                                    val displayOption = if (location.equals("All properties", ignoreCase = true)) stringResource(Res.string.filter_all_locations) else location
+                                    FilterChip(
+                                        selected = state.selectedLocation == location,
+                                        onClick = { onAction(PropertyListAction.OnLocationFilterSelected(location)) },
+                                        label = { Text(displayOption) },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
                                     )
                                 }
                             }
                         }
-                    }
 
-                    is UiState.Error -> {
-                        ErrorState(
-                            message = propertiesState.message,
-                            onRetry = { onAction(PropertyListAction.Retry) },
-                            modifier = Modifier.align(Alignment.Center)
-                        )
+                        items(count = pagedProperties.itemCount) { index ->
+                            val property = pagedProperties[index]
+                            if (property != null) {
+                                PropertyRowItem(
+                                    property = property,
+                                    onClick = { onAction(PropertyListAction.OnPropertyClicked(property.id)) },
+                                    modifier = Modifier.padding(horizontal = AppDimensions.ScreenHorizontalPadding)
+                                )
+                                HorizontalDivider(
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f),
+                                    thickness = 1.dp,
+                                    modifier = Modifier.padding(horizontal = AppDimensions.ScreenHorizontalPadding)
+                                )
+                            }
+                        }
+                        
+                        if (appendState is LoadState.Loading) {
+                            item {
+                                Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                                }
+                            }
+                        }
                     }
-
-                    UiState.Idle -> {}
                 }
             }
         }
@@ -516,24 +498,7 @@ private fun ErrorState(
 private fun PropertyListContentSuccessPreview() {
     RentManagerTheme {
         PropertyListContent(
-            state = PropertyListState(
-                propertiesState = UiState.Success(
-                    persistentListOf(
-                        PropertyDisplayModel(
-                            id = "1",
-                            name = "Sunrise Apartments",
-                            address = "Baneshwor, Kathmandu",
-                            imageUrl = null,
-                            totalUnits = 10,
-                            occUnits = 8,
-                            statusBadge = "• 2 Vacant",
-                            isVacant = true,
-                            pendingText = "Rs. 25,000",
-                            isPending = true
-                        )
-                    )
-                )
-            ),
+            state = PropertyListState(),
             onAction = {},
             onAddPropertyAction = {}
         )
@@ -546,7 +511,7 @@ private fun PropertyListContentSuccessPreview() {
 private fun PropertyListContentEmptyPreview() {
     RentManagerTheme {
         PropertyListContent(
-            state = PropertyListState(propertiesState = UiState.Success(persistentListOf())),
+            state = PropertyListState(),
             onAction = {},
             onAddPropertyAction = {}
         )
@@ -559,7 +524,7 @@ private fun PropertyListContentEmptyPreview() {
 private fun PropertyListContentLoadingPreview() {
     RentManagerTheme {
         PropertyListContent(
-            state = PropertyListState(propertiesState = UiState.Loading),
+            state = PropertyListState(),
             onAction = {},
             onAddPropertyAction = {}
         )
@@ -572,9 +537,7 @@ private fun PropertyListContentLoadingPreview() {
 private fun PropertyListContentErrorPreview() {
     RentManagerTheme {
         PropertyListContent(
-            state = PropertyListState(
-                propertiesState = UiState.Error("Unable to load properties. Check your internet connection.")
-            ),
+            state = PropertyListState(),
             onAction = {},
             onAddPropertyAction = {}
         )

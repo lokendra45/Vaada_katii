@@ -1,7 +1,6 @@
 package com.gaatho.rent.features.tenant.presentation.list.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,48 +9,65 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.clickable
 import org.jetbrains.compose.resources.stringResource
 import rentmanagerapp.shared.generated.resources.Res
 import rentmanagerapp.shared.generated.resources.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.tooling.preview.Preview
-import com.gaatho.rent.core.designsystem.AppDimensions
-import com.gaatho.rent.core.designsystem.RentManagerTheme
-import com.gaatho.rent.core.ui.components.AppDropdown
-import com.gaatho.rent.core.ui.components.AppModalBottomSheet
+import com.gaatho.rent.core.ui.UiState
+import com.gaatho.rent.core.ui.components.AppSelectionBottomSheet
+import com.gaatho.rent.core.ui.components.AppSelectionItem
 import com.gaatho.rent.core.ui.components.AppTextField
-import kotlinx.collections.immutable.persistentListOf
+import com.gaatho.rent.core.ui.components.AppDatePickerDialog
+import com.gaatho.rent.features.tenant.presentation.add.AddTenantAction
+import com.gaatho.rent.features.tenant.presentation.add.AddTenantState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTenantBottomSheet(
+    state: AddTenantState,
+    onAction: (AddTenantAction) -> Unit,
     onDismiss: () -> Unit,
-    onSave: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var fullName by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var address by remember { mutableStateOf("") }
-    var occupation by remember { mutableStateOf("") }
-    var deposit by remember { mutableStateOf("") }
-    var room by remember { mutableStateOf("") }
-    var startDate by remember { mutableStateOf("") }
-    var endDate by remember { mutableStateOf("") }
-
     val iconTint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
     val scrollState = rememberScrollState()
+    
+    var showPropertySheet by remember { mutableStateOf(false) }
+
+
+
+    // Date Picker Dialog
+    if (state.showDatePicker) {
+        AppDatePickerDialog(
+            selectedDate = if (state.isSelectingStartDate) state.startDate else state.endDate,
+            onDateSelected = { onAction(AddTenantAction.OnDateSelected(it)) },
+            onDismiss = { onAction(AddTenantAction.OnDatePickerDismissed) },
+            title = if (state.isSelectingStartDate) "Select Start Date" else "Select End Date"
+        )
+    }
+
+    // Property Selection Bottom Sheet
+    if (showPropertySheet) {
+        val properties = (state.propertiesState as? UiState.Success)?.data ?: kotlinx.collections.immutable.persistentListOf()
+        AppSelectionBottomSheet(
+            title = "Select Property",
+            items = properties.map { AppSelectionItem(it.id, it.name) },
+            selectedId = state.selectedPropertyId,
+            onItemSelected = { 
+                onAction(AddTenantAction.OnPropertySelected(it))
+                showPropertySheet = false 
+            },
+            onDismiss = { showPropertySheet = false }
+        )
+    }
 
     Column(
         modifier = modifier
@@ -163,8 +179,8 @@ fun AddTenantBottomSheet(
 
             // --- Form Fields ---
             AppTextField(
-                value = fullName,
-                onValueChange = { fullName = it },
+                value = state.fullName,
+                onValueChange = { onAction(AddTenantAction.OnFullNameChanged(it)) },
                 label = stringResource(Res.string.tenant_name_label),
                 placeholder = "e.g. Ram Bahadur Thapa",
                 leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp)) }
@@ -173,8 +189,8 @@ fun AddTenantBottomSheet(
             Spacer(modifier = Modifier.height(16.dp))
 
             AppTextField(
-                value = phone,
-                onValueChange = { phone = it },
+                value = state.phone,
+                onValueChange = { onAction(AddTenantAction.OnPhoneChanged(it)) },
                 label = stringResource(Res.string.tenant_phone_label),
                 placeholder = "98XXXXXXXX",
                 prefix = "+977",
@@ -184,8 +200,8 @@ fun AddTenantBottomSheet(
             Spacer(modifier = Modifier.height(16.dp))
 
             AppTextField(
-                value = email,
-                onValueChange = { email = it },
+                value = state.email,
+                onValueChange = { onAction(AddTenantAction.OnEmailChanged(it)) },
                 label = stringResource(Res.string.tenant_email_label),
                 topRightLabel = stringResource(Res.string.optional),
                 placeholder = "ram@example.com",
@@ -195,8 +211,8 @@ fun AddTenantBottomSheet(
             Spacer(modifier = Modifier.height(16.dp))
 
             AppTextField(
-                value = address,
-                onValueChange = { address = it },
+                value = state.address,
+                onValueChange = { onAction(AddTenantAction.OnAddressChanged(it)) },
                 label = stringResource(Res.string.tenant_address_label),
                 placeholder = "e.g. Pokhara-8, Kaski",
                 leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp)) }
@@ -205,8 +221,8 @@ fun AddTenantBottomSheet(
             Spacer(modifier = Modifier.height(16.dp))
 
             AppTextField(
-                value = occupation,
-                onValueChange = { occupation = it },
+                value = state.occupation,
+                onValueChange = { onAction(AddTenantAction.OnOccupationChanged(it)) },
                 label = stringResource(Res.string.tenant_occupation_label),
                 placeholder = "e.g. Software Engineer",
                 leadingIcon = { Icon(Icons.Default.Work, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp)) }
@@ -218,13 +234,28 @@ fun AddTenantBottomSheet(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            val roomOptions = persistentListOf("Room 101", "Room 102", "Flat A", "Flat B", "Shop 1")
-            com.gaatho.rent.core.ui.components.AppDropdownPicker(
-                options = roomOptions,
-                selectedItem = room.ifEmpty { null },
-                onItemSelected = { room = it },
+            val properties = (state.propertiesState as? UiState.Success)?.data
+            val propertyName = properties?.find { it.id == state.selectedPropertyId }?.name ?: ""
+            Box(modifier = Modifier.fillMaxWidth().clickable { showPropertySheet = true }) {
+                AppTextField(
+                    value = propertyName,
+                    onValueChange = {},
+                    label = "Property (Required)",
+                    placeholder = "Select a property...",
+                    readOnly = true,
+                    enabled = false,
+                    leadingIcon = { Icon(Icons.Default.Domain, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp)) },
+                    trailingIcon = { Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp)) }
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            AppTextField(
+                value = state.roomNumber,
+                onValueChange = { onAction(AddTenantAction.OnRoomNumberChanged(it)) },
                 label = stringResource(Res.string.tenant_room_label),
-                placeholder = "Select a vacant room...",
+                placeholder = "e.g. Room 101",
                 leadingIcon = { Icon(Icons.Default.Apartment, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp)) }
             )
 
@@ -234,33 +265,48 @@ fun AddTenantBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                AppTextField(
-                    value = startDate,
-                    onValueChange = { startDate = it },
-                    label = stringResource(Res.string.tenant_start_date_label),
-                    placeholder = "dd-mm-yyyy",
-                    modifier = Modifier.weight(1f),
-                    leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null, tint = iconTint, modifier = Modifier.size(18.dp)) },
-                    trailingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null, tint = iconTint, modifier = Modifier.size(16.dp)) }
-                )
+                Box(modifier = Modifier.weight(1f).clickable { onAction(AddTenantAction.OnDateFieldClicked(isStartDate = true)) }) {
+                    AppTextField(
+                        value = state.startDate,
+                        onValueChange = {},
+                        label = stringResource(Res.string.tenant_start_date_label),
+                        placeholder = "dd-mm-yyyy",
+                        readOnly = true,
+                        enabled = false,
+                        leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null, tint = iconTint, modifier = Modifier.size(18.dp)) }
+                    )
+                }
 
-                AppTextField(
-                    value = endDate,
-                    onValueChange = { endDate = it },
-                    label = stringResource(Res.string.tenant_end_date_label),
-                    topRightLabel = stringResource(Res.string.optional),
-                    placeholder = "dd-mm-yyyy",
-                    modifier = Modifier.weight(1f),
-                    leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null, tint = iconTint, modifier = Modifier.size(18.dp)) },
-                    trailingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null, tint = iconTint, modifier = Modifier.size(16.dp)) }
-                )
+                Box(modifier = Modifier.weight(1f).clickable { onAction(AddTenantAction.OnDateFieldClicked(isStartDate = false)) }) {
+                    AppTextField(
+                        value = state.endDate,
+                        onValueChange = {},
+                        label = stringResource(Res.string.tenant_end_date_label),
+                        topRightLabel = stringResource(Res.string.optional),
+                        placeholder = "dd-mm-yyyy",
+                        readOnly = true,
+                        enabled = false,
+                        leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null, tint = iconTint, modifier = Modifier.size(18.dp)) }
+                    )
+                }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            AppTextField(
+                value = state.rentAmount,
+                onValueChange = { onAction(AddTenantAction.OnRentAmountChanged(it)) },
+                label = "Monthly Rent",
+                placeholder = "0.00",
+                prefix = "Rs.",
+                leadingIcon = { Icon(Icons.Default.Money, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp)) }
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             AppTextField(
-                value = deposit,
-                onValueChange = { deposit = it },
+                value = state.deposit,
+                onValueChange = { onAction(AddTenantAction.OnDepositChanged(it)) },
                 label = stringResource(Res.string.tenant_deposit_label),
                 placeholder = "0.00",
                 prefix = "Rs.",
@@ -282,34 +328,32 @@ fun AddTenantBottomSheet(
                         .padding(horizontal = 24.dp, vertical = 20.dp)
                 ) {
                     Button(
-                        onClick = onSave,
+                        onClick = { onAction(AddTenantAction.OnSaveClicked) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
                         shape = RoundedCornerShape(12.dp),
+                        enabled = state.canSubmit,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary
                         )
                     ) {
-                        Text(
-                            text = stringResource(Res.string.tenant_add_button).uppercase(),
-                            style = MaterialTheme.typography.titleMedium
-                        )
+                        if (state.isSaving) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = stringResource(Res.string.tenant_add_button).uppercase(),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
                     }
                 }
             }
         }
-    }
-}
-
-@Preview
-@Composable
-private fun AddTenantBottomSheetPreview() {
-    RentManagerTheme {
-        AddTenantBottomSheet(
-            onDismiss = {},
-            onSave = {}
-        )
     }
 }

@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.serialization.Transient
 
 @Serializable
 @Immutable
@@ -33,25 +34,13 @@ data class TenantDisplayModel(
  * Dispatchers.Default — never computed on the Compose Main thread.
  */
 @Serializable
-@Immutable
 data class TenantsListState(
-    val tenantsState: UiState<ImmutableList<TenantDisplayModel>> = UiState.Idle,
+    @Transient
     val propertiesState: UiState<ImmutableList<Property>> = UiState.Idle,
     val searchQuery: String = "",
     val selectedStatus: String = "All statuses",
-    val selectedProperty: String = "All properties",
-    // Pre-computed by ViewModel on Dispatchers.Default — never on the UI thread
-    val filteredTenants: ImmutableList<TenantDisplayModel> = persistentListOf()
-) {
-    val allTenants: ImmutableList<TenantDisplayModel>
-        get() = (tenantsState as? UiState.Success)?.data ?: persistentListOf()
-
-    val totalCount: Int
-        get() = allTenants.size
-
-    val activeCount: Int
-        get() = allTenants.count { it.status.equals("Active", ignoreCase = true) }
-}
+    val selectedProperty: String = "All properties"
+)
 
 sealed interface TenantsListSideEffect {
     data class NavigateToTenantDetails(val tenantId: String) : TenantsListSideEffect

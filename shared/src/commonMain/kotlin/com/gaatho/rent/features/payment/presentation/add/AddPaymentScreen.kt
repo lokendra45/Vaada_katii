@@ -39,6 +39,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -327,11 +328,10 @@ fun FormRow(
 
 @Composable
 private fun AmountSection(
-    amount: String,
+    amount: TextFieldValue,
     totalDue: Long?,
-    onAmountChange: (String) -> Unit
+    onAmountChange: (TextFieldValue) -> Unit
 ) {
-    var textValue by remember(amount) { mutableStateOf(amount) }
     val density = LocalDensity.current
     val textMeasurer = rememberTextMeasurer()
     val fontFamily = interFontFamily()
@@ -353,7 +353,7 @@ private fun AmountSection(
                 ).size.width.toFloat()
             }
             val availableWidthPx = with(density) { (maxWidth * 0.9f).toPx() } - prefixWidthPx
-            val displayAmount = textValue.ifEmpty { "0" }
+            val displayAmount = amount.text.ifEmpty { "0" }
 
             val digitFontSizeSp = remember(displayAmount, availableWidthPx) {
                 var size = maxFontSizeSp
@@ -390,11 +390,14 @@ private fun AmountSection(
             }
 
             BasicTextField(
-                value = textValue,
+                value = amount,
                 onValueChange = {
-                    val filtered = it.filter { char -> char.isDigit() }
-                    textValue = filtered
-                    onAmountChange(filtered)
+                    val filteredText = it.text.filter { char -> char.isDigit() }
+                    if (filteredText == it.text) {
+                        onAmountChange(it)
+                    } else {
+                        onAmountChange(it.copy(text = filteredText))
+                    }
                 },
                 textStyle = TextStyle(
                     fontFamily = fontFamily,
@@ -439,19 +442,25 @@ private fun PaymentDetailsSection(
     val propertyItems = (state.propertiesState as? UiState.Success)?.data ?: persistentListOf()
     val tenantItems = (state.tenantsState as? UiState.Success)?.data ?: persistentListOf()
 
+    val propertyName = propertyItems.find { it.id == state.selectedPropertyId }?.name ?: ""
+    val tenantName = tenantItems.find { it.id == state.selectedTenantId }?.name ?: ""
+
+    val propertyPlaceholder = if (state.propertiesState is UiState.Loading) "Loading properties..." else stringResource(Res.string.payment_property_placeholder)
+    val tenantPlaceholder = if (state.tenantsState is UiState.Loading) "Loading tenants..." else stringResource(Res.string.payment_tenant_placeholder)
+
     FormCard {
         FormRow(
             label = stringResource(Res.string.payment_property_label),
-            value = propertyItems.find { it.id == state.selectedPropertyId }?.name ?: "",
-            placeholder = stringResource(Res.string.payment_property_placeholder),
+            value = propertyName,
+            placeholder = propertyPlaceholder,
             leadingIcon = { Icon(Icons.Default.Domain, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f)) },
             onClick = onPropertyRowClick
         )
 
         FormRow(
             label = stringResource(Res.string.payment_tenant_label),
-            value = tenantItems.find { it.id == state.selectedTenantId }?.name ?: "",
-            placeholder = stringResource(Res.string.payment_tenant_placeholder),
+            value = tenantName,
+            placeholder = tenantPlaceholder,
             leadingIcon = { Icon(Icons.Default.PersonOutline, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f)) },
             onClick = onTenantRowClick
         )
@@ -546,8 +555,8 @@ private fun PaymentMethodSection(
 
 @Composable
 private fun RemarksSection(
-    remarks: String,
-    onRemarksChange: (String) -> Unit,
+    remarks: TextFieldValue,
+    onRemarksChange: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier
 ) {
     FormCard(modifier = modifier) {
@@ -563,7 +572,7 @@ private fun RemarksSection(
                 textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                 decorationBox = { innerTextField ->
-                    if (remarks.isEmpty()) {
+                    if (remarks.text.isEmpty()) {
                         Text(
                             text = stringResource(Res.string.payment_remarks_placeholder),
                             style = MaterialTheme.typography.bodyMedium,

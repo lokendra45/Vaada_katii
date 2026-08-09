@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import com.gaatho.rent.core.ui.UiState
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Serializable
 data class TenantTransactionDisplayModel(
@@ -42,8 +43,11 @@ data class TenantProfileDisplayModel(
 @Immutable
 data class TenantDetailsState(
     val tenantId: String = "",
+    @Transient
     val profileState: UiState<TenantProfileDisplayModel> = UiState.Idle,
+    @Transient
     val leaseState: UiState<TenantLeaseDisplayModel> = UiState.Idle,
+    @Transient
     val transactionsState: UiState<ImmutableList<TenantTransactionDisplayModel>> = UiState.Idle
 )
 
