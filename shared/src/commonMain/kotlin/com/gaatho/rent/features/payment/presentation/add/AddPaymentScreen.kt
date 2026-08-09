@@ -1,5 +1,8 @@
 package com.gaatho.rent.features.payment.presentation.add
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,15 +16,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Domain
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.PersonOutline
 import androidx.compose.material.icons.filled.Wallet
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,7 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -48,9 +50,14 @@ import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.designsystem.Spacing
 import com.gaatho.rent.core.designsystem.interFontFamily
 import com.gaatho.rent.core.ui.UiState
-import com.gaatho.rent.core.ui.components.AppDropdown
-import com.gaatho.rent.core.ui.components.AppTextField
+import com.gaatho.rent.core.ui.components.AppDatePickerDialog
+import com.gaatho.rent.core.ui.components.AppSelectionBottomSheet
+import com.gaatho.rent.core.ui.components.AppSelectionItem
+import com.gaatho.rent.core.ui.components.AppSnackbarHost
+import com.gaatho.rent.core.ui.components.AppSnackbarVariant
+import com.gaatho.rent.core.ui.components.rememberAppSnackbarState
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
 import org.jetbrains.compose.resources.stringResource
 import rentmanagerapp.shared.generated.resources.Res
@@ -62,31 +69,95 @@ fun AddPaymentScreen(
 ) {
     val viewModel: AddPaymentViewModel = koinViewModel()
     val state by viewModel.container.stateFlow.collectAsState()
+    val snackbarState = rememberAppSnackbarState()
 
     LaunchedEffect(viewModel.container.sideEffectFlow) {
         viewModel.container.sideEffectFlow.collect { effect ->
             when (effect) {
                 is AddPaymentEffect.NavigateBack -> onNavigateBack()
-                is AddPaymentEffect.ShowToast -> {
-                    // Show toast (omitted for brevity)
+                is AddPaymentEffect.ShowSnackbar -> {
+                    snackbarState.show(
+                        message = effect.message,
+                        variant = if (effect.isError) AppSnackbarVariant.ERROR else AppSnackbarVariant.SUCCESS
+                    )
                 }
             }
         }
     }
 
-    AddPaymentContent(
-        state = state,
-        onAction = viewModel::onAction,
-        onNavigateBack = onNavigateBack
-    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        AddPaymentContent(
+            state = state,
+            onAction = viewModel::onAction,
+            onNavigateBack = onNavigateBack
+        )
+
+        // Floating Snackbar overlay
+        AppSnackbarHost(
+            state = snackbarState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddPaymentContent(
     state: AddPaymentState,
     onAction: (AddPaymentAction) -> Unit,
     onNavigateBack: () -> Unit
 ) {
+    val propertyItems = (state.propertiesState as? UiState.Success)?.data ?: persistentListOf()
+    val tenantItems = (state.tenantsState as? UiState.Success)?.data ?: persistentListOf()
+
+    var showPropertySheet by remember { mutableStateOf(false) }
+    var showTenantSheet by remember { mutableStateOf(false) }
+
+    // Date picker dialog
+    if (state.showDatePicker) {
+        AppDatePickerDialog(
+            selectedDate = state.paymentDate,
+            onDateSelected = { onAction(AddPaymentAction.OnPaymentDateChanged(it)) },
+            onDismiss = { onAction(AddPaymentAction.OnDatePickerDismissed) },
+            title = "Payment Date"
+        )
+    }
+
+    // Property selection sheet using reusable component
+    if (showPropertySheet) {
+        AppSelectionBottomSheet(
+            title = stringResource(Res.string.payment_property_label),
+            items = propertyItems.map { AppSelectionItem(it.id, it.name) },
+            selectedId = state.selectedPropertyId,
+            onItemSelected = { onAction(AddPaymentAction.OnPropertySelected(it)) },
+            onDismiss = { showPropertySheet = false }
+        )
+    }
+
+    // Tenant selection sheet — shows filtered tenants with room number subtitle
+    if (showTenantSheet) {
+        AppSelectionBottomSheet(
+            title = stringResource(Res.string.payment_tenant_label),
+            items = tenantItems.map { t ->
+                AppSelectionItem(
+                    id = t.id,
+                    title = t.name,
+                    subtitle = buildString {
+                        if (t.roomNumber != null) append("Room ${t.roomNumber}  •  ")
+                        append("NPR ${t.rentAmount}")
+                    }
+                )
+            },
+            selectedId = state.selectedTenantId,
+            onItemSelected = { onAction(AddPaymentAction.OnTenantSelected(it)) },
+            onDismiss = { showTenantSheet = false },
+            emptyText = if (state.selectedPropertyId == null)
+                "Select a property first to see tenants"
+            else
+                "No active tenants for this property"
+        )
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
         topBar = {
@@ -99,6 +170,7 @@ fun AddPaymentContent(
         bottomBar = {
             AddPaymentBottomBar(
                 enabled = state.canSubmit,
+                isSaving = state.isSaving,
                 isAgreed = state.isReceiptAgreed,
                 onAgreementToggled = { onAction(AddPaymentAction.OnAgreementToggled(it)) },
                 onClick = { onAction(AddPaymentAction.OnRecordPaymentClicked) }
@@ -109,7 +181,7 @@ fun AddPaymentContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .imePadding() // Add IME padding here for the whole scrollable content
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = Spacing.ScreenPadding),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -119,13 +191,19 @@ fun AddPaymentContent(
             // Amount Section
             AmountSection(
                 amount = state.amount,
+                totalDue = state.selectedTenantRentAmount,
                 onAmountChange = { onAction(AddPaymentAction.OnAmountChanged(it)) }
             )
 
             Spacer(modifier = Modifier.height(Spacing.SectionGap))
 
-            // Details section grouped in a single card
-            PaymentDetailsSection(state = state, onAction = onAction)
+            // Details card
+            PaymentDetailsSection(
+                state = state,
+                onPropertyRowClick = { showPropertySheet = true },
+                onTenantRowClick = { showTenantSheet = true },
+                onDateRowClick = { onAction(AddPaymentAction.OnDateFieldClicked) }
+            )
 
             Spacer(modifier = Modifier.height(Spacing.ItemGap))
 
@@ -166,7 +244,7 @@ fun FormCard(
 }
 
 @Composable
- fun FormRow(
+fun FormRow(
     label: String,
     value: String,
     placeholder: String = "",
@@ -175,12 +253,23 @@ fun FormCard(
     onClick: (() -> Unit)? = null,
     showDivider: Boolean = true
 ) {
+    var pressed by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) 0.97f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessHigh),
+        label = "row_scale"
+    )
+    LaunchedEffect(pressed) {
+        if (pressed) { delay(120); pressed = false }
+    }
+
     val isPlaceholder = value.isEmpty()
-    
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .graphicsLayer { scaleX = scale; scaleY = scale }
+            .then(if (onClick != null) Modifier.clickable { pressed = true; onClick() } else Modifier)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
@@ -192,7 +281,7 @@ fun FormCard(
                 }
                 Spacer(modifier = Modifier.width(16.dp))
             }
-            
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = label.uppercase(),
@@ -207,15 +296,25 @@ fun FormCard(
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = if (isPlaceholder) FontWeight.Normal else FontWeight.Medium
                     ),
-                    color = if (isPlaceholder) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface
+                    color = if (isPlaceholder)
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    else
+                        MaterialTheme.colorScheme.onSurface
                 )
             }
-            
+
             if (trailingIcon != null) {
                 trailingIcon()
+            } else if (onClick != null) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
-        
+
         if (showDivider) {
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 16.dp),
@@ -227,7 +326,11 @@ fun FormCard(
 }
 
 @Composable
-private fun AmountSection(amount: String, onAmountChange: (String) -> Unit) {
+private fun AmountSection(
+    amount: String,
+    totalDue: Long?,
+    onAmountChange: (String) -> Unit
+) {
     var textValue by remember(amount) { mutableStateOf(amount) }
     val density = LocalDensity.current
     val textMeasurer = rememberTextMeasurer()
@@ -269,32 +372,19 @@ private fun AmountSection(amount: String, onAmountChange: (String) -> Unit) {
                 VisualTransformation { text ->
                     val original = text.text.ifEmpty { "0" }
                     val transformed = buildAnnotatedString {
-                        withStyle(
-                            SpanStyle(
-                                fontSize = prefixFontSizeSp.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = Color.Gray.copy(alpha = 0.7f)
-                            )
-                        ) {
+                        withStyle(SpanStyle(fontSize = prefixFontSizeSp.sp, fontWeight = FontWeight.Medium, color = Color.Gray.copy(alpha = 0.7f))) {
                             append(prefixText)
                         }
-                        withStyle(
-                            SpanStyle(
-                                fontSize = digitFontSizeSp.sp,
-                                fontWeight = FontWeight.Normal
-                            )
-                        ) {
+                        withStyle(SpanStyle(fontSize = digitFontSizeSp.sp, fontWeight = FontWeight.Normal)) {
                             append(original)
                         }
                     }
                     val prefixLen = prefixText.length
-
                     val offsetMapping = object : OffsetMapping {
                         override fun originalToTransformed(offset: Int): Int = offset + prefixLen
                         override fun transformedToOriginal(offset: Int): Int =
                             (offset - prefixLen).coerceIn(0, text.text.length)
                     }
-
                     TransformedText(transformed, offsetMapping)
                 }
             }
@@ -323,31 +413,31 @@ private fun AmountSection(amount: String, onAmountChange: (String) -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Surface(
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-            contentColor = MaterialTheme.colorScheme.primary
-        ) {
-            Text(
-                text = "Total due: NPR 4,500",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
-            )
+        if (totalDue != null) {
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                contentColor = MaterialTheme.colorScheme.primary
+            ) {
+                Text(
+                    text = "Monthly rent: NPR $totalDue",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                )
+            }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PaymentDetailsSection(
     state: AddPaymentState,
-    onAction: (AddPaymentAction) -> Unit
+    onPropertyRowClick: () -> Unit,
+    onTenantRowClick: () -> Unit,
+    onDateRowClick: () -> Unit
 ) {
     val propertyItems = (state.propertiesState as? UiState.Success)?.data ?: persistentListOf()
     val tenantItems = (state.tenantsState as? UiState.Success)?.data ?: persistentListOf()
-    
-    var showPropertySheet by remember { mutableStateOf(false) }
-    var showTenantSheet by remember { mutableStateOf(false) }
 
     FormCard {
         FormRow(
@@ -355,125 +445,25 @@ private fun PaymentDetailsSection(
             value = propertyItems.find { it.id == state.selectedPropertyId }?.name ?: "",
             placeholder = stringResource(Res.string.payment_property_placeholder),
             leadingIcon = { Icon(Icons.Default.Domain, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f)) },
-            onClick = { showPropertySheet = true }
+            onClick = onPropertyRowClick
         )
-        
+
         FormRow(
             label = stringResource(Res.string.payment_tenant_label),
             value = tenantItems.find { it.id == state.selectedTenantId }?.name ?: "",
             placeholder = stringResource(Res.string.payment_tenant_placeholder),
             leadingIcon = { Icon(Icons.Default.PersonOutline, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f)) },
-            onClick = { showTenantSheet = true }
+            onClick = onTenantRowClick
         )
-        
+
         FormRow(
             label = stringResource(Res.string.payment_date_label),
             value = state.paymentDate,
             placeholder = stringResource(Res.string.payment_date_placeholder),
             leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f)) },
             showDivider = false,
-            onClick = { /* Date Picker */ }
+            onClick = onDateRowClick
         )
-    }
-
-    if (showPropertySheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showPropertySheet = false },
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .padding(bottom = 32.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    text = stringResource(Res.string.payment_property_label),
-                    style = MaterialTheme.typography.headlineMedium
-                )
-                HorizontalDivider(
-                    modifier = Modifier.padding(bottom = 4.dp),
-                    thickness = 0.5.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
-                )
-                propertyItems.forEach { property ->
-                    val isSelected = state.selectedPropertyId == property.id
-                    Surface(
-                        onClick = {
-                            onAction(AddPaymentAction.OnPropertySelected(property.id))
-                            showPropertySheet = false
-                        },
-                        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else Color.Transparent,
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth().height(56.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = property.name,
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                                ),
-                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if (showTenantSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showTenantSheet = false },
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .padding(bottom = 32.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    text = stringResource(Res.string.payment_tenant_label),
-                    style = MaterialTheme.typography.headlineMedium
-                )
-                HorizontalDivider(
-                    modifier = Modifier.padding(bottom = 4.dp),
-                    thickness = 0.5.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
-                )
-                tenantItems.forEach { tenant ->
-                    val isSelected = state.selectedTenantId == tenant.id
-                    Surface(
-                        onClick = {
-                            onAction(AddPaymentAction.OnTenantSelected(tenant.id))
-                            showTenantSheet = false
-                        },
-                        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else Color.Transparent,
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth().height(56.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = tenant.name,
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                                ),
-                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -484,6 +474,22 @@ private fun PaymentMethodSection(
     onMethodSelected: (PaymentMethod) -> Unit
 ) {
     var showSheet by remember { mutableStateOf(false) }
+
+    if (showSheet) {
+        AppSelectionBottomSheet(
+            title = "Payment Method",
+            items = PaymentMethod.entries.map { method ->
+                AppSelectionItem(
+                    id = method,
+                    title = method.name.replace("_", " ").lowercase()
+                        .replaceFirstChar { it.uppercase() }
+                )
+            },
+            selectedId = selectedMethod,
+            onItemSelected = { onMethodSelected(it) },
+            onDismiss = { showSheet = false }
+        )
+    }
 
     FormCard {
         Row(
@@ -500,7 +506,7 @@ private fun PaymentMethodSection(
                 PaymentMethod.KHALTI -> Icons.Filled.Payments
                 null -> Icons.Filled.Payments
             }
-            
+
             Surface(
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
@@ -513,16 +519,13 @@ private fun PaymentMethodSection(
                     modifier = Modifier.padding(8.dp)
                 )
             }
-            
+
             Spacer(modifier = Modifier.width(16.dp))
-            
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = stringResource(Res.string.payment_method).uppercase(),
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        letterSpacing = 0.5.sp
-                    ),
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold, letterSpacing = 0.5.sp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f)
                 )
                 Text(
@@ -531,73 +534,12 @@ private fun PaymentMethodSection(
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
-            
+
             Text(
                 text = "Change",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
-        }
-    }
-
-    if (showSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .padding(bottom = 32.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    text = "Select method",
-                    style = MaterialTheme.typography.headlineMedium
-                )
-                HorizontalDivider(
-                    modifier = Modifier.padding(bottom = 4.dp),
-                    thickness = 0.5.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
-                )
-                PaymentMethod.entries.forEach { method ->
-                    val isSelected = selectedMethod == method
-                    Surface(
-                        onClick = {
-                            onMethodSelected(method)
-                            showSheet = false
-                        },
-                        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else Color.Transparent,
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth().height(56.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = when (method) {
-                                    PaymentMethod.CASH -> Icons.Filled.Money
-                                    PaymentMethod.BANK_TRANSFER -> Icons.Filled.AccountBalance
-                                    PaymentMethod.ESEWA -> Icons.Filled.Wallet
-                                    PaymentMethod.KHALTI -> Icons.Filled.Payments
-                                },
-                                contentDescription = null,
-                                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Text(
-                                text = stringResource(method.labelRes),
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                                ),
-                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
-                }
-            }
         }
     }
 }
@@ -612,10 +554,7 @@ private fun RemarksSection(
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
             Text(
                 text = stringResource(Res.string.payment_remarks_label).uppercase(),
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    letterSpacing = 0.5.sp
-                ),
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold, letterSpacing = 0.5.sp),
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f)
             )
             BasicTextField(
@@ -641,6 +580,7 @@ private fun RemarksSection(
 @Composable
 private fun AddPaymentBottomBar(
     enabled: Boolean,
+    isSaving: Boolean,
     isAgreed: Boolean,
     onAgreementToggled: (Boolean) -> Unit,
     onClick: () -> Unit
@@ -678,7 +618,7 @@ private fun AddPaymentBottomBar(
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                 )
             }
-            
+
             Button(
                 onClick = onClick,
                 modifier = Modifier
@@ -693,10 +633,18 @@ private fun AddPaymentBottomBar(
                     disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                 )
             ) {
-                Text(
-                    text = stringResource(Res.string.payment_record_button),
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                )
+                if (isSaving) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = stringResource(Res.string.payment_record_button),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    )
+                }
             }
         }
     }

@@ -4,6 +4,7 @@
     <string name="app_name">Kotha</string>
     <string name="cancel">Cancel</string>
     <string name="retry">Retry</string>
+    <string name="dismiss">Dismiss</string>
     <string name="continue_action">Continue</string>
     <string name="tab_home">Home</string>
     <string name="tab_properties">Properties</string>

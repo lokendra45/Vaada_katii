@@ -146,7 +146,7 @@ fun PropertyListScreen(
             onDismissRequest = { showBottomSheet = false },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
-            dragHandle = null,
+            dragHandle = { BottomSheetDefaults.DragHandle() },
             contentWindowInsets = { WindowInsets.ime }
         ) {
             com.gaatho.rent.features.property.presentation.add.components.AddPropertyBottomSheet(

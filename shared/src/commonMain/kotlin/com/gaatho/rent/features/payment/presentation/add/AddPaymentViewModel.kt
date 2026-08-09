@@ -8,6 +8,7 @@ import com.gaatho.rent.features.payment.domain.model.Payment
 import com.gaatho.rent.features.payment.domain.repository.PaymentRepository
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
 import com.gaatho.rent.features.tenant.data.repository.TenantRepository
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.collectLatest
@@ -33,28 +34,39 @@ class AddPaymentViewModel(
 
         sessionManager.currentUser.filterNotNull().collectLatest { user ->
             val ownerId = user.id
-            
+
             val tenantsFlow = tenantRepository.getTenants(ownerId)
             val propertiesFlow = propertyRepository.getProperties(ownerId)
-            
+
             combine(tenantsFlow, propertiesFlow) { tenants, properties ->
-                val tenantModels = tenants.filter { it.status == "Active" }.map { 
-                    TenantSelectionModel(it.id, it.name) 
+                val tenantModels = tenants.filter { it.status == "Active" }.map { t ->
+                    TenantSelectionModel(
+                        id = t.id,
+                        name = t.name,
+                        propertyId = t.propertyId,
+                        rentAmount = t.rentAmount,
+                        roomNumber = t.roomNumber
+                    )
                 }.toImmutableList()
-                
-                val propertyModels = properties.map { 
-                    PropertySelectionModel(it.id, it.name) 
+
+                val propertyModels = properties.map { p ->
+                    PropertySelectionModel(p.id, p.name)
                 }.toImmutableList()
-                
+
                 tenantModels to propertyModels
             }.collectLatest { (tenantModels, propertyModels) ->
-                reduce { 
+                reduce {
+                    val filteredTenants = filterTenants(tenantModels, state.selectedPropertyId)
                     state.copy(
-                        tenantsState = UiState.Success(tenantModels),
+                        allTenants = tenantModels,
+                        tenantsState = UiState.Success(filteredTenants),
                         propertiesState = UiState.Success(propertyModels),
-                        // Auto-select if only 1 item
-                        selectedTenantId = state.selectedTenantId ?: if (tenantModels.size == 1) tenantModels.first().id else null,
-                        selectedPropertyId = state.selectedPropertyId ?: if (propertyModels.size == 1) propertyModels.first().id else null
+                        // Auto-select if only 1 property
+                        selectedPropertyId = state.selectedPropertyId
+                            ?: if (propertyModels.size == 1) propertyModels.first().id else null,
+                        // Auto-select if only 1 active tenant
+                        selectedTenantId = state.selectedTenantId
+                            ?: if (tenantModels.size == 1) tenantModels.first().id else null
                     )
                 }
             }
@@ -64,37 +76,71 @@ class AddPaymentViewModel(
     override fun onAction(action: AddPaymentAction) {
         when (action) {
             is AddPaymentAction.OnAmountChanged -> intent {
-                // simple numeric validation if needed
                 reduce { state.copy(amount = action.amount) }
             }
-            is AddPaymentAction.OnTenantSelected -> intent {
-                reduce { state.copy(selectedTenantId = action.id) }
-            }
+
             is AddPaymentAction.OnPropertySelected -> intent {
-                reduce { state.copy(selectedPropertyId = action.id) }
+                val filtered = filterTenants(state.allTenants, action.id)
+                reduce {
+                    state.copy(
+                        selectedPropertyId = action.id,
+                        // Reset tenant if their property doesn't match new selection
+                        selectedTenantId = if (state.allTenants.find { it.id == state.selectedTenantId }?.propertyId == action.id)
+                            state.selectedTenantId else null,
+                        tenantsState = UiState.Success(filtered)
+                    )
+                }
             }
+
+            is AddPaymentAction.OnTenantSelected -> intent {
+                val tenant = state.allTenants.find { it.id == action.id }
+                reduce {
+                    state.copy(
+                        selectedTenantId = action.id,
+                        // Auto-select property from tenant's assignment if not already set
+                        selectedPropertyId = state.selectedPropertyId ?: tenant?.propertyId,
+                        // Auto-fill amount only if user hasn't typed one yet
+                        amount = if (state.amount.isBlank() || state.amount == "0")
+                            (tenant?.rentAmount ?: 0L).toString()
+                        else state.amount
+                    )
+                }
+            }
+
             is AddPaymentAction.OnPaymentDateChanged -> intent {
-                reduce { state.copy(paymentDate = action.date) }
+                reduce { state.copy(paymentDate = action.date, showDatePicker = false) }
             }
+
+            is AddPaymentAction.OnDateFieldClicked -> intent {
+                reduce { state.copy(showDatePicker = true) }
+            }
+
+            is AddPaymentAction.OnDatePickerDismissed -> intent {
+                reduce { state.copy(showDatePicker = false) }
+            }
+
             is AddPaymentAction.OnPaymentMethodSelected -> intent {
                 reduce { state.copy(selectedPaymentMethod = action.method) }
             }
+
             is AddPaymentAction.OnRemarksChanged -> intent {
                 reduce { state.copy(remarks = action.remarks) }
             }
+
             is AddPaymentAction.OnAgreementToggled -> intent {
                 reduce { state.copy(isReceiptAgreed = action.agreed) }
             }
+
             is AddPaymentAction.OnRecordPaymentClicked -> intent {
                 if (!state.canSubmit) {
-                    postSideEffect(AddPaymentEffect.ShowToast("Please fill all required fields"))
+                    postSideEffect(AddPaymentEffect.ShowSnackbar("Please fill all required fields", isError = true))
                     return@intent
                 }
                 reduce { state.copy(isSaving = true) }
-                
+
                 val amountLong = state.amount.toLongOrNull() ?: 0L
                 val ownerId = sessionManager.currentUserId() ?: return@intent
-                
+
                 val payment = Payment(
                     id = UuidUtil.generateV7String(),
                     ownerId = ownerId,
@@ -104,26 +150,35 @@ class AddPaymentViewModel(
                     date = state.paymentDate,
                     status = "Paid",
                     paymentMethod = state.selectedPaymentMethod?.name,
-                    notes = state.remarks,
+                    notes = state.remarks.ifBlank { null },
                     createdAt = DateTimeUtil.nowIsoString(),
                     updatedAt = DateTimeUtil.nowIsoString()
                 )
 
                 val result = paymentRepository.createPayment(payment)
-                
+
                 reduce { state.copy(isSaving = false) }
-                
+
                 if (result is com.skydoves.sandwich.ApiResponse.Success) {
                     reduce { state.copy(isSuccess = true) }
-                    postSideEffect(AddPaymentEffect.ShowToast("Payment recorded successfully"))
+                    postSideEffect(AddPaymentEffect.ShowSnackbar("Payment recorded successfully!"))
                     postSideEffect(AddPaymentEffect.NavigateBack)
                 } else {
-                    postSideEffect(AddPaymentEffect.ShowToast("Failed to record payment"))
+                    postSideEffect(AddPaymentEffect.ShowSnackbar("Failed to record payment. Please try again.", isError = true))
                 }
             }
+
             is AddPaymentAction.OnBackClicked -> intent {
                 postSideEffect(AddPaymentEffect.NavigateBack)
             }
         }
+    }
+
+    private fun filterTenants(
+        all: ImmutableList<TenantSelectionModel>,
+        propertyId: String?
+    ): ImmutableList<TenantSelectionModel> {
+        return if (propertyId == null) all
+        else all.filter { it.propertyId == propertyId }.toImmutableList()
     }
 }

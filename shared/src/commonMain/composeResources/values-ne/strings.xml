@@ -4,6 +4,7 @@
     <string name="app_name">कोठा</string>
     <string name="cancel">रद्द गर्नुहोस्</string>
     <string name="retry">पुनः प्रयास गर्नुहोस्</string>
+    <string name="dismiss">हटाउनुहोस्</string>
     <string name="continue_action">जारी राख्नुहोस्</string>
     <string name="tab_home">गृह</string>
     <string name="tab_properties">सम्पत्ति</string>

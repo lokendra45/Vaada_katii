@@ -230,7 +230,7 @@ fun TenantsListContent(
             onDismissRequest = { showBottomSheet = false },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
-            dragHandle = null,
+            dragHandle = { BottomSheetDefaults.DragHandle() },
             contentWindowInsets = { WindowInsets.ime }
         ) {
             com.gaatho.rent.features.tenant.presentation.list.components.AddTenantBottomSheet(

@@ -1,6 +1,6 @@
 package com.gaatho.rent.core.utils
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
@@ -53,8 +53,9 @@ object DateTimeUtil {
             "Jan", "Feb", "Mar", "Apr", "May", "Jun",
             "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
         )
-        val month = monthNames.getOrNull(date.monthNumber - 1) ?: date.monthNumber.toString()
-        val day = date.dayOfMonth.toString().padStart(2, '0')
+        val monthIdx = date.month.ordinal + 1
+        val month = monthNames.getOrNull(monthIdx - 1) ?: monthIdx.toString()
+        val day = date.day.toString().padStart(2, '0')
         return "$day $month ${date.year}"
     }
 
