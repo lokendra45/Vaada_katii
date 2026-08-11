@@ -4,6 +4,7 @@ import com.gaatho.rent.core.mvi.MviViewModel
 import kotlinx.coroutines.delay
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 import kotlin.time.Duration.Companion.milliseconds
+import androidx.compose.ui.text.input.TextFieldValue
 
 import com.gaatho.rent.features.tenant.data.repository.TenantRepository
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
@@ -47,12 +48,12 @@ class EditTenantViewModel(
                 reduce {
                     state.copy(
                         isLoading = false,
-                        name = tenant.name,
-                        phone = tenant.phone ?: "",
-                        email = tenant.email ?: "",
-                        rentAmount = tenant.rentAmount.toString(),
+                        name = TextFieldValue(tenant.name),
+                        phone = TextFieldValue(tenant.phone ?: ""),
+                        email = TextFieldValue(tenant.email ?: ""),
+                        rentAmount = TextFieldValue(tenant.rentAmount.toString()),
                         propertyId = tenant.propertyId ?: "",
-                        roomNumber = tenant.roomNumber ?: "",
+                        roomNumber = TextFieldValue(tenant.roomNumber ?: ""),
                         status = tenant.status,
                         propertyOptions = propertyOptions
                     )
@@ -66,20 +67,20 @@ class EditTenantViewModel(
     override fun onAction(action: EditTenantAction) {
         when (action) {
             is EditTenantAction.OnNameChanged -> intent {
-                reduce { state.copy(name = action.name, nameError = null) }
+                reduce { state.copy(name = action.value, nameError = null) }
             }
             is EditTenantAction.OnPhoneChanged -> intent {
-                reduce { state.copy(phone = action.phone) }
+                reduce { state.copy(phone = action.value) }
             }
             is EditTenantAction.OnEmailChanged -> intent {
-                reduce { state.copy(email = action.email) }
+                reduce { state.copy(email = action.value) }
             }
             is EditTenantAction.OnRentChanged -> intent {
-                val digits = action.rent.filter { it.isDigit() }
-                reduce { state.copy(rentAmount = digits, rentError = null) }
+                val digits = action.value.text.filter { it.isDigit() }
+                reduce { state.copy(rentAmount = action.value.copy(text = digits), rentError = null) }
             }
             is EditTenantAction.OnRoomNumberChanged -> intent {
-                reduce { state.copy(roomNumber = action.roomNumber) }
+                reduce { state.copy(roomNumber = action.value) }
             }
             is EditTenantAction.OnPropertySelected -> intent {
                 reduce { state.copy(propertyId = action.propertyId) }
@@ -88,6 +89,10 @@ class EditTenantViewModel(
                 reduce { state.copy(status = action.status) }
             }
             is EditTenantAction.OnSaveClicked -> saveTenant()
+            is EditTenantAction.OnSuccessDialogDismissed -> intent {
+                reduce { state.copy(showSuccessDialog = false) }
+                postSideEffect(EditTenantSideEffect.NavigateBack)
+            }
             is EditTenantAction.OnBackClicked -> intent {
                 postSideEffect(EditTenantSideEffect.NavigateBack)
             }
@@ -100,11 +105,11 @@ class EditTenantViewModel(
         var nameErr: String? = null
         var rentErr: String? = null
         
-        if (currentState.name.isBlank()) {
+        if (currentState.name.text.isBlank()) {
             nameErr = "Name cannot be empty"
             hasError = true
         }
-        if (currentState.rentAmount.isBlank()) {
+        if (currentState.rentAmount.text.isBlank()) {
             rentErr = "Rent cannot be empty"
             hasError = true
         }
@@ -121,13 +126,13 @@ class EditTenantViewModel(
         val tenantToSave = Tenant(
             id = if (tenantId == "new") UuidUtil.generateV7String() else tenantId,
             ownerId = ownerId,
-            name = currentState.name,
-            email = currentState.email.takeIf { it.isNotBlank() },
-            phone = currentState.phone.takeIf { it.isNotBlank() },
+            name = currentState.name.text,
+            email = currentState.email.text.takeIf { it.isNotBlank() },
+            phone = currentState.phone.text.takeIf { it.isNotBlank() },
             propertyId = currentState.propertyId?.takeIf { it.isNotBlank() },
             propertyName = propertyName.takeIf { it.isNotBlank() },
-            roomNumber = currentState.roomNumber.takeIf { it.isNotBlank() },
-            rentAmount = currentState.rentAmount.toLongOrNull() ?: 0L,
+            roomNumber = currentState.roomNumber.text.takeIf { it.isNotBlank() },
+            rentAmount = currentState.rentAmount.text.toLongOrNull() ?: 0L,
             status = currentState.status,
             createdAt = DateTimeUtil.nowIsoString(),
             updatedAt = DateTimeUtil.nowIsoString()
@@ -143,8 +148,7 @@ class EditTenantViewModel(
         
         when (response) {
             is ApiResponse.Success -> {
-                postSideEffect(EditTenantSideEffect.ShowSnackbar("Tenant saved successfully"))
-                postSideEffect(EditTenantSideEffect.NavigateBack)
+                reduce { state.copy(showSuccessDialog = true) }
             }
             is ApiResponse.Failure.Error, is ApiResponse.Failure.Exception -> {
                 postSideEffect(EditTenantSideEffect.ShowSnackbar("Failed to save tenant"))

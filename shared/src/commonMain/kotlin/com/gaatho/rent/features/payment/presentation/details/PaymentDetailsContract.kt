@@ -7,7 +7,9 @@ import com.gaatho.rent.features.tenant.domain.model.Tenant
 
 data class PaymentDetailsState(
     val paymentState: UiState<PaymentDetailsData> = UiState.Loading,
-    val showShareDialog: Boolean = false
+    val showShareDialog: Boolean = false,
+    val showDeleteConfirm: Boolean = false,
+    val isDeleting: Boolean = false
 )
 
 data class PaymentDetailsData(
@@ -27,4 +29,7 @@ sealed interface PaymentDetailsAction {
     data object OnDownloadReceipt : PaymentDetailsAction
     data object OnShareDetails : PaymentDetailsAction
     data object OnRetry : PaymentDetailsAction
+    data object OnDeleteClicked : PaymentDetailsAction
+    data object OnDeleteDismissed : PaymentDetailsAction
+    data object OnDeleteConfirmed : PaymentDetailsAction
 }

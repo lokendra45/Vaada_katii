@@ -118,6 +118,10 @@ data class EditTenantRoute(val tenantId: String) : Route
 @Serializable
 data object AddPaymentRoute : Route
 
+/** List of all payments. */
+@Serializable
+data object PaymentListRoute : Route
+
 /** Detail view for a single payment. */
 @Serializable
 data class PaymentDetailRoute(val paymentId: String) : Route

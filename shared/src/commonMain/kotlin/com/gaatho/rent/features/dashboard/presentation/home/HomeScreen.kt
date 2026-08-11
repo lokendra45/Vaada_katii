@@ -23,6 +23,9 @@ import androidx.compose.material.icons.outlined.Money
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -122,16 +125,20 @@ fun HomeContent(
             ),
             verticalArrangement = Arrangement.spacedBy(Spacing.SectionGap)
         ) {
-            item { 
+            item {
+                // Local search state — never routed through Orbit to avoid recompositions
+                var searchQuery by remember { mutableStateOf("") }
                 com.gaatho.rent.core.ui.components.AppSearchBar(
-                    query = state.searchQuery,
-                    onQueryChange = { onAction(HomeAction.OnSearchQueryChanged(it)) },
+                    query = searchQuery,
+                    onQueryChange = { searchQuery = it },
                     placeholderText = "Search tenants, properties",
                     modifier = Modifier.fillMaxWidth()
                 )
             }
 
-            if (state.propertiesCount == 0) {
+            if (state.isLoading) {
+                item { HomeSkeletonLoadingState() }
+            } else if (state.propertiesCount == 0) {
                 // Empty State Layout
                 item { EmptyStateSection(onAction) }
                 item { QuickActionsSection(onAction, isDisabled = true) }
@@ -555,5 +562,69 @@ fun HomeScreenEmptyPreview() {
             ),
             onAction = {}
         )
+    }
+}
+
+@Composable
+private fun HomeSkeletonLoadingState() {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(com.gaatho.rent.core.designsystem.Spacing.SectionGap)
+    ) {
+        // Quick Actions Shimmer
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            repeat(4) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    com.gaatho.rent.core.ui.components.AppShimmerBox(
+                        modifier = Modifier.size(56.dp).clip(CircleShape)
+                    )
+                    com.gaatho.rent.core.ui.components.AppShimmerBox(
+                        modifier = Modifier.width(60.dp).height(12.dp).clip(RoundedCornerShape(4.dp))
+                    )
+                }
+            }
+        }
+        
+        // Dashboard Card Shimmer
+        com.gaatho.rent.core.ui.components.AppShimmerBox(
+            modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(24.dp))
+        )
+        
+        // Recent Payments Shimmer
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            com.gaatho.rent.core.ui.components.AppShimmerBox(
+                modifier = Modifier.width(120.dp).height(20.dp).clip(RoundedCornerShape(4.dp))
+            )
+            repeat(3) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    com.gaatho.rent.core.ui.components.AppShimmerBox(
+                        modifier = Modifier.size(48.dp).clip(RoundedCornerShape(12.dp))
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        com.gaatho.rent.core.ui.components.AppShimmerBox(
+                            modifier = Modifier.width(100.dp).height(16.dp).clip(RoundedCornerShape(4.dp))
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        com.gaatho.rent.core.ui.components.AppShimmerBox(
+                            modifier = Modifier.width(140.dp).height(12.dp).clip(RoundedCornerShape(4.dp))
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    com.gaatho.rent.core.ui.components.AppShimmerBox(
+                        modifier = Modifier.width(60.dp).height(20.dp).clip(RoundedCornerShape(4.dp))
+                    )
+                }
+            }
+        }
     }
 }

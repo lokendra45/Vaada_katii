@@ -4,6 +4,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
 data class HomeState(
+    val isLoading: Boolean = true,
     val userName: String = "",
     val greeting: String = "",
     val collectedRent: Long = 0L,
@@ -11,7 +12,6 @@ data class HomeState(
     val outstandingRent: Long = 0L,
     val propertiesCount: Int = 0,
     val tenantsCount: Int = 0,
-    val searchQuery: String = "",
     val overdueTenantsCount: Int = 0,
     val recentPayments: ImmutableList<RecentPaymentItem> = persistentListOf()
 )
@@ -32,7 +32,6 @@ sealed interface HomeAction {
     data object OnExpenseClicked : HomeAction
     data object OnSeeAllPaymentsClicked : HomeAction
     data class OnRecentPaymentClicked(val tenantId: String) : HomeAction
-    data class OnSearchQueryChanged(val query: String) : HomeAction
 }
 
 sealed interface HomeSideEffect {

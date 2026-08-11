@@ -42,5 +42,14 @@ interface PaymentDao {
 
     @Query("DELETE FROM payment WHERE id = :id")
     suspend fun deletePayment(id: String)
+
+    @Query("SELECT * FROM payment WHERE sync_status = 'PENDING'")
+    suspend fun getPendingPayments(): List<PaymentEntity>
+
+    @Query("UPDATE payment SET sync_status = 'SYNCED', last_sync_error = NULL WHERE id IN (:ids)")
+    suspend fun markPaymentsAsSynced(ids: List<String>)
+
+    @Query("UPDATE payment SET last_sync_error = :error WHERE id IN (:ids)")
+    suspend fun markPaymentsSyncFailed(ids: List<String>, error: String)
 }
 

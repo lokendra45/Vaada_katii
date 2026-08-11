@@ -1,15 +1,20 @@
 package com.gaatho.rent.features.tenant.presentation.edit
 
+import androidx.compose.ui.text.input.TextFieldValue
+import kotlinx.serialization.Transient
+
 data class EditTenantState(
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
-    val name: String = "",
+    val showSuccessDialog: Boolean = false,
+    
+    @Transient val name: TextFieldValue = TextFieldValue(),
     val nameError: String? = null,
-    val phone: String = "",
-    val email: String = "",
-    val rentAmount: String = "",
+    @Transient val phone: TextFieldValue = TextFieldValue(),
+    @Transient val email: TextFieldValue = TextFieldValue(),
+    @Transient val rentAmount: TextFieldValue = TextFieldValue(),
     val rentError: String? = null,
-    val roomNumber: String = "",
+    @Transient val roomNumber: TextFieldValue = TextFieldValue(),
     val status: String = "Active",
     val propertyId: String? = null,
     val propertyOptions: List<PropertyOption> = emptyList()

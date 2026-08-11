@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Message
 import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -56,6 +57,7 @@ fun TenantDetailsScreen(
                 is TenantDetailsEffect.OpenPhoneApp          -> {}
                 is TenantDetailsEffect.NavigateToTransactions -> {}
                 is TenantDetailsEffect.ShowToast             -> {}
+                is TenantDetailsEffect.ShowError             -> {}
             }
         }
     }
@@ -75,7 +77,14 @@ private fun TenantDetailsContent(
             com.gaatho.rent.core.ui.components.AppTopBar(
                 title = stringResource(Res.string.app_name_dashboard),
                 onBackClick = { onAction(TenantDetailsAction.OnBackClicked) },
-                actions = {
+            actions = {
+                    IconButton(onClick = { onAction(TenantDetailsAction.OnDeleteClicked) }) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
                     TextButton(onClick = { onAction(TenantDetailsAction.OnEditClicked) }) {
                         Text(
                             text = "Edit",
@@ -100,10 +109,10 @@ private fun TenantDetailsContent(
             Spacer(Modifier.height(8.dp))
             when (val s = state.profileState) {
                 is UiState.Success -> ProfileHeaderSection(s.data, onAction)
-                is UiState.Loading -> Box(
-                    Modifier.fillMaxWidth().height(200.dp),
-                    contentAlignment = Alignment.Center
-                ) { CircularProgressIndicator() }
+                is UiState.Loading -> {
+                    TenantDetailsSkeleton()
+                    return@Scaffold // Hide the rest while loading
+                }
                 else -> {}
             }
 
@@ -126,6 +135,20 @@ private fun TenantDetailsContent(
             }
 
             Spacer(Modifier.height(64.dp))
+        }
+
+        if (state.showDeleteConfirm) {
+            com.gaatho.rent.core.ui.components.AppDialog(
+                variant = com.gaatho.rent.core.ui.components.AppDialog.Variant.Destructive,
+                layout = com.gaatho.rent.core.ui.components.AppDialog.Layout.Center,
+                icon = Icons.Default.Delete,
+                title = "Delete Tenant",
+                body = "Are you sure you want to delete this tenant? This action cannot be undone.",
+                confirmText = "Delete",
+                dismissText = "Cancel",
+                onConfirm = { onAction(TenantDetailsAction.OnDeleteConfirmed) },
+                onDismiss = { onAction(TenantDetailsAction.OnDeleteDismissed) }
+            )
         }
     }
 }
@@ -564,5 +587,51 @@ private fun PreviewLight() {
 private fun PreviewDark() {
     RentManagerTheme(darkTheme = true) {
         TenantDetailsContent(state = previewState(), onAction = {})
+    }
+}
+
+@Composable
+private fun TenantDetailsSkeleton() {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        com.gaatho.rent.core.ui.components.AppShimmerBox(
+            modifier = Modifier.size(100.dp).clip(androidx.compose.foundation.shape.CircleShape)
+        )
+        Spacer(Modifier.height(16.dp))
+        com.gaatho.rent.core.ui.components.AppShimmerBox(
+            modifier = Modifier.width(150.dp).height(24.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+        )
+        Spacer(Modifier.height(8.dp))
+        com.gaatho.rent.core.ui.components.AppShimmerBox(
+            modifier = Modifier.width(100.dp).height(16.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+        )
+        Spacer(Modifier.height(32.dp))
+        
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+        Spacer(Modifier.height(32.dp))
+        
+        repeat(3) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    com.gaatho.rent.core.ui.components.AppShimmerBox(
+                        modifier = Modifier.width(120.dp).height(20.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    com.gaatho.rent.core.ui.components.AppShimmerBox(
+                        modifier = Modifier.width(80.dp).height(16.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+                    )
+                }
+                com.gaatho.rent.core.ui.components.AppShimmerBox(
+                    modifier = Modifier.width(80.dp).height(24.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
+                )
+            }
+            Spacer(Modifier.height(16.dp))
+        }
     }
 }

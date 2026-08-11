@@ -21,7 +21,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import com.gaatho.rent.core.ui.animation.tabSlideTransition
+import com.gaatho.rent.core.ui.animation.iosPushTransition
+import com.gaatho.rent.core.ui.animation.iosPopTransition
 import androidx.savedstate.serialization.SavedStateConfiguration
 import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.features.auth.presentation.LoginScreen
@@ -35,9 +36,12 @@ import com.gaatho.rent.features.dashboard.presentation.MainDashboardScreen
 import com.gaatho.rent.features.payment.presentation.details.PaymentDetailsScreen
 import com.gaatho.rent.features.paywall.presentation.PaywallScreen
 import com.gaatho.rent.features.property.presentation.details.PropertyDetailsScreen
+import com.gaatho.rent.features.property.presentation.add.AddPropertyScreen
 import com.gaatho.rent.features.property.presentation.edit.EditPropertyScreen
+import com.gaatho.rent.features.tenant.presentation.add.AddTenantScreen
 import com.gaatho.rent.features.tenant.presentation.edit.EditTenantScreen
 import com.gaatho.rent.features.tenant.presentation.list.TenantsListScreen
+import com.gaatho.rent.features.payment.presentation.list.PaymentListScreen
 import org.koin.compose.koinInject
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -62,8 +66,8 @@ fun AppNavigation() {
         entryDecorators = listOf(
             rememberViewModelStoreNavEntryDecorator()
         ),
-        transitionSpec = { tabSlideTransition(direction = 1) },
-        popTransitionSpec = { tabSlideTransition(direction = -1) },
+        transitionSpec = { iosPushTransition() },
+        popTransitionSpec = { iosPopTransition() },
         entryProvider = entryProvider {
 
             entry<SplashRoute> {
@@ -94,6 +98,9 @@ fun AppNavigation() {
                     },
                     onNavigateToPaymentDetails = { paymentId ->
                         backStack.add(PaymentDetailRoute(paymentId))
+                    },
+                    onNavigateToPaymentList = {
+                        backStack.add(PaymentListRoute)
                     },
                     onNavigateToLogin = {
                         backStack.clear()
@@ -127,8 +134,9 @@ fun AppNavigation() {
             }
 
             entry<AddPropertyRoute> {
-                // Now handled as a bottom sheet inside PropertyListScreen
-                // No-op for navigation, but keeping route for type safety if needed.
+                AddPropertyScreen(
+                    onNavigateBack = { backStack.removeLastOrNull() }
+                )
             }
 
             entry<EditPropertyRoute> { route ->
@@ -182,8 +190,7 @@ fun AppNavigation() {
             }
 
             entry<AddTenantRoute> {
-                EditTenantScreen(
-                    tenantId = "new",
+                AddTenantScreen(
                     onNavigateBack = { backStack.removeLastOrNull() }
                 )
             }
@@ -205,6 +212,15 @@ fun AppNavigation() {
                 PaymentDetailsScreen(
                     paymentId = route.paymentId,
                     onNavigateBack = { backStack.removeLastOrNull() }
+                )
+            }
+            
+            entry<PaymentListRoute> {
+                PaymentListScreen(
+                    onNavigateBack = { backStack.removeLastOrNull() },
+                    onNavigateToPaymentDetails = { paymentId ->
+                        backStack.add(PaymentDetailRoute(paymentId))
+                    }
                 )
             }
         }

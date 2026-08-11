@@ -82,8 +82,8 @@ fun AppSearchBar(
     val elevation by animateDpAsState(
         targetValue = if (isActive) 6.dp else 0.dp,
         animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessMediumLow
+            dampingRatio = 0.85f,
+            stiffness = 300f
         ),
         label = "expressive_elevation"
     )
@@ -92,8 +92,8 @@ fun AppSearchBar(
     val horizontalMargin by animateDpAsState(
         targetValue = if (isActive) 2.dp else 16.dp,
         animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessMediumLow
+            dampingRatio = 0.85f,
+            stiffness = 300f
         ),
         label = "expressive_grow_wider"
     )

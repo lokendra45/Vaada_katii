@@ -25,6 +25,7 @@ import com.gaatho.rent.core.ui.components.AppDropdown
 import com.gaatho.rent.core.ui.components.AppTextField
 import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.koinInject
+import androidx.compose.ui.text.input.TextFieldValue
 import org.koin.core.parameter.parametersOf
 import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
@@ -51,7 +52,7 @@ fun EditPropertyScreen(
     Scaffold(
         topBar = {
             com.gaatho.rent.core.ui.components.AppTopBar(
-                title = "Edit Property",
+                title = if (propertyId == "new") "Add Property" else "Edit Property",
                 onBackClick = { viewModel.onAction(EditPropertyAction.OnBackClicked) }
             )
         },
@@ -124,7 +125,7 @@ private fun EditPropertyContent(
                 }
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Edit property details below",
+                    text = if (state.name.text.isEmpty()) "Enter property details below" else "Edit property details below",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -334,7 +335,7 @@ private fun EditPropertyContent(
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Text(
-                                    text = "Update Property",
+                                    text = "Save",
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onPrimary
                                 )
@@ -403,11 +404,11 @@ private fun EditPropertyFilledPreview() {
     RentManagerTheme {
         EditPropertyContent(
             state = EditPropertyState(
-                name = "Peaceful Villa",
-                streetAddress = "Koteshwor",
-                city = "Kathmandu",
+                name = TextFieldValue("Peaceful Villa"),
+                streetAddress = TextFieldValue("Koteshwor"),
+                city = TextFieldValue("Kathmandu"),
                 propertyType = "HOUSE",
-                totalUnits = "4",
+                totalUnits = TextFieldValue("4"),
                 isLoading = false
             ),
             onAction = {}
@@ -432,9 +433,9 @@ private fun EditPropertySavingPreview() {
     RentManagerTheme {
         EditPropertyContent(
             state = EditPropertyState(
-                name = "Peaceful Villa",
-                streetAddress = "Koteshwor",
-                city = "Kathmandu",
+                name = TextFieldValue("Peaceful Villa"),
+                streetAddress = TextFieldValue("Koteshwor"),
+                city = TextFieldValue("Kathmandu"),
                 propertyType = "HOUSE",
                 isLoading = false,
                 isSaving = true

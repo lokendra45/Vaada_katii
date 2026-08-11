@@ -56,5 +56,14 @@ interface TenantDao {
 
     @Query("DELETE FROM tenant WHERE id = :id")
     suspend fun deleteTenant(id: String)
+
+    @Query("SELECT * FROM tenant WHERE sync_status = 'PENDING'")
+    suspend fun getPendingTenants(): List<TenantEntity>
+
+    @Query("UPDATE tenant SET sync_status = 'SYNCED', last_sync_error = NULL WHERE id IN (:ids)")
+    suspend fun markTenantsAsSynced(ids: List<String>)
+
+    @Query("UPDATE tenant SET last_sync_error = :error WHERE id IN (:ids)")
+    suspend fun markTenantsSyncFailed(ids: List<String>, error: String)
 }
 

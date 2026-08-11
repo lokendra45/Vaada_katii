@@ -3,15 +3,10 @@ package com.gaatho.rent.features.tenant.presentation.list
 import androidx.lifecycle.SavedStateHandle
 import com.gaatho.rent.core.auth.UserIdentityProvider
 import com.gaatho.rent.core.mvi.MviViewModel
-import com.gaatho.rent.core.ui.ErrorMessageExtractor
 import com.gaatho.rent.core.ui.UiState
-import com.gaatho.rent.core.utils.DateTimeUtil
-import com.gaatho.rent.core.utils.UuidUtil
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
 import com.gaatho.rent.features.tenant.data.repository.TenantRepository
 import com.gaatho.rent.features.tenant.domain.model.Tenant
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.catch
 import org.orbitmvi.orbit.viewmodel.orbitContainer
@@ -19,9 +14,14 @@ import androidx.paging.PagingData
 import androidx.paging.map
 import androidx.paging.cachedIn
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import androidx.lifecycle.viewModelScope
 
@@ -32,13 +32,22 @@ class TenantsListViewModel(
     savedStateHandle: SavedStateHandle
 ) : MviViewModel<TenantsListState, TenantsListSideEffect, TenantsListAction>() {
 
-    /**
-     * After [SqlDelightGuestSessionManager] caches the value on first access,
-     * this property is a pure in-memory lookup — no DB hit, safe on any thread.
-     * The repository layer owns IO dispatching for all actual DB operations.
-     */
     private val ownerId: String
         get() = userIdentityProvider.currentUserId()
+
+    /**
+     * Search query lives in its own MutableStateFlow — NOT in Orbit state.
+     *
+     * NiA pattern: raw typing never triggers Orbit reduce(). The UI holds its own
+     * mutableStateOf for the text field and calls [onSearchQueryChanged] directly.
+     * A 300ms debounce prevents the Pager from restarting on every keystroke.
+     */
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    fun onSearchQueryChanged(query: String) {
+        _searchQuery.value = query
+    }
 
     override val container = orbitContainer<TenantsListState, TenantsListSideEffect>(
         initialState = TenantsListState(),
@@ -49,24 +58,32 @@ class TenantsListViewModel(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val pagedTenantsFlow: Flow<PagingData<TenantDisplayModel>> = container.stateFlow
-        .map { state ->
-            FilterParams(
-                search = state.searchQuery,
-                status = state.selectedStatus,
-                propertyName = state.selectedProperty,
-                properties = (state.propertiesState as? UiState.Success)?.data
-            )
-        }
-        .distinctUntilChanged()
-        .flatMapLatest { params ->
-            val statusFilter = if (params.status == "All statuses") "" else params.status
-            val propertyId = if (params.propertyName == "All properties") ""
-            else params.properties?.find { it.name == params.propertyName }?.id ?: ""
+    val pagedTenantsFlow: Flow<PagingData<TenantDisplayModel>> = combine(
+        // Debounce raw search — waits 300ms, never restarts Pager on every keystroke.
+        _searchQuery
+            .debounce(300L)
+            .distinctUntilChanged(),
+        // Filters (status, property) still live in Orbit state — intentional taps, not rapid typing.
+        container.stateFlow
+            .map { state ->
+                FilterParams(
+                    status = state.selectedStatus,
+                    propertyName = state.selectedProperty,
+                    properties = (state.propertiesState as? UiState.Success)?.data
+                )
+            }
+            .distinctUntilChanged()
+    ) { debouncedSearch, filters ->
+        Pair(debouncedSearch, filters)
+    }
+        .flatMapLatest { (search, filters) ->
+            val statusFilter = if (filters.status == "All statuses") "" else filters.status
+            val propertyId = if (filters.propertyName == "All properties") ""
+            else filters.properties?.find { it.name == filters.propertyName }?.id ?: ""
 
             tenantRepository.getPagedTenants(
                 ownerId = ownerId,
-                searchQuery = params.search,
+                searchQuery = search,
                 statusFilter = statusFilter,
                 propertyId = propertyId
             ).map { pagingData ->
@@ -76,7 +93,6 @@ class TenantsListViewModel(
         .cachedIn(viewModelScope)
 
     private data class FilterParams(
-        val search: String,
         val status: String,
         val propertyName: String,
         val properties: List<com.gaatho.rent.features.property.domain.model.Property>?
@@ -84,10 +100,6 @@ class TenantsListViewModel(
 
     override fun onAction(action: TenantsListAction) {
         when (action) {
-            is TenantsListAction.OnSearchQueryChanged -> intent {
-                reduce { state.copy(searchQuery = action.query) }
-            }
-
             is TenantsListAction.OnStatusFilterChanged -> intent {
                 reduce { state.copy(selectedStatus = action.status) }
             }
@@ -106,11 +118,8 @@ class TenantsListViewModel(
         }
     }
 
-
-
     private fun observeProperties() = intent(registerIdling = false) {
         propertyRepository.getProperties(ownerId)
-            // IO dispatching is handled by LocalPropertyRepository.flowOn(Dispatchers.IO)
             .catch { e ->
                 reduce { state.copy(propertiesState = UiState.Error("Failed to load properties")) }
             }
@@ -118,8 +127,6 @@ class TenantsListViewModel(
                 reduce { state.copy(propertiesState = UiState.Success(properties.toImmutableList())) }
             }
     }
-
-
 
     private fun mapToDisplayModel(tenant: Tenant): TenantDisplayModel {
         val isActive = tenant.status.equals("Active", ignoreCase = true)
@@ -145,6 +152,5 @@ class TenantsListViewModel(
             propertyName = tenant.propertyName, roomNumber = tenant.roomNumber,
             email = tenant.email, phone = tenant.phone
         )
-
     }
 }

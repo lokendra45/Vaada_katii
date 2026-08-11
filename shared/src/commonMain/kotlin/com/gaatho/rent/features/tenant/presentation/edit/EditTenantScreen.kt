@@ -24,6 +24,7 @@ import com.gaatho.rent.core.ui.components.AppTextField
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import org.koin.compose.koinInject
+import androidx.compose.ui.text.input.TextFieldValue
 import org.koin.core.parameter.parametersOf
 import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
@@ -102,7 +103,7 @@ private fun EditTenantContent(
                     .padding(vertical = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val initials = state.name
+                val initials = state.name.text
                     .takeIf { it.isNotBlank() }
                     ?.split(" ")
                     ?.mapNotNull { it.firstOrNull()?.toString() }
@@ -124,7 +125,7 @@ private fun EditTenantContent(
                 }
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Edit tenant details below",
+                    text = if (state.propertyOptions.isEmpty() && state.name.text.isBlank()) "Fill in the details below" else "Edit tenant details below",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -314,11 +315,11 @@ private fun EditTenantFilledPreview() {
     com.gaatho.rent.core.designsystem.RentManagerTheme {
         EditTenantContent(
             state = EditTenantState(
-                name = "Suman Shrestha",
-                phone = "+977-9841234567",
-                email = "suman@example.com",
-                rentAmount = "15000",
-                roomNumber = "2A",
+                name = TextFieldValue("Suman Shrestha"),
+                phone = TextFieldValue("+977-9841234567"),
+                email = TextFieldValue("suman@example.com"),
+                rentAmount = TextFieldValue("15000"),
+                roomNumber = TextFieldValue("2A"),
                 status = "Active",
                 isLoading = false
             ),
@@ -344,8 +345,8 @@ private fun EditTenantSavingPreview() {
     com.gaatho.rent.core.designsystem.RentManagerTheme {
         EditTenantContent(
             state = EditTenantState(
-                name = "Suman Shrestha",
-                rentAmount = "15000",
+                name = TextFieldValue("Suman Shrestha"),
+                rentAmount = TextFieldValue("15000"),
                 isLoading = false,
                 isSaving = true
             ),

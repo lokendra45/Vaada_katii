@@ -40,6 +40,10 @@ data class TenantEntity(
     @ColumnInfo(name = "created_at")
     val createdAt: String,
     @ColumnInfo(name = "updated_at")
-    val updatedAt: String
+    val updatedAt: String,
+    @ColumnInfo(name = "sync_status", defaultValue = "PENDING")
+    val syncStatus: String = "PENDING",
+    @ColumnInfo(name = "last_sync_error")
+    val lastSyncError: String? = null
 )
 

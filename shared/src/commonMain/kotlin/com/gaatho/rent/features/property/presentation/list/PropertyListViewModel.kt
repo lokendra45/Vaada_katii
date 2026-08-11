@@ -3,25 +3,21 @@ package com.gaatho.rent.features.property.presentation.list
 import androidx.lifecycle.SavedStateHandle
 import com.gaatho.rent.core.auth.UserIdentityProvider
 import com.gaatho.rent.core.mvi.MviViewModel
-import com.gaatho.rent.core.ui.ErrorMessageExtractor
-import com.gaatho.rent.core.ui.UiState
-import com.gaatho.rent.core.utils.DateTimeUtil
-import com.gaatho.rent.core.utils.UuidUtil
-import com.gaatho.rent.features.property.domain.model.Property
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.catch
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 import androidx.paging.PagingData
 import androidx.paging.map
 import androidx.paging.cachedIn
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import androidx.lifecycle.viewModelScope
 
@@ -36,34 +32,44 @@ class PropertyListViewModel(
     savedStateHandle: SavedStateHandle
 ) : MviViewModel<PropertyListState, PropertyListSideEffect, PropertyListAction>() {
 
-    /**
-     * After [SqlDelightGuestSessionManager] caches the value on first access,
-     * this property is a pure in-memory lookup — no DB hit, safe on any thread.
-     * The repository layer owns IO dispatching for all actual DB operations.
-     */
     private val ownerId: String
         get() = userIdentityProvider.currentUserId()
 
     /**
-     * Orbit container with full saved state support.
-     * The `onCreate` lambda starts [observeProperties]. Repository layer
-     * guarantees all DB work runs on Dispatchers.IO via flowOn/withContext.
+     * Search query lives in its own MutableStateFlow — NOT in Orbit state.
+     *
+     * This is the NiA / Google pattern: keeping the raw text field value
+     * separate prevents Orbit from triggering a full recomposition on every
+     * keystroke. The UI holds its own `var searchQuery` with mutableStateOf,
+     * and calls [onSearchQueryChanged] directly — no Action dispatch needed.
      */
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    fun onSearchQueryChanged(query: String) {
+        _searchQuery.value = query
+    }
+
     override val container = orbitContainer<PropertyListState, PropertyListSideEffect>(
         initialState = PropertyListState(),
         savedStateHandle = savedStateHandle,
         serializer = PropertyListState.serializer()
-    ) {
-    }
+    ) {}
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val pagedPropertiesFlow: Flow<PagingData<PropertyDisplayModel>> = combine(
+        // Debounce the raw search input — waits 300ms after last keystroke before querying DB.
+        // distinctUntilChanged ensures identical queries don't restart the Pager.
+        _searchQuery
+            .debounce(300L)
+            .distinctUntilChanged(),
+        // Filters (location) still come from Orbit state — these are intentional taps, not rapid typing.
         container.stateFlow
-            .map { state -> Pair(state.searchQuery, state.selectedLocation) }
+            .map { it.selectedLocation }
             .distinctUntilChanged(),
         tenantRepository.getTenants(ownerId)
-    ) { (search, location), tenants ->
-        Triple(search, location, tenants)
+    ) { debouncedSearch, location, tenants ->
+        Triple(debouncedSearch, location, tenants)
     }
         .flatMapLatest { (search, location, tenants) ->
             val locationFilter = if (location == "All properties") "" else location
@@ -104,24 +110,17 @@ class PropertyListViewModel(
         when (action) {
             is PropertyListAction.OnPropertyClicked -> handlePropertyClick(action.propertyId)
             is PropertyListAction.OnAddPropertyClicked -> handleAddPropertyClick()
-            is PropertyListAction.OnSearchQueryChanged -> handleSearchQueryChange(action.query)
             is PropertyListAction.OnLocationFilterSelected -> handleLocationFilterSelect(action.location)
             is PropertyListAction.OnQuickActionClicked -> handleQuickAction(action.message)
             is PropertyListAction.Retry -> handleRetry()
         }
     }
 
-    private fun handleSearchQueryChange(query: String) = intent {
-        reduce { state.copy(searchQuery = query) }
-    }
-
     private fun handleLocationFilterSelect(location: String) = intent {
         reduce { state.copy(selectedLocation = location) }
     }
 
-    private fun handleRetry() = intent {
-        // Handled by UI retry logic
-    }
+    private fun handleRetry() = intent { }
 
     private fun handlePropertyClick(propertyId: String) = intent {
         postSideEffect(PropertyListSideEffect.NavigateToDetails(propertyId))
@@ -131,12 +130,7 @@ class PropertyListViewModel(
         postSideEffect(PropertyListSideEffect.NavigateToAddProperty)
     }
 
-
-
     private fun handleQuickAction(message: String) = intent {
         postSideEffect(PropertyListSideEffect.ShowMessage(message))
     }
-
-
-
 }

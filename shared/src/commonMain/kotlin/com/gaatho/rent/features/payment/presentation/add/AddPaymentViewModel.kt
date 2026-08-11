@@ -140,7 +140,7 @@ class AddPaymentViewModel(
                 reduce { state.copy(isSaving = true) }
 
                 val amountLong = state.amount.text.toLongOrNull() ?: 0L
-                val ownerId = sessionManager.currentUserId() ?: return@intent
+                val ownerId = userIdentityProvider.currentUserId()
 
                 val payment = Payment(
                     id = UuidUtil.generateV7String(),

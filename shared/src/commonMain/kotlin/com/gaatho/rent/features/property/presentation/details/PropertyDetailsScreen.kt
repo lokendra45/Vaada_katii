@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -116,10 +117,7 @@ private fun PropertyDetailsContent(
         ) {
             when (val propState = state.propertyState) {
                 is UiState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().height(300.dp),
-                        contentAlignment = Alignment.Center
-                    ) { CircularProgressIndicator() }
+                    PropertyDetailsSkeleton()
                 }
 
                 is UiState.Error -> {
@@ -795,5 +793,49 @@ private fun PropertyDetailsDeletePreview() {
             ),
             onAction = {}
         )
+    }
+}
+
+@Composable
+private fun PropertyDetailsSkeleton() {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        Spacer(Modifier.height(8.dp))
+        
+        // Property Identity
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            com.gaatho.rent.core.ui.components.AppShimmerBox(
+                modifier = Modifier.size(64.dp).clip(CircleShape)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                com.gaatho.rent.core.ui.components.AppShimmerBox(modifier = Modifier.width(150.dp).height(24.dp).clip(RoundedCornerShape(4.dp)))
+                com.gaatho.rent.core.ui.components.AppShimmerBox(modifier = Modifier.width(200.dp).height(16.dp).clip(RoundedCornerShape(4.dp)))
+            }
+        }
+        
+        // Metrics
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            com.gaatho.rent.core.ui.components.AppShimmerBox(modifier = Modifier.weight(1f).height(100.dp).clip(RoundedCornerShape(16.dp)))
+            com.gaatho.rent.core.ui.components.AppShimmerBox(modifier = Modifier.weight(1f).height(100.dp).clip(RoundedCornerShape(16.dp)))
+        }
+        
+        // Tabs
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            repeat(2) {
+                com.gaatho.rent.core.ui.components.AppShimmerBox(modifier = Modifier.weight(1f).height(48.dp).clip(RoundedCornerShape(8.dp)))
+                Spacer(modifier = Modifier.width(12.dp))
+            }
+        }
+        
+        // Content area
+        repeat(3) {
+            com.gaatho.rent.core.ui.components.AppShimmerBox(modifier = Modifier.fillMaxWidth().height(80.dp).clip(RoundedCornerShape(12.dp)))
+        }
     }
 }

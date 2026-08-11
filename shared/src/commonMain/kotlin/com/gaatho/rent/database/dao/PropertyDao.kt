@@ -41,5 +41,14 @@ interface PropertyDao {
 
     @Query("DELETE FROM property WHERE id = :id")
     suspend fun deleteProperty(id: String)
+
+    @Query("SELECT * FROM property WHERE sync_status = 'PENDING'")
+    suspend fun getPendingProperties(): List<PropertyEntity>
+
+    @Query("UPDATE property SET sync_status = 'SYNCED', last_sync_error = NULL WHERE id IN (:ids)")
+    suspend fun markPropertiesAsSynced(ids: List<String>)
+
+    @Query("UPDATE property SET last_sync_error = :error WHERE id IN (:ids)")
+    suspend fun markPropertiesSyncFailed(ids: List<String>, error: String)
 }
 

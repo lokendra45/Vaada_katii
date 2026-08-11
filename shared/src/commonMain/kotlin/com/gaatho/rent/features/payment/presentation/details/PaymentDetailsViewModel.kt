@@ -12,13 +12,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import org.orbitmvi.orbit.viewmodel.orbitContainer
+import com.skydoves.sandwich.ApiResponse
 
 class PaymentDetailsViewModel(
     private val paymentId: String,
     private val paymentRepository: PaymentRepository,
     private val tenantRepository: TenantRepository,
     private val propertyRepository: PropertyRepository,
-    private val sessionManager: com.gaatho.rent.core.auth.SessionManager
+    private val userIdentityProvider: com.gaatho.rent.core.auth.UserIdentityProvider
 ) : MviViewModel<PaymentDetailsState, PaymentDetailsSideEffect, PaymentDetailsAction>() {
 
     override val container = orbitContainer<PaymentDetailsState, PaymentDetailsSideEffect>(PaymentDetailsState()) {
@@ -35,6 +36,32 @@ class PaymentDetailsViewModel(
             PaymentDetailsAction.OnShareDetails -> intent {
                 postSideEffect(PaymentDetailsSideEffect.ShowMessage("Sharing functionality coming soon!"))
             }
+            PaymentDetailsAction.OnDeleteClicked -> intent {
+                reduce { state.copy(showDeleteConfirm = true) }
+            }
+            PaymentDetailsAction.OnDeleteDismissed -> intent {
+                reduce { state.copy(showDeleteConfirm = false) }
+            }
+            PaymentDetailsAction.OnDeleteConfirmed -> handleDelete()
+        }
+    }
+
+    private fun handleDelete() = intent {
+        reduce { state.copy(isDeleting = true, showDeleteConfirm = false) }
+        when (val result = paymentRepository.deletePayment(paymentId)) {
+            is ApiResponse.Success -> postSideEffect(PaymentDetailsSideEffect.NavigateBack)
+            is ApiResponse.Failure.Error -> {
+                reduce { state.copy(isDeleting = false) }
+                postSideEffect(PaymentDetailsSideEffect.ShowError(
+                    ErrorMessageExtractor.extract(result, "Failed to delete payment")
+                ))
+            }
+            is ApiResponse.Failure.Exception -> {
+                reduce { state.copy(isDeleting = false) }
+                postSideEffect(PaymentDetailsSideEffect.ShowError(
+                    ErrorMessageExtractor.extract(result, "Failed to delete payment")
+                ))
+            }
         }
     }
 
@@ -42,11 +69,7 @@ class PaymentDetailsViewModel(
     private fun loadPaymentDetails() = intent {
         reduce { state.copy(paymentState = UiState.Loading) }
 
-        val ownerId = sessionManager.currentUser.value?.id
-        if (ownerId == null) {
-            reduce { state.copy(paymentState = UiState.Error("User not logged in.")) }
-            return@intent
-        }
+        val ownerId = userIdentityProvider.currentUserId()
 
         paymentRepository.getPaymentById(paymentId)
             .flatMapLatest { payment ->

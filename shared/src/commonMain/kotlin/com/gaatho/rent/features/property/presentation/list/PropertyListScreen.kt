@@ -51,9 +51,7 @@ import com.gaatho.rent.core.designsystem.ExtendedColorHex
 import com.gaatho.rent.core.ui.ErrorMessageExtractor
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.features.property.domain.model.Property
-import com.gaatho.rent.features.property.presentation.add.AddPropertyViewModel
-import com.gaatho.rent.features.property.presentation.add.AddPropertySideEffect
-import com.gaatho.rent.features.property.presentation.add.components.AddPropertyBottomSheet
+// Removed AddPropertyBottomSheet imports
 import com.gaatho.rent.core.utils.toImageBitmap
 import com.gaatho.rent.core.ui.components.AppDialog
 import com.gaatho.rent.features.property.presentation.list.PropertyListAction.*
@@ -70,7 +68,8 @@ import rentmanagerapp.shared.generated.resources.Res
 import rentmanagerapp.shared.generated.resources.*
 import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.StateFlow
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 /**
  * Entry point for the Property List feature.
@@ -88,16 +87,13 @@ fun PropertyListScreen(
     onNavigateToAddProperty: () -> Unit,
 ) {
     val viewModel: PropertyListViewModel = koinViewModel()
-    val addPropertyViewModel: AddPropertyViewModel = koinViewModel()
 
     val state by viewModel.collectAsState()
-    val addPropertyState by addPropertyViewModel.collectAsState()
+    // Collect the search query directly from the ViewModel's StateFlow.
+    // This is the NiA pattern: the search text never touches Orbit state.
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
-    var showSuccessDialog by remember { mutableStateOf(false) }
-    var showBottomSheet by remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     viewModel.collectSideEffect { sideEffect ->
         when (sideEffect) {
@@ -105,99 +101,41 @@ fun PropertyListScreen(
                 onNavigateToDetails(sideEffect.propertyId)
 
             is PropertyListSideEffect.NavigateToAddProperty ->
-                showBottomSheet = true
+                onNavigateToAddProperty()
 
             is PropertyListSideEffect.ShowError ->
                 snackbarHostState.showSnackbar(sideEffect.message)
-
             is PropertyListSideEffect.ShowMessage ->
                 snackbarHostState.showSnackbar(sideEffect.message)
         }
     }
-
-    addPropertyViewModel.collectSideEffect { sideEffect ->
-        when (sideEffect) {
-            is AddPropertySideEffect.NavigateBack ->
-                showBottomSheet = false
-            is AddPropertySideEffect.ShowSuccessDialog -> {
-                showBottomSheet = false
-                showSuccessDialog = true
-            }
-            is AddPropertySideEffect.ShowSnackbar ->
-                snackbarHostState.showSnackbar(sideEffect.message)
-        }
-    }
-
-    val imagePicker = io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher(
-        type = io.github.vinceglb.filekit.dialogs.FileKitType.Image,
-    ) { file ->
-        coroutineScope.launch {
-            val bytes = file?.readBytes()
-            addPropertyViewModel.onAction(com.gaatho.rent.features.property.presentation.add.AddPropertyAction.OnImagePicked(bytes))
-        }
-    }
-
     val pagedProperties = viewModel.pagedPropertiesFlow.collectAsLazyPagingItems()
 
     PropertyListContent(
         state = state,
+        searchQuery = searchQuery,
         pagedProperties = pagedProperties,
         snackbarHostState = snackbarHostState,
         onAction = viewModel::onAction,
-        onAddPropertyAction = addPropertyViewModel::onAction
+        onSearchQueryChanged = viewModel::onSearchQueryChanged,
+        onNavigateToAddProperty = onNavigateToAddProperty
     )
-
-    if (showBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showBottomSheet = false },
-            sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.surface,
-            dragHandle = { BottomSheetDefaults.DragHandle() },
-            contentWindowInsets = { WindowInsets.ime }
-        ) {
-            com.gaatho.rent.features.property.presentation.add.components.AddPropertyBottomSheet(
-                state = addPropertyState,
-                onAction = addPropertyViewModel::onAction,
-                onDismiss = { showBottomSheet = false },
-                onPickImage = { imagePicker.launch() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.92f)
-            )
-        }
-    }
-
-    if (showSuccessDialog) {
-        AppDialog(
-            icon = Icons.Default.CheckCircle,
-            variant = AppDialog.Variant.Success,
-            title = stringResource(Res.string.success),
-            body = stringResource(Res.string.property_created_success_body),
-            confirmText = stringResource(Res.string.continue_btn),
-            onConfirm = { showSuccessDialog = false },
-            onDismiss = { showSuccessDialog = false },
-            dismissText = null
-        )
-    }
 }
 
 /**
  * Stateless UI Content for the Property List.
  *
  * Fully hoisted state: no internal coroutine scopes or state ownership.
- * Implements the strict 6-level Visual Hierarchy & Workflow-First philosophy:
- * 1. Urgent actions
- * 2. Today's tasks & Quick actions
- * 3. Monthly summary
- * 4. Properties & rooms list
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PropertyListContent(
     state: PropertyListState,
+    searchQuery: String = "",
     pagedProperties: LazyPagingItems<PropertyDisplayModel>? = null,
     onAction: (PropertyListAction) -> Unit,
-    onAddPropertyAction: (com.gaatho.rent.features.property.presentation.add.AddPropertyAction) -> Unit,
+    onSearchQueryChanged: (String) -> Unit = {},
+    onNavigateToAddProperty: () -> Unit,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
     Scaffold(
@@ -230,7 +168,7 @@ fun PropertyListContent(
                     .align(Alignment.CenterHorizontally)
             ) {
                 if (pagedProperties == null) {
-                    com.gaatho.rent.core.ui.components.AppExpressiveLoadingIndicator(modifier = Modifier.align(Alignment.Center))
+                    PropertySkeletonLoadingState()
                     return@Box
                 }
 
@@ -239,14 +177,14 @@ fun PropertyListContent(
                 val isEmpty = pagedProperties.itemCount == 0
 
                 if (refreshState is LoadState.Loading) {
-                    com.gaatho.rent.core.ui.components.AppExpressiveLoadingIndicator(modifier = Modifier.align(Alignment.Center))
+                    PropertySkeletonLoadingState()
                 } else if (refreshState is LoadState.Error) {
                     ErrorState(
                         message = refreshState.error.message ?: "Failed to load",
                         onRetry = { pagedProperties.retry() },
                         modifier = Modifier.align(Alignment.Center)
                     )
-                } else if (isEmpty && state.searchQuery.isEmpty() && state.selectedLocation == "All properties") {
+                } else if (isEmpty && searchQuery.isEmpty() && state.selectedLocation == "All properties") {
                     EmptyPropertiesState(
                         onAddProperty = { onAction(PropertyListAction.OnAddPropertyClicked) },
                         modifier = Modifier.align(Alignment.Center)
@@ -258,10 +196,10 @@ fun PropertyListContent(
                     ) {
                         item {
                             com.gaatho.rent.core.ui.components.AppSearchBar(
-                                query = state.searchQuery,
-                                onQueryChange = { onAction(PropertyListAction.OnSearchQueryChanged(it)) },
+                                query = searchQuery,
+                                onQueryChange = onSearchQueryChanged,
                                 placeholderText = stringResource(Res.string.search_properties_hint),
-                                suggestions = emptyList(), // Suggestions disabled for infinite scroll
+                                suggestions = emptyList(),
                                 onSuggestionSelected = {},
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -454,8 +392,8 @@ private fun EmptyPropertiesState(
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.padding(24.dp).fillMaxWidth()) {
-        com.gaatho.rent.core.ui.components.EmptyStateCard(
-            icon = Icons.Outlined.Business,
+        com.gaatho.rent.core.ui.components.AppIllustratedEmptyState(
+            illustration = Res.drawable.empty_properties,
             title = stringResource(Res.string.welcome_property_empty_title),
             description = stringResource(Res.string.welcome_property_empty_desc),
             buttonText = stringResource(Res.string.add_first_property_btn),
@@ -500,7 +438,7 @@ private fun PropertyListContentSuccessPreview() {
         PropertyListContent(
             state = PropertyListState(),
             onAction = {},
-            onAddPropertyAction = {}
+            onNavigateToAddProperty = {}
         )
     }
 }
@@ -513,7 +451,7 @@ private fun PropertyListContentEmptyPreview() {
         PropertyListContent(
             state = PropertyListState(),
             onAction = {},
-            onAddPropertyAction = {}
+            onNavigateToAddProperty = {}
         )
     }
 }
@@ -526,7 +464,7 @@ private fun PropertyListContentLoadingPreview() {
         PropertyListContent(
             state = PropertyListState(),
             onAction = {},
-            onAddPropertyAction = {}
+            onNavigateToAddProperty = {}
         )
     }
 }
@@ -539,7 +477,39 @@ private fun PropertyListContentErrorPreview() {
         PropertyListContent(
             state = PropertyListState(),
             onAction = {},
-            onAddPropertyAction = {}
+            onNavigateToAddProperty = {}
         )
+    }
+}
+
+@Composable
+fun PropertySkeletonLoadingState(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.fillMaxSize().padding(horizontal = AppDimensions.ScreenHorizontalPadding, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        repeat(5) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                com.gaatho.rent.core.ui.components.AppShimmerBox(
+                    modifier = Modifier.size(64.dp),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    com.gaatho.rent.core.ui.components.AppShimmerBox(modifier = Modifier.fillMaxWidth(0.6f).height(20.dp))
+                    com.gaatho.rent.core.ui.components.AppShimmerBox(modifier = Modifier.fillMaxWidth(0.4f).height(14.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        com.gaatho.rent.core.ui.components.AppShimmerBox(modifier = Modifier.width(60.dp).height(24.dp), shape = CircleShape)
+                        com.gaatho.rent.core.ui.components.AppShimmerBox(modifier = Modifier.width(80.dp).height(24.dp), shape = CircleShape)
+                    }
+                }
+            }
+        }
     }
 }

@@ -37,7 +37,6 @@ data class TenantDisplayModel(
 data class TenantsListState(
     @Transient
     val propertiesState: UiState<ImmutableList<Property>> = UiState.Idle,
-    val searchQuery: String = "",
     val selectedStatus: String = "All statuses",
     val selectedProperty: String = "All properties"
 )
@@ -49,7 +48,6 @@ sealed interface TenantsListSideEffect {
 }
 
 sealed interface TenantsListAction {
-    data class OnSearchQueryChanged(val query: String) : TenantsListAction
     data class OnStatusFilterChanged(val status: String) : TenantsListAction
     data class OnPropertyFilterChanged(val propertyName: String) : TenantsListAction
     data class OnTenantClicked(val tenantId: String) : TenantsListAction

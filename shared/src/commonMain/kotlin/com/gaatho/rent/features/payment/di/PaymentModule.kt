@@ -1,7 +1,7 @@
 package com.gaatho.rent.features.payment.di
 
 import com.gaatho.rent.features.payment.presentation.add.AddPaymentViewModel
-import com.gaatho.rent.features.payment.presentation.list.PaymentsListViewModel
+import com.gaatho.rent.features.payment.presentation.list.PaymentListViewModel
 import com.gaatho.rent.features.payment.presentation.details.PaymentDetailsViewModel
 import com.gaatho.rent.features.payment.data.repository.CloudPaymentRepository
 import com.gaatho.rent.features.payment.data.repository.LocalPaymentRepository
@@ -22,6 +22,6 @@ val paymentModule = module {
     }
 
     viewModel { AddPaymentViewModel(get(), get(), get(), get(), get()) }
-    viewModel { PaymentsListViewModel(get(), get(), get(), get(), get()) }
+    viewModel { PaymentListViewModel(get(), get(), get(), get()) }
     viewModel { parameters -> PaymentDetailsViewModel(parameters.get(), get(), get(), get(), get()) }
 }

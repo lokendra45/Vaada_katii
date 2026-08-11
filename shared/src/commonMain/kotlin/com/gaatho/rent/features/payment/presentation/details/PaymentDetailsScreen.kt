@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -75,7 +76,16 @@ private fun PaymentDetailsContent(
         topBar = {
             AppTopBar(
                 title = "Payment Details",
-                onBackClick = { onAction(PaymentDetailsAction.OnBackClicked) }
+                onBackClick = { onAction(PaymentDetailsAction.OnBackClicked) },
+                actions = {
+                    IconButton(onClick = { onAction(PaymentDetailsAction.OnDeleteClicked) }) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
             )
         },
         bottomBar = {
@@ -279,6 +289,28 @@ private fun PaymentDetailsContent(
                     }
                 }
             }
+        }
+
+        if (state.showDeleteConfirm) {
+            AlertDialog(
+                onDismissRequest = { onAction(PaymentDetailsAction.OnDeleteDismissed) },
+                icon = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                title = { Text("Delete Payment") },
+                text = { Text("Are you sure you want to delete this payment? This action cannot be undone.") },
+                confirmButton = {
+                    Button(
+                        onClick = { onAction(PaymentDetailsAction.OnDeleteConfirmed) },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { onAction(PaymentDetailsAction.OnDeleteDismissed) }) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }

@@ -21,7 +21,6 @@ import kotlinx.collections.immutable.toImmutableList
  * @property propertiesState The loading/success/error state of the property list.
  */
 @Serializable
-@Immutable
 data class PropertyDisplayModel(
     val id: String,
     val name: String,
@@ -36,9 +35,7 @@ data class PropertyDisplayModel(
 )
 
 @Serializable
-@Immutable
 data class PropertyListState(
-    val searchQuery: String = "",
     val selectedLocation: String = "All properties"
 )
 
@@ -89,9 +86,6 @@ sealed interface PropertyListAction {
 
     /** The "Add Property" button was tapped. */
     data object OnAddPropertyClicked : PropertyListAction
-
-    /** Search query changed inside AppSearchBar. */
-    data class OnSearchQueryChanged(val query: String) : PropertyListAction
 
     /** A location filter pill was clicked. */
     data class OnLocationFilterSelected(val location: String) : PropertyListAction

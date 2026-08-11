@@ -9,11 +9,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.gaatho.rent.core.ui.animation.tabSlideTransition
+import com.gaatho.rent.core.ui.animation.tabCrossfadeTransition
 import com.gaatho.rent.features.dashboard.presentation.home.HomeScreen
 import com.gaatho.rent.features.dashboard.presentation.model.DashboardTab
 import com.gaatho.rent.features.property.presentation.list.PropertyListScreen
-import com.gaatho.rent.features.payment.presentation.list.PaymentsListScreen
+import com.gaatho.rent.features.payment.presentation.list.PaymentListScreen
 import com.gaatho.rent.features.settings.presentation.SettingsScreen
 import com.gaatho.rent.features.tenant.presentation.list.TenantsListScreen
 
@@ -59,10 +59,7 @@ fun DashboardContent(
             targetState = currentTab,
             label = "DashboardTabTransition",
             transitionSpec = {
-                val toIndex = DashboardTab.entries.indexOf(targetState)
-                val fromIndex = DashboardTab.entries.indexOf(initialState)
-                val direction = if (toIndex >= fromIndex) 1 else -1
-                tabSlideTransition(direction = direction)
+                tabCrossfadeTransition()
             }
         ) { tab ->
             saveableStateHolder.SaveableStateProvider(key = tab.ordinal) {
@@ -96,9 +93,9 @@ private fun DefaultDashboardTabContent(
             onNavigateToDetails = onNavigateToPropertyDetails,
             onNavigateToAddProperty = onNavigateToAddProperty
         )
-        DashboardTab.PAYMENTS -> PaymentsListScreen(
+        DashboardTab.PAYMENTS -> PaymentListScreen(
             onNavigateToAddPayment = onNavigateToAddPayment,
-            onNavigateToDetails = onNavigateToPaymentDetails
+            onNavigateToPaymentDetails = onNavigateToPaymentDetails
         )
         DashboardTab.TENANTS -> TenantsListScreen(
             onNavigateToDetails = onNavigateToTenantDetails,

@@ -22,6 +22,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.runtime.remember
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AppDialog — Unified, highly-customisable dialog system
@@ -104,6 +112,10 @@ fun AppDialog(
     layout: AppDialog.Layout = AppDialog.Layout.Center,
     dismissible: Boolean = true,
 ) {
+    val transitionState = remember {
+        MutableTransitionState(false).apply { targetState = true }
+    }
+
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
@@ -112,19 +124,25 @@ fun AppDialog(
             usePlatformDefaultWidth = false,
         )
     ) {
-        AppDialogContent(
-            icon            = icon,
-            title           = title,
-            confirmText     = confirmText,
-            onConfirm       = onConfirm,
-            dismissText     = dismissText,
-            onDismissAction = onDismissAction ?: onDismiss,
-            variant         = variant,
-            layout          = layout,
-            body            = body,
-            bodyContent     = bodyContent,
-            modifier        = modifier,
-        )
+        AnimatedVisibility(
+            visibleState = transitionState,
+            enter = scaleIn(spring(stiffness = 300f, dampingRatio = 0.85f), initialScale = 0.8f) + fadeIn(),
+            exit = scaleOut(spring(stiffness = 300f, dampingRatio = 0.85f), targetScale = 0.8f) + fadeOut()
+        ) {
+            AppDialogContent(
+                icon            = icon,
+                title           = title,
+                confirmText     = confirmText,
+                onConfirm       = onConfirm,
+                dismissText     = dismissText,
+                onDismissAction = onDismissAction ?: onDismiss,
+                variant         = variant,
+                layout          = layout,
+                body            = body,
+                bodyContent     = bodyContent,
+                modifier        = modifier,
+            )
+        }
     }
 }
 

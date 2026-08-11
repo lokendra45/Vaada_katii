@@ -48,7 +48,9 @@ data class TenantDetailsState(
     @Transient
     val leaseState: UiState<TenantLeaseDisplayModel> = UiState.Idle,
     @Transient
-    val transactionsState: UiState<ImmutableList<TenantTransactionDisplayModel>> = UiState.Idle
+    val transactionsState: UiState<ImmutableList<TenantTransactionDisplayModel>> = UiState.Idle,
+    val showDeleteConfirm: Boolean = false,
+    val isDeleting: Boolean = false
 )
 
 /**
@@ -64,6 +66,9 @@ sealed interface TenantDetailsAction {
     data object OnMaintenanceClicked : TenantDetailsAction
     data object OnViewAllTransactionsClicked : TenantDetailsAction
     data class OnTransactionClicked(val transactionId: String) : TenantDetailsAction
+    data object OnDeleteClicked : TenantDetailsAction
+    data object OnDeleteDismissed : TenantDetailsAction
+    data object OnDeleteConfirmed : TenantDetailsAction
 }
 
 /**
@@ -76,4 +81,5 @@ sealed interface TenantDetailsEffect {
     data class OpenPhoneApp(val phone: String) : TenantDetailsEffect
     data class NavigateToTransactions(val tenantId: String) : TenantDetailsEffect
     data class ShowToast(val message: String) : TenantDetailsEffect
+    data class ShowError(val message: String) : TenantDetailsEffect
 }

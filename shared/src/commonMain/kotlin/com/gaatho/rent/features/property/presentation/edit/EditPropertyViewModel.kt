@@ -1,12 +1,13 @@
 package com.gaatho.rent.features.property.presentation.edit
 
+import androidx.compose.ui.text.input.TextFieldValue
 import com.gaatho.rent.core.auth.UserIdentityProvider
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.ui.ErrorMessageExtractor
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
 import com.gaatho.rent.features.property.domain.model.Property
 import com.skydoves.sandwich.ApiResponse
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 
 class EditPropertyViewModel(
@@ -22,25 +23,28 @@ class EditPropertyViewModel(
     }
 
     private fun loadProperty() = intent {
+        if (propertyId == "new") {
+            reduce { state.copy(isLoading = false) }
+            return@intent
+        }
+
         val ownerId = userIdentityProvider.currentUserId()
         val property = propertyRepository
             .getProperties(ownerId)
-            .first()
-            .firstOrNull { it.id == propertyId }
+            .firstOrNull()
+            ?.firstOrNull { it.id == propertyId }
 
         if (property != null) {
-            // Split combined address back into street + city parts for the form
-            val parts = property.address.split(",").map { it.trim() }
-            val street = parts.getOrElse(0) { "" }
-            val city = parts.drop(1).joinToString(", ").trim()
-
             reduce {
                 state.copy(
-                    name = property.name,
-                    streetAddress = street,
-                    city = city,
+                    isLoading = false,
+                    name = TextFieldValue(property.name),
+                    streetAddress = TextFieldValue(property.address.split(",").firstOrNull() ?: ""),
+                    city = TextFieldValue(property.address.split(",").drop(1).joinToString(",").trim()),
                     propertyType = property.propertyType,
-                    isLoading = false
+                    totalUnits = TextFieldValue(property.totalUnits.toString()),
+                    billingCycle = "1st of the month",
+                    selectedAmenities = setOf("Water", "Electricity")
                 )
             }
         } else {
@@ -51,16 +55,22 @@ class EditPropertyViewModel(
 
     override fun onAction(action: EditPropertyAction) {
         when (action) {
-            is EditPropertyAction.OnNameChanged ->
-                intent { reduce { state.copy(name = action.name, nameError = null) } }
-            is EditPropertyAction.OnStreetAddressChanged ->
-                intent { reduce { state.copy(streetAddress = action.address, addressError = null) } }
-            is EditPropertyAction.OnCityChanged ->
-                intent { reduce { state.copy(city = action.city) } }
-            is EditPropertyAction.OnTypeChanged ->
-                intent { reduce { state.copy(propertyType = action.type) } }
-            is EditPropertyAction.OnTotalUnitsChanged ->
-                intent { reduce { state.copy(totalUnits = action.units) } }
+            is EditPropertyAction.OnNameChanged -> intent {
+                reduce { state.copy(name = action.value, nameError = null) }
+            }
+            is EditPropertyAction.OnStreetAddressChanged -> intent {
+                reduce { state.copy(streetAddress = action.value, addressError = null) }
+            }
+            is EditPropertyAction.OnCityChanged -> intent {
+                reduce { state.copy(city = action.value) }
+            }
+            is EditPropertyAction.OnTypeChanged -> intent {
+                reduce { state.copy(propertyType = action.type) }
+            }
+            is EditPropertyAction.OnTotalUnitsChanged -> intent {
+                val digits = action.value.text.filter { it.isDigit() }
+                reduce { state.copy(totalUnits = action.value.copy(text = digits)) }
+            }
             is EditPropertyAction.OnBillingCycleChanged ->
                 intent { reduce { state.copy(billingCycle = action.cycle) } }
             is EditPropertyAction.OnAmenityToggled -> intent {
@@ -70,6 +80,10 @@ class EditPropertyViewModel(
                 reduce { state.copy(selectedAmenities = amenities) }
             }
             is EditPropertyAction.OnSaveClicked -> handleSave()
+            is EditPropertyAction.OnSuccessDialogDismissed -> intent {
+                reduce { state.copy(showSuccessDialog = false) }
+                postSideEffect(EditPropertySideEffect.NavigateBack)
+            }
             is EditPropertyAction.OnBackClicked ->
                 intent { postSideEffect(EditPropertySideEffect.NavigateBack) }
         }
@@ -78,33 +92,45 @@ class EditPropertyViewModel(
     private fun handleSave() = intent {
         val s = state
         var hasError = false
+        var nameErr: String? = null
+        var addressErr: String? = null
 
-        if (s.name.isBlank()) {
-            reduce { state.copy(nameError = "Property name is required") }
+        if (s.name.text.isBlank()) {
+            nameErr = "Property name is required"
             hasError = true
         }
-        if (s.streetAddress.isBlank()) {
-            reduce { state.copy(addressError = "Street address is required") }
+        if (s.streetAddress.text.isBlank()) {
+            addressErr = "Street address is required"
             hasError = true
         }
-        if (hasError) return@intent
+
+        if (hasError) {
+            reduce { state.copy(nameError = nameErr, addressError = addressErr) }
+            return@intent
+        }
 
         reduce { state.copy(isSaving = true) }
 
         val updated = Property(
-            id = propertyId,
+            id = if (propertyId == "new") com.gaatho.rent.core.utils.UuidUtil.generateV7String() else propertyId,
             ownerId = userIdentityProvider.currentUserId(),
-            name = s.name.trim(),
-            address = buildString {
-                append(s.streetAddress.trim())
-                if (s.city.isNotBlank()) append(", ${s.city.trim()}")
-            },
-            propertyType = s.propertyType
+            name = s.name.text.trim(),
+            address = "${s.streetAddress.text.trim()}, ${s.city.text.trim()}",
+            propertyType = s.propertyType,
+            totalUnits = s.totalUnits.text.toIntOrNull() ?: 1,
+            createdAt = com.gaatho.rent.core.utils.DateTimeUtil.nowIsoString(),
+            updatedAt = com.gaatho.rent.core.utils.DateTimeUtil.nowIsoString()
         )
 
-        when (val result = propertyRepository.updateProperty(updated)) {
+        val result = if (propertyId == "new") {
+            propertyRepository.createProperty(updated)
+        } else {
+            propertyRepository.updateProperty(updated)
+        }
+        
+        when (result) {
             is ApiResponse.Success -> {
-                postSideEffect(EditPropertySideEffect.NavigateBack)
+                reduce { state.copy(isSaving = false, showSuccessDialog = true) }
             }
             is ApiResponse.Failure.Error -> {
                 reduce { state.copy(isSaving = false) }

@@ -30,6 +30,7 @@ fun MainDashboardScreen(
     onNavigateToAddTenant: () -> Unit = {},
     onNavigateToAddPayment: () -> Unit = {},
     onNavigateToPaymentDetails: (String) -> Unit = {},
+    onNavigateToPaymentList: () -> Unit = {},
     onNavigateToLogin: () -> Unit = {}
 ) {
     val viewModel: MainDashboardViewModel = koinViewModel()
@@ -44,6 +45,7 @@ fun MainDashboardScreen(
         onNavigateToAddTenant = onNavigateToAddTenant,
         onNavigateToAddPayment = onNavigateToAddPayment,
         onNavigateToPaymentDetails = onNavigateToPaymentDetails,
+        onNavigateToPaymentList = onNavigateToPaymentList,
         onNavigateToLogin = onNavigateToLogin
     )
 }
@@ -58,6 +60,7 @@ fun MainDashboardContent(
     onNavigateToAddTenant: () -> Unit,
     onNavigateToAddPayment: () -> Unit,
     onNavigateToPaymentDetails: (String) -> Unit,
+    onNavigateToPaymentList: () -> Unit = {},
     onNavigateToLogin: () -> Unit = {},
     tabContent: @Composable (DashboardTab) -> Unit = { tab ->
         DashboardContent(
@@ -68,7 +71,7 @@ fun MainDashboardContent(
             onNavigateToAddTenant = onNavigateToAddTenant,
             onNavigateToAddPayment = onNavigateToAddPayment,
             onNavigateToPaymentDetails = onNavigateToPaymentDetails,
-            onNavigateToPayments = { onAction(MainDashboardAction.OnTabSelected(DashboardTab.PAYMENTS)) },
+            onNavigateToPayments = onNavigateToPaymentList,
             onNavigateToLogin = onNavigateToLogin
         )
     }
