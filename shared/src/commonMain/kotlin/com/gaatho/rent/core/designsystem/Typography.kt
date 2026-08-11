@@ -33,9 +33,9 @@ fun interFontFamily(): FontFamily {
  * hero-number    | displayLarge   | 40sp  | Bold      | 48sp  | -0.02em
  * screen-title   | displayMedium  | 32sp  | SemiBold  | 40sp  | -0.02em
  * section-header | headlineLarge  | 24sp  | SemiBold  | 32sp  | -0.01em
- * row-name       | titleMedium    | 16sp  | Medium    | 22sp  | 0
+ * row-name       | titleMedium    | 14sp  | Medium    | 20sp  | 0
  * body           | bodyMedium     | 14sp  | Normal    | 20sp  | 0
- * caption        | bodySmall      | 13sp  | Normal    | 18sp  | 0
+ * caption        | bodySmall      | 12sp  | Normal    | 16sp  | 0
  * micro          | labelSmall     | 11sp  | Medium    | 14sp  | 0
  */
 @Composable
@@ -88,22 +88,22 @@ fun rentManagerTypography(): Typography {
             titleLarge = TextStyle(
                 fontFamily = inter,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp,
-                lineHeight = 24.sp,
+                fontSize = 20.sp,
+                lineHeight = 28.sp,
                 letterSpacing = 0.sp
             ),
             titleMedium = TextStyle(
                 fontFamily = inter,
                 fontWeight = FontWeight.Medium,
-                fontSize = 16.sp,
-                lineHeight = 22.sp,
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
                 letterSpacing = 0.sp
             ),
             titleSmall = TextStyle(
                 fontFamily = inter,
                 fontWeight = FontWeight.Medium,
-                fontSize = 13.sp,
-                lineHeight = 18.sp,
+                fontSize = 12.sp,
+                lineHeight = 16.sp,
                 letterSpacing = 0.sp
             ),
             bodyLarge = TextStyle(
@@ -123,8 +123,8 @@ fun rentManagerTypography(): Typography {
             bodySmall = TextStyle(
                 fontFamily = inter,
                 fontWeight = FontWeight.Normal,
-                fontSize = 13.sp,
-                lineHeight = 18.sp,
+                fontSize = 12.sp,
+                lineHeight = 16.sp,
                 letterSpacing = 0.sp
             ),
             labelLarge = TextStyle(
