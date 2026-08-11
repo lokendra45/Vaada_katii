@@ -7,11 +7,11 @@ import androidx.compose.ui.graphics.Color
 // Source: design-tokens.yaml (exact values)
 // ══════════════════════════════════════════════════════════════════════════════
 
-// Primary
-val Primary              = Color(0xFF4F46E5)
+// Primary (Emerald Green Accent)
+val Primary              = Color(0xFF00A86B)
 val OnPrimary            = Color(0xFFFFFFFF)
-val PrimaryContainer     = Color(0xFFEEF2FF)
-val OnPrimaryContainer   = Color(0xFF4338CA)
+val PrimaryContainer     = Color(0xFFE5F9F4)
+val OnPrimaryContainer   = Color(0xFF005234)
 val InversePrimary       = Color(0xFFC3C0FF)
 val PrimaryFixed         = Color(0xFFE2DFFF)
 val PrimaryFixedDim      = Color(0xFFC3C0FF)
@@ -44,59 +44,60 @@ val OnError            = Color(0xFFFFFFFF)
 val ErrorContainer     = Color(0xFFFFDAD6)
 val OnErrorContainer   = Color(0xFF93000A)
 
-// Surface scale - Premium Silver
-val Surface                 = Color(0xFFF9FAFB) // Gray 50
-val SurfaceDim              = Color(0xFFE5E7EB) // Gray 200
-val SurfaceBright           = Color(0xFFF9FAFB)
-val SurfaceContainerLowest  = Color(0xFFFFFFFF) // White
-val SurfaceContainerLow     = Color(0xFFF9FAFB)
-val SurfaceContainer        = Color(0xFFF3F4F6) // Gray 100
-val SurfaceContainerHigh    = Color(0xFFE5E7EB) // Gray 200
-val SurfaceContainerHighest = Color(0xFFD1D5DB) // Gray 300
-val SurfaceTint             = Color(0xFF4D44E3)
-val SurfaceVariant          = Color(0xFFE5E7EB)
+// Surface scale - Premium Stark White
+val Surface                 = Color(0xFFFFFFFF) // Pure White
+val SurfaceDim              = Color(0xFFF1F5F9) // Slate 100
+val SurfaceBright           = Color(0xFFFFFFFF)
+val SurfaceContainerLowest  = Color(0xFFFFFFFF) 
+val SurfaceContainerLow     = Color(0xFFF8FAFC) // Slate 50
+val SurfaceContainer        = Color(0xFFF1F5F9) // Slate 100
+val SurfaceContainerHigh    = Color(0xFFE2E8F0) // Slate 200
+val SurfaceContainerHighest = Color(0xFFCBD5E1) // Slate 300
+val SurfaceTint             = Color(0xFF00A86B)
+val SurfaceVariant          = Color(0xFFF1F5F9)
 
 // On-surface
-val OnSurface        = Color(0xFF1A1A1A)
-val OnSurfaceVariant = Color(0xFF4B5563) // Gray-600 for proper secondary text contrast
-val InverseSurface   = Color(0xFF2A313D)
-val InverseOnSurface = Color(0xFFEBF1FF)
+val OnSurface        = Color(0xFF0F172A) // Deep Slate
+val OnSurfaceVariant = Color(0xFF64748B) // Slate 500 (softer secondary text)
+val InverseSurface   = Color(0xFF0F172A)
+val InverseOnSurface = Color(0xFFFFFFFF)
 
 // Background
-val Background   = Color(0xFFF9F9FF)
-val OnBackground = Color(0xFF1A1A1A)
+val Background   = Color(0xFFFFFFFF)
+val OnBackground = Color(0xFF0F172A)
 
-// Outline
-val Outline        = Color(0xFF9CA3AF) // Gray-400
-val OutlineVariant = Color(0xFFE5E7EB) // Gray-200 (from YAML specs)
+// Outline (Fainter, since we use shadows instead)
+val Outline        = Color(0xFFE2E8F0) // Slate 200
+val OutlineVariant = Color(0xFFF1F5F9) // Slate 100
 
 // ══════════════════════════════════════════════════════════════════════════════
-// QUIET PREMIUM — DARK THEME
+// EMERALD — DARK THEME (Deep Charcoal + Emerald Green Accent)
 // ══════════════════════════════════════════════════════════════════════════════
 
-val DarkPrimary              = Color(0xFF818CF8)
-val DarkOnPrimary            = Color(0xFF0F172A)
-val DarkPrimaryContainer     = Color(0x334F46E5)
-val DarkOnPrimaryContainer   = Color(0xFFE0E7FF)
-val DarkInversePrimary       = Color(0xFF4953BC)
-val DarkPrimaryFixed         = Color(0xFFE0E0FF)
-val DarkPrimaryFixedDim      = Color(0xFFBDC2FF)
-val DarkOnPrimaryFixed       = Color(0xFF000767)
-val DarkOnPrimaryFixedVariant= Color(0xFF2F3AA3)
+// Primary — Emerald stays vibrant in dark mode
+val DarkPrimary              = Color(0xFF4ADE80) // Bright emerald for dark surfaces
+val DarkOnPrimary            = Color(0xFF003822)
+val DarkPrimaryContainer     = Color(0xFF1A3D2E) // Deep green container
+val DarkOnPrimaryContainer   = Color(0xFFB8F5D3)
+val DarkInversePrimary       = Color(0xFF00A86B)
+val DarkPrimaryFixed         = Color(0xFFB8F5D3)
+val DarkPrimaryFixedDim      = Color(0xFF4ADE80)
+val DarkOnPrimaryFixed       = Color(0xFF002114)
+val DarkOnPrimaryFixedVariant= Color(0xFF00804F)
 
-val DarkSecondary              = Color(0xFFB9C7E0)
-val DarkOnSecondary            = Color(0xFF233144)
-val DarkSecondaryContainer     = Color(0xFF3C4A5E)
-val DarkOnSecondaryContainer   = Color(0xFFABB9D2)
+val DarkSecondary              = Color(0xFFA8B5C8)
+val DarkOnSecondary            = Color(0xFF1C2733)
+val DarkSecondaryContainer     = Color(0xFF2A3544)
+val DarkOnSecondaryContainer   = Color(0xFFBCC8D9)
 val DarkSecondaryFixed         = Color(0xFFD5E3FD)
-val DarkSecondaryFixedDim      = Color(0xFFB9C7E0)
+val DarkSecondaryFixedDim      = Color(0xFFA8B5C8)
 val DarkOnSecondaryFixed       = Color(0xFF0D1C2F)
 val DarkOnSecondaryFixedVariant= Color(0xFF3A485C)
 
 val DarkTertiary              = Color(0xFFF7BD3E)
 val DarkOnTertiary            = Color(0xFF402D00)
-val DarkTertiaryContainer     = Color(0xFFC08D00)
-val DarkOnTertiaryContainer   = Color(0xFF3E2B00)
+val DarkTertiaryContainer     = Color(0xFF3D3520)
+val DarkOnTertiaryContainer   = Color(0xFFFFDEA3)
 val DarkTertiaryFixed         = Color(0xFFFFDEA3)
 val DarkTertiaryFixedDim      = Color(0xFFF7BD3E)
 val DarkOnTertiaryFixed       = Color(0xFF261900)
@@ -104,36 +105,40 @@ val DarkOnTertiaryFixedVariant= Color(0xFF5D4200)
 
 val DarkError              = Color(0xFFFFB4AB)
 val DarkOnError            = Color(0xFF690005)
-val DarkErrorContainer     = Color(0xFF93000A)
+val DarkErrorContainer     = Color(0xFF3D1518)
 val DarkOnErrorContainer   = Color(0xFFFFDAD6)
 
-val DarkSurface                = Color(0xFF121212)
-val DarkSurfaceDim             = Color(0xFF121212)
-val DarkSurfaceBright          = Color(0xFF2C2C2C)
-val DarkSurfaceContainerLowest = Color(0xFF000000)
-val DarkSurfaceContainerLow    = Color(0xFF1C1C1E)
-val DarkSurfaceContainer       = Color(0xFF1C1C1E)
-val DarkSurfaceContainerHigh   = Color(0xFF2C2C2C)
-val DarkSurfaceContainerHighest= Color(0xFF3A3A3C)
-val DarkSurfaceVariant         = Color(0xFF2C2C2C)
-val DarkSurfaceTint            = Color(0xFFBDC2FF)
+// Surface scale — True deep charcoal (Finzo dark mode look)
+val DarkSurface                = Color(0xFF0D0F0E) // Near-black with slight green tint
+val DarkSurfaceDim             = Color(0xFF0D0F0E)
+val DarkSurfaceBright          = Color(0xFF252927)
+val DarkSurfaceContainerLowest = Color(0xFF070908) // Deepest black
+val DarkSurfaceContainerLow    = Color(0xFF141816) // Card backgrounds
+val DarkSurfaceContainer       = Color(0xFF1A1E1C) // Slightly elevated
+val DarkSurfaceContainerHigh   = Color(0xFF232826) // Elevated containers
+val DarkSurfaceContainerHighest= Color(0xFF2E3331) // Highest elevation
+val DarkSurfaceVariant         = Color(0xFF1A1E1C)
+val DarkSurfaceTint            = Color(0xFF4ADE80)
 
-val DarkOnSurface        = Color(0xFFE5E5E5)
-val DarkOnSurfaceVariant = Color(0xFFCBD5E1)
-val DarkInverseSurface   = Color(0xFFDAE2FD)
-val DarkInverseOnSurface = Color(0xFF283044)
+val DarkOnSurface        = Color(0xFFF0F0F0) // Crisp white text
+val DarkOnSurfaceVariant = Color(0xFF8A9490) // Muted sage for secondary text
+val DarkInverseSurface   = Color(0xFFF0F0F0)
+val DarkInverseOnSurface = Color(0xFF0D0F0E)
 
-val DarkBackground   = Color(0xFF000000)
-val DarkOnBackground = Color(0xFFE5E5E5)
+val DarkBackground   = Color(0xFF070908) // True deep black
+val DarkOnBackground = Color(0xFFF0F0F0)
 
-val DarkOutline        = Color(0xFF908F9E)
-val DarkOutlineVariant = Color(0xFF454653)
+val DarkOutline        = Color(0xFF3A403E) // Subtle borders
+val DarkOutlineVariant = Color(0xFF1E2422) // Very faint borders
 
 // ══════════════════════════════════════════════════════════════════════════════
-// SEMANTIC TOKENS — Safe to use from Compose UI
+// SEMANTIC TOKENS & GRADIENT COLORS — Safe to use from Compose UI
 // ══════════════════════════════════════════════════════════════════════════════
 
 object AppColors {
+    // Emerald Accent
+    val EmeraldAccent = Color(0xFF00A86B)
+    val EmeraldAccentLight = Color(0xFFE5F9F4)
     /** Success — green 500 */
     val Success           = Color(0xFF22C55E)
     val SuccessContainer  = Color(0xFFF0FDF4)

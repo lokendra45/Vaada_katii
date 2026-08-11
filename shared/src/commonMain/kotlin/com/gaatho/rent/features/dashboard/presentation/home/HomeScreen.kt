@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.designsystem.Spacing
+import com.gaatho.rent.core.designsystem.softShadow
 import org.jetbrains.compose.resources.stringResource
 import rentmanagerapp.shared.generated.resources.Res
 import rentmanagerapp.shared.generated.resources.*
@@ -183,39 +184,43 @@ private fun QuickActionsSection(onAction: (HomeAction) -> Unit, isDisabled: Bool
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            val disabledContainer = Color(0xFFF8F9FA)
-            val disabledIcon = Color(0xFF9AA0A6)
-            val disabledText = Color(0xFFBDC1C6)
+            val disabledContainer = MaterialTheme.colorScheme.surfaceContainerHighest
+            val disabledIcon = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            val disabledText = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            
+            // Finzo aesthetic: Muted, clean circular actions instead of loud semantic colors
+            val defaultContainer = MaterialTheme.colorScheme.surfaceContainer // Soft slate
+            val defaultIcon = MaterialTheme.colorScheme.onSurface // Deep slate
             
             QuickActionItem(
                 label = "Property",
                 icon = Icons.Outlined.Business,
-                containerColor = if (isDisabled) MaterialTheme.colorScheme.primary else AppColors.InfoContainer,
-                iconColor = if (isDisabled) MaterialTheme.colorScheme.onPrimary else AppColors.Info,
+                containerColor = if (isDisabled) disabledContainer else defaultContainer,
+                iconColor = if (isDisabled) disabledIcon else defaultIcon,
                 textColor = MaterialTheme.colorScheme.onSurface,
                 onClick = { if (!isDisabled) onAction(HomeAction.OnAddPropertyClicked) }
             )
             QuickActionItem(
                 label = "Record pay",
                 icon = Icons.Outlined.AccountBalanceWallet,
-                containerColor = if (isDisabled) disabledContainer else AppColors.SuccessContainer,
-                iconColor = if (isDisabled) disabledIcon else AppColors.Success,
+                containerColor = if (isDisabled) disabledContainer else defaultContainer,
+                iconColor = if (isDisabled) disabledIcon else defaultIcon,
                 textColor = if (isDisabled) disabledText else MaterialTheme.colorScheme.onSurface,
                 onClick = { if (!isDisabled) onAction(HomeAction.OnRecordPaymentClicked) }
             )
             QuickActionItem(
                 label = "Expense",
                 icon = Icons.Outlined.Receipt,
-                containerColor = if (isDisabled) disabledContainer else AppColors.ErrorContainer,
-                iconColor = if (isDisabled) disabledIcon else AppColors.Error,
+                containerColor = if (isDisabled) disabledContainer else defaultContainer,
+                iconColor = if (isDisabled) disabledIcon else defaultIcon,
                 textColor = if (isDisabled) disabledText else MaterialTheme.colorScheme.onSurface,
                 onClick = { if (!isDisabled) onAction(HomeAction.OnExpenseClicked) }
             )
             QuickActionItem(
                 label = "Add tenant",
                 icon = Icons.Outlined.PersonAdd,
-                containerColor = if (isDisabled) disabledContainer else AppColors.WarningContainer,
-                iconColor = if (isDisabled) disabledIcon else AppColors.Warning,
+                containerColor = if (isDisabled) disabledContainer else defaultContainer,
+                iconColor = if (isDisabled) disabledIcon else defaultIcon,
                 textColor = if (isDisabled) disabledText else MaterialTheme.colorScheme.onSurface,
                 onClick = { if (!isDisabled) onAction(HomeAction.OnAddTenantClicked) }
             )
@@ -264,9 +269,9 @@ private fun QuickActionItem(
 @Composable
 private fun DashboardCard(state: HomeState) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().softShadow(shape = RoundedCornerShape(24.dp)),
         shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.primary, // Solid primary blue
+        color = MaterialTheme.colorScheme.primary, // Solid primary green
         shadowElevation = 0.dp
     ) {
         Column(
@@ -280,10 +285,10 @@ private fun DashboardCard(state: HomeState) {
                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
             )
 
-            // Amount row
+            // Amount row (Massive Hero Number)
             Text(
                 text = "NPR ${state.collectedRent}",
-                style = MaterialTheme.typography.displayLarge,
+                style = com.gaatho.rent.core.designsystem.monoDataTextStyle(),
                 color = MaterialTheme.colorScheme.onPrimary
             )
 
@@ -324,10 +329,10 @@ private fun DashboardCard(state: HomeState) {
 
 @Composable
 private fun OverdueAlertBanner(count: Int) {
-    Surface(
+    com.gaatho.rent.core.ui.components.AppCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = AppColors.WarningContainer,
+        containerColor = AppColors.WarningContainer,
         contentColor = AppColors.OnWarning
     ) {
         Row(

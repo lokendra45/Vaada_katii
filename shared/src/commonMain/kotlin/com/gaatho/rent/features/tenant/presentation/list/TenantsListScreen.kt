@@ -213,11 +213,7 @@ fun TenantsListContent(
                                         )
 
                                         if (index < pagedTenants.itemCount - 1) {
-                                            HorizontalDivider(
-                                                modifier = Modifier.padding(horizontal = 24.dp),
-                                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
-                                                thickness = 0.5.dp
-                                            )
+                                            Spacer(modifier = Modifier.height(12.dp))
                                         }
                                     }
                                 }
@@ -387,13 +383,6 @@ private fun TenantRowItem(
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 StatusBadge(status = tenant.status, isActive = tenant.isActive)
-                
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "View Details",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    modifier = Modifier.size(16.dp)
-                )
             }
         }
     }

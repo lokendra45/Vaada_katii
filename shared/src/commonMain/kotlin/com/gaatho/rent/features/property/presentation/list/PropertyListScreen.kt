@@ -241,11 +241,7 @@ fun PropertyListContent(
                                     onClick = { onAction(PropertyListAction.OnPropertyClicked(property.id)) },
                                     modifier = Modifier.padding(horizontal = AppDimensions.ScreenHorizontalPadding)
                                 )
-                                HorizontalDivider(
-                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f),
-                                    thickness = 1.dp,
-                                    modifier = Modifier.padding(horizontal = AppDimensions.ScreenHorizontalPadding)
-                                )
+                                Spacer(modifier = Modifier.height(16.dp))
                             }
                         }
                         
@@ -302,7 +298,7 @@ private fun PropertyRowItem(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(56.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(CircleShape)
                 )
             }
         }
@@ -314,7 +310,7 @@ private fun PropertyRowItem(
             Box(
                 modifier = Modifier
                     .size(56.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(CircleShape)
                     .background(Color(avatarColors.first)),
                 contentAlignment = Alignment.Center
             ) {

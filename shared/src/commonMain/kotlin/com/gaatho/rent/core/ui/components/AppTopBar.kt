@@ -26,7 +26,7 @@ fun AppTopBar(
     modifier: Modifier = Modifier,
     onBackClick: (() -> Unit)? = null,
     leadingContent: @Composable (() -> Unit)? = null,
-    containerColor: Color = MaterialTheme.colorScheme.surface,
+    containerColor: Color = Color.Transparent,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     TopAppBar(
@@ -101,7 +101,7 @@ fun AppTopBarActionButton(
             containerColor = resolvedContainer,
             contentColor = resolvedContent
         ),
-        shape = RoundedCornerShape(18.dp),
+        shape = MaterialTheme.shapes.large, // Pill shape from Theme.kt
         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
         modifier = modifier.height(36.dp)
     ) {

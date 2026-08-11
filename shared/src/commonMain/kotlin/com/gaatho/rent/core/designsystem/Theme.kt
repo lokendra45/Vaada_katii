@@ -94,8 +94,8 @@ private val QuietPremiumDark = darkColorScheme(
 fun rentManagerShapes(): Shapes {
     return Shapes(
         small = RoundedCornerShape(8.dp),
-        medium = RoundedCornerShape(16.dp),
-        large = RoundedCornerShape(50) // Pill shape
+        medium = RoundedCornerShape(24.dp), // Premium organic large radius
+        large = RoundedCornerShape(50) // Pill shape for primary buttons
     )
 }
 

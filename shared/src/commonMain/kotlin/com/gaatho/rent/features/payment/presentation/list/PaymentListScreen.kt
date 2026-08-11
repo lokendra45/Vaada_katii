@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.AppDimensions
+import com.gaatho.rent.core.designsystem.Spacing
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.core.ui.components.AppSearchBar
 import com.gaatho.rent.core.ui.components.AppSegmentedControl
@@ -95,7 +96,7 @@ private fun PaymentListContent(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 12.dp),
+                        .padding(start = Spacing.ScreenPadding, end = Spacing.ScreenPadding, top = 8.dp, bottom = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     AppSearchBar(
@@ -151,8 +152,12 @@ private fun PaymentListContent(
                         }
                     } else {
                         LazyColumn(
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                            contentPadding = PaddingValues(
+                                start = Spacing.ScreenPadding,
+                                end = Spacing.ScreenPadding,
+                                top = 8.dp,
+                                bottom = 24.dp
+                            )
                         ) {
                             items(s.data, key = { it.id }) { payment ->
                                 PaymentRowItem(
@@ -175,55 +180,72 @@ private fun PaymentRowItem(
     payment: PaymentDisplayModel,
     onClick: () -> Unit
 ) {
+    val initials = payment.tenantName.split(" ")
+        .take(2)
+        .mapNotNull { it.firstOrNull()?.uppercase() }
+        .joinToString("")
+    val avatarColors = com.gaatho.rent.core.utils.TenantUtils.getAvatarColors(payment.tenantName)
+
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLowest,
-        shadowElevation = 0.dp // Flat design
+        color = Color.Transparent
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Circular Avatar (Finzo style)
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(Color(avatarColors.first)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = initials,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = Color(avatarColors.second),
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // Name + subtitle
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = payment.tenantName,
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = "${payment.propertyName} • ${payment.dateLabel}",
+                    text = "${payment.propertyName} · ${payment.dateLabel}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Amount + status
             Column(horizontalAlignment = Alignment.End) {
                 Text(
                     text = "Rs ${payment.amount}",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = if (payment.isPaid) AppColors.Success else MaterialTheme.colorScheme.error
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Box(
-                        Modifier
-                            .size(6.dp)
-                            .clip(CircleShape)
-                            .background(if (payment.isPaid) AppColors.Success else MaterialTheme.colorScheme.error)
-                    )
-                    Text(
-                        text = payment.status,
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = payment.status,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
