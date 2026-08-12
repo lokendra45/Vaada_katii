@@ -3,6 +3,7 @@ package com.gaatho.rent.core.designsystem.components
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -11,6 +12,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.gaatho.rent.core.designsystem.AppDimensions
+import com.gaatho.rent.core.designsystem.AppShadow.figmaButtonShadow
 
 @Composable
 fun RentManagerButton(
@@ -19,15 +22,28 @@ fun RentManagerButton(
     enabled: Boolean = true,
     content: @Composable RowScope.() -> Unit
 ) {
+    val shape = RoundedCornerShape(AppDimensions.ActionButtonRadius)
     Button(
         onClick = onClick,
-        modifier = modifier.height(com.gaatho.rent.core.designsystem.AppDimensions.ButtonHeightMedium),
+        modifier = modifier
+            .height(AppDimensions.ButtonHeightMedium)
+            .figmaButtonShadow(shape = shape, prominent = true),
         enabled = enabled,
-        shape = androidx.compose.foundation.shape.CircleShape,
+        shape = shape,
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 0.dp,
+            pressedElevation = 0.dp,
+            focusedElevation = 0.dp,
+            hoveredElevation = 0.dp,
+            disabledElevation = 0.dp
+        ),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
+        contentPadding = ButtonDefaults.ContentPadding,
         content = content
     )
 }

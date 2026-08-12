@@ -1,22 +1,46 @@
+@file:JvmName("DesignSystemColors")
 package com.gaatho.rent.core.designsystem
 
+import kotlin.jvm.JvmName
 import androidx.compose.ui.graphics.Color
 
 // ══════════════════════════════════════════════════════════════════════════════
-// QUIET PREMIUM — LIGHT THEME
-// Source: design-tokens.yaml (exact values)
+// LIGHT THEME (Figma Spec Neutrals)
 // ══════════════════════════════════════════════════════════════════════════════
 
-// Primary (Emerald Green Accent)
-val Primary              = Color(0xFF00A86B)
-val OnPrimary            = Color(0xFFFFFFFF)
-val PrimaryContainer     = Color(0xFFE5F9F4)
-val OnPrimaryContainer   = Color(0xFF005234)
-val InversePrimary       = Color(0xFFC3C0FF)
-val PrimaryFixed         = Color(0xFFE2DFFF)
-val PrimaryFixedDim      = Color(0xFFC3C0FF)
-val OnPrimaryFixed       = Color(0xFF0F0069)
-val OnPrimaryFixedVariant= Color(0xFF3323CC)
+// Primary — Emerald Green
+val LightPrimary              = Color(0xFF059669)
+val LightOnPrimary            = Color(0xFFFFFFFF)
+val LightPrimaryContainer     = Color(0xFFD1FAE5)
+val LightOnPrimaryContainer   = Color(0xFF064E3B)
+val LightInversePrimary       = Color(0xFF6EE7B7)
+val LightPrimaryFixed         = Color(0xFFD1FAE5)
+val LightPrimaryFixedDim      = Color(0xFF10B981)
+val LightOnPrimaryFixed       = Color(0xFF064E3B)
+val LightOnPrimaryFixedVariant= Color(0xFF0D7554)
+
+// Figma Neutrals
+val LightSurface                = Color(0xFFFFFFFF) // White cards
+val LightSurfaceDim             = Color(0xFFF9FAFB) // Gray-50
+val LightSurfaceBright          = Color(0xFFFFFFFF)
+val LightSurfaceContainerLowest = Color(0xFFFFFFFF) // Base white (Cards)
+val LightSurfaceContainerLow    = Color(0xFFF9FAFB) // Gray-50
+val LightSurfaceContainer       = Color(0xFFF3F4F6) // Gray-100
+val LightSurfaceContainerHigh   = Color(0xFFE5E7EB) // Gray-200
+val LightSurfaceContainerHighest= Color(0xFFD1D5DB) // Gray-300
+val LightSurfaceVariant         = Color(0xFFF3F4F6) // Gray-100
+val LightSurfaceTint            = Color(0xFF059669)
+
+val LightOnSurface        = Color(0xFF1E293B) // Slate-800
+val LightOnSurfaceVariant = Color(0xFF64748B) // Slate-500
+val LightInverseSurface   = Color(0xFF1E293B) // Slate-800
+val LightInverseOnSurface = Color(0xFFF9FAFB) // Gray-50
+
+val LightBackground   = Color(0xFFF9FAFB) // Gray-50
+val LightOnBackground = Color(0xFF1E293B) // Slate-800
+
+val LightOutline        = Color(0xFFD1D5DB) // Gray-300
+val LightOutlineVariant = Color(0xFFE5E7EB) // Gray-200
 
 // Secondary
 val Secondary              = Color(0xFF575E70)
@@ -39,15 +63,11 @@ val OnTertiaryFixed       = Color(0xFF351000)
 val OnTertiaryFixedVariant= Color(0xFF7B2F00)
 
 // Error
-val Error              = Color(0xFFBA1A1A)
+val Error              = Color(0xFFDB354F)
 val OnError            = Color(0xFFFFFFFF)
-val ErrorContainer     = Color(0xFFFFDAD6)
-val OnErrorContainer   = Color(0xFF93000A)
+val ErrorContainer     = Color(0xFFFEE2E2)
+val OnErrorContainer   = Color(0xFFDB354F)
 
-// Surface scale - Premium Stark White
-val Surface                 = Color(0xFFFFFFFF) // Pure White
-val SurfaceDim              = Color(0xFFF1F5F9) // Slate 100
-val SurfaceBright           = Color(0xFFFFFFFF)
 val SurfaceContainerLowest  = Color(0xFFFFFFFF) 
 val SurfaceContainerLow     = Color(0xFFF8FAFC) // Slate 50
 val SurfaceContainer        = Color(0xFFF1F5F9) // Slate 100
@@ -108,41 +128,52 @@ val DarkOnError            = Color(0xFF690005)
 val DarkErrorContainer     = Color(0xFF3D1518)
 val DarkOnErrorContainer   = Color(0xFFFFDAD6)
 
-// Surface scale — True deep charcoal (Finzo dark mode look)
-val DarkSurface                = Color(0xFF0D0F0E) // Near-black with slight green tint
-val DarkSurfaceDim             = Color(0xFF0D0F0E)
-val DarkSurfaceBright          = Color(0xFF252927)
-val DarkSurfaceContainerLowest = Color(0xFF070908) // Deepest black
-val DarkSurfaceContainerLow    = Color(0xFF141816) // Card backgrounds
-val DarkSurfaceContainer       = Color(0xFF1A1E1C) // Slightly elevated
-val DarkSurfaceContainerHigh   = Color(0xFF232826) // Elevated containers
-val DarkSurfaceContainerHighest= Color(0xFF2E3331) // Highest elevation
-val DarkSurfaceVariant         = Color(0xFF1A1E1C)
+// Surface scale — Dark mode mapped to Figma charcoal neutrals
+val DarkSurface                = Color(0xFF111729) // Dark Navy
+val DarkSurfaceDim             = Color(0xFF111729)
+val DarkSurfaceBright          = Color(0xFF111827)
+val DarkSurfaceContainerLowest = Color(0xFF111729) 
+val DarkSurfaceContainerLow    = Color(0xFF111827) // Gray-900
+val DarkSurfaceContainer       = Color(0xFF160042) // Dark Purple
+val DarkSurfaceContainerHigh   = Color(0xFF374151) // Gray-600
+val DarkSurfaceContainerHighest= Color(0xFF6B7280) // Gray-500
+val DarkSurfaceVariant         = Color(0xFF374151) // Gray-600
 val DarkSurfaceTint            = Color(0xFF4ADE80)
 
-val DarkOnSurface        = Color(0xFFF0F0F0) // Crisp white text
-val DarkOnSurfaceVariant = Color(0xFF8A9490) // Muted sage for secondary text
-val DarkInverseSurface   = Color(0xFFF0F0F0)
-val DarkInverseOnSurface = Color(0xFF0D0F0E)
+val DarkOnSurface        = Color(0xFFF9FAFB) // Gray-50
+val DarkOnSurfaceVariant = Color(0xFF9CA3AF) // Gray-400
+val DarkInverseSurface   = Color(0xFFF9FAFB)
+val DarkInverseOnSurface = Color(0xFF111729)
 
-val DarkBackground   = Color(0xFF070908) // True deep black
-val DarkOnBackground = Color(0xFFF0F0F0)
+val DarkBackground   = Color(0xFF111729) // Dark Navy
+val DarkOnBackground = Color(0xFFF3F4F6) // Gray-100
 
-val DarkOutline        = Color(0xFF3A403E) // Subtle borders
-val DarkOutlineVariant = Color(0xFF1E2422) // Very faint borders
+val DarkOutline        = Color(0xFF374151) // Gray-600
+val DarkOutlineVariant = Color(0xFF111827) // Gray-900
 
 // ══════════════════════════════════════════════════════════════════════════════
 // SEMANTIC TOKENS & GRADIENT COLORS — Safe to use from Compose UI
 // ══════════════════════════════════════════════════════════════════════════════
 
 object AppColors {
+    val DashboardBackground = Color(0xFFF9FAFB)
+    val CardBorder = Color(0xFFE5E7EB)
+    val ProgressTrack = Color(0xFFE5E7EB)
+    val TextPrimary = Color(0xFF1E293B)
+    val TextMuted = Color(0xFF64748B)
+    val ShadowAmbient = Color(0x14000000)
+    val ShadowSpot = Color(0x05000000)
+    val HeroGlow = Color(0x1AD2FF1F)
+
     // Emerald Accent
-    val EmeraldAccent = Color(0xFF00A86B)
-    val EmeraldAccentLight = Color(0xFFE5F9F4)
+    val EmeraldAccent = Color(0xFF059669)
+    val EmeraldAccentDark = Color(0xFF0D7554)
+    val EmeraldAccentLight = Color(0xFFECFDF5)
+    val EmeraldAccentBorder = Color(0xFFA7F3D0)
     /** Success — green 500 */
-    val Success           = Color(0xFF22C55E)
-    val SuccessContainer  = Color(0xFFF0FDF4)
-    val OnSuccess         = Color(0xFF14532D)
+    val Success           = Color(0xFF059669)
+    val SuccessContainer  = Color(0xFFECFDF5)
+    val OnSuccess         = Color(0xFF0D7554)
 
     /** Warning — amber 500 */
     val Warning           = Color(0xFFF59E0B)
@@ -150,9 +181,14 @@ object AppColors {
     val OnWarning         = Color(0xFF78350F)
 
     /** Error — matches Material error token */
-    val Error             = Color(0xFFBA1A1A)
-    val ErrorContainer    = Color(0xFFFFDAD6)
+    val Error             = Color(0xFFDB354F)
+    val ErrorContainer    = Color(0xFFFEE2E2)
     val OnError           = Color(0xFFFFFFFF)
+
+    val AvatarWarm = Color(0xFF7C2D12)
+    val AvatarNeutral = Color(0xFFF1F5F9)
+    val AvatarSuccess = Color(0xFFD1FAE5)
+    val AvatarError = Color(0xFFFEE2E2)
 
     /** Info — same as primary accent */
     val Info              = Color(0xFF3525CD)
@@ -160,34 +196,28 @@ object AppColors {
     val OnInfo            = Color(0xFFFFFFFF)
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// EXTENDED SEMANTIC HEX — ViewModel-safe (Long constants, no Compose import)
-// ══════════════════════════════════════════════════════════════════════════════
-
 object ExtendedColorHex {
-    // Property Status Badges
     const val VacantBackground = 0xFFFFDAD6L
-    const val VacantText       = 0xFFBA1A1AL
-    const val VacantBorder     = 0xFFFFB4ABL
+    const val VacantText = 0xFFBA1A1AL
+    const val VacantBorder = 0xFFFFB4ABL
 
     const val OccupiedBackground = 0xFFF0FDF4L
-    const val OccupiedText       = 0xFF22C55EL
-    const val OccupiedBorder     = 0xFFBBF7D0L
+    const val OccupiedText = 0xFF22C55EL
+    const val OccupiedBorder = 0xFFBBF7D0L
 
-    // Tenant Status Badges
-    const val ActiveBackground   = 0xFFF0FDF4L
-    const val ActiveText         = 0xFF16A34AL
+    const val ActiveBackground = 0xFFF0FDF4L
+    const val ActiveText = 0xFF16A34AL
 
     const val InactiveBackground = 0xFFF3F4F6L
-    const val InactiveText       = 0xFF6B7280L
+    const val InactiveText = 0xFF6B7280L
 
-    // Avatar pairs: (background, text) as Long
     val AvatarPairs = listOf(
-        Pair(0xFFE2DFFFL, 0xFF3323CCL), // Indigo
-        Pair(0xFFF0FDF4L, 0xFF15803DL), // Green
-        Pair(0xFFE0F2FEL, 0xFF0369A1L), // Sky
-        Pair(0xFFFDF4FFL, 0xFF7E22CEL), // Purple
-        Pair(0xFFFFD2BEL, 0xFF7E3000L), // Terracotta (tertiary)
-        Pair(0xFFDCE2F7L, 0xFF404758L)  // Slate (secondary)
+        Pair(0xFFE2DFFFL, 0xFF3323CCL),
+        Pair(0xFFF0FDF4L, 0xFF15803DL),
+        Pair(0xFFE0F2FEL, 0xFF0369A1L),
+        Pair(0xFFFDF4FFL, 0xFF7E22CEL),
+        Pair(0xFFFFD2BEL, 0xFF7E3000L),
+        Pair(0xFFDCE2F7L, 0xFF404758L)
     )
 }
+

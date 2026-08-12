@@ -6,7 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.UploadFile
+import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -15,10 +15,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-// import io.github.vinceglb.filekit.*
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.*
 
 @Composable
 fun AppDocumentPicker(
@@ -30,11 +39,11 @@ fun AppDocumentPicker(
     val shape = RoundedCornerShape(12.dp)
     val hasFile = file != null
 
-    Column(modifier = modifier) {
+    Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -42,16 +51,28 @@ fun AppDocumentPicker(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(100.dp)
+                .height(104.dp)
                 .clip(shape)
                 .background(
-                    if (hasFile) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                    else MaterialTheme.colorScheme.surfaceContainerLowest
+                    if (hasFile) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
+                    else MaterialTheme.colorScheme.surfaceContainerLow
                 )
-                .border(
-                    width = 1.dp,
-                    color = if (hasFile) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-                    shape = shape
+                .then(
+                    if (hasFile) {
+                        Modifier.border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = shape
+                        )
+                    } else {
+                        Modifier.dashedBorder(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = shape,
+                            on = 4.dp,
+                            off = 4.dp
+                        )
+                    }
                 )
                 .clickable { onClick() },
             contentAlignment = Alignment.Center
@@ -66,12 +87,12 @@ fun AppDocumentPicker(
                         imageVector = Icons.Rounded.CheckCircle,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "Document attached",
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = stringResource(Res.string.document_picker_attached),
+                        style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
@@ -81,22 +102,53 @@ fun AppDocumentPicker(
             } else {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(20.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.UploadFile,
+                        imageVector = Icons.Default.CloudUpload,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(32.dp)
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "Tap to upload",
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = stringResource(Res.string.document_picker_upload_hint),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(Res.string.document_picker_max_size),
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         }
     }
+}
+
+private fun Modifier.dashedBorder(
+    width: Dp,
+    color: Color,
+    shape: Shape,
+    on: Dp = 4.dp,
+    off: Dp = 4.dp
+): Modifier = drawWithContent {
+    drawContent()
+    val stroke = Stroke(
+        width = width.toPx(),
+        pathEffect = PathEffect.dashPathEffect(
+            intervals = floatArrayOf(on.toPx(), off.toPx()),
+            phase = 0f
+        )
+    )
+    val outline = shape.createOutline(size, layoutDirection, this)
+    drawOutline(
+        outline = outline,
+        color = color,
+        style = stroke
+    )
 }

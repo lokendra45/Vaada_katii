@@ -39,8 +39,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import com.gaatho.rent.core.designsystem.AppDimensions
-import com.gaatho.rent.core.designsystem.ExtendedColorHex
 import com.gaatho.rent.core.designsystem.RentManagerTheme
+import com.gaatho.rent.core.designsystem.ExtendedColorHex
+import com.gaatho.rent.core.designsystem.Spacing
+import com.gaatho.rent.core.designsystem.Radius
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.core.ui.components.AppSearchBar
 import com.gaatho.rent.features.tenant.domain.model.Tenant
@@ -116,7 +118,7 @@ fun TenantsListContent(
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) { padding ->
         Column(
             modifier = Modifier
@@ -195,10 +197,14 @@ fun TenantsListContent(
                             }
                         } else {
                             LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f),
-                                contentPadding = PaddingValues(bottom = 24.dp)
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(
+                                    start = Spacing.ScreenPadding,
+                                    end = Spacing.ScreenPadding,
+                                    top = Spacing.Scale8,
+                                    bottom = 100.dp
+                                ),
+                                verticalArrangement = Arrangement.spacedBy(Spacing.ItemGap)
                             ) {
                                 items(
                                     count = pagedTenants.itemCount,
@@ -211,10 +217,6 @@ fun TenantsListContent(
                                             tenant = tenant,
                                             onClick = { onAction(TenantsListAction.OnTenantClicked(tenant.id)) }
                                         )
-
-                                        if (index < pagedTenants.itemCount - 1) {
-                                            Spacer(modifier = Modifier.height(12.dp))
-                                        }
                                     }
                                 }
                                 
@@ -321,17 +323,18 @@ private fun TenantsFilterStrip(
 @Composable
 private fun TenantRowItem(
     tenant: TenantDisplayModel,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    onClick: () -> Unit
 ) {
     Surface(
         onClick = onClick,
-        color = MaterialTheme.colorScheme.surfaceContainerLowest
+        color = Color.Transparent, // Figma list style (transparent background, uses outer surface)
+        shape = RoundedCornerShape(Radius.Md),
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 16.dp),
+                .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Perfect Circle Avatar

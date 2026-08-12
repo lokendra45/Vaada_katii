@@ -48,6 +48,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.gaatho.rent.core.designsystem.AppDimensions
 import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.designsystem.ExtendedColorHex
+import com.gaatho.rent.core.designsystem.Spacing
+import com.gaatho.rent.core.designsystem.Radius
 import com.gaatho.rent.core.ui.ErrorMessageExtractor
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.features.property.domain.model.Property
@@ -154,7 +156,7 @@ fun PropertyListContent(
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) { padding ->
         Column(
             modifier = Modifier
@@ -192,7 +194,13 @@ fun PropertyListContent(
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 24.dp)
+                        contentPadding = PaddingValues(
+                            start = Spacing.ScreenPadding,
+                            end = Spacing.ScreenPadding,
+                            top = Spacing.Scale8,
+                            bottom = 100.dp
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(Spacing.ItemGap)
                     ) {
                         item {
                             com.gaatho.rent.core.ui.components.AppSearchBar(
@@ -238,8 +246,7 @@ fun PropertyListContent(
                             if (property != null) {
                                 PropertyRowItem(
                                     property = property,
-                                    onClick = { onAction(PropertyListAction.OnPropertyClicked(property.id)) },
-                                    modifier = Modifier.padding(horizontal = AppDimensions.ScreenHorizontalPadding)
+                                    onClick = { onAction(PropertyListAction.OnPropertyClicked(property.id)) }
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
                             }
@@ -267,19 +274,24 @@ fun PropertyListContent(
 @Composable
 private fun PropertyRowItem(
     property: PropertyDisplayModel,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    onClick: () -> Unit
 ) {
-    Row(
-        modifier = modifier
+    Surface(
+        modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(com.gaatho.rent.core.designsystem.Radius.Md),
+        color = Color.Transparent
     ) {
-        // Thumbnail / Avatar (Image or Soft tinted square with initials)
-        val imageUrl = property.imageUrl
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp, horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Thumbnail / Avatar (Image or Soft tinted square with initials)
+            val imageUrl = property.imageUrl
         var isImageRendered = false
         
         if (imageUrl != null && imageUrl.startsWith("base64:")) {
@@ -373,6 +385,7 @@ private fun PropertyRowItem(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                 )
             }
+        }
         }
     }
 }

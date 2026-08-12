@@ -38,6 +38,9 @@ import com.gaatho.rent.features.tenant.presentation.edit.EditTenantAction
 import com.gaatho.rent.features.tenant.presentation.edit.EditTenantSideEffect
 import com.gaatho.rent.features.tenant.presentation.edit.EditTenantState
 import com.gaatho.rent.features.tenant.presentation.edit.EditTenantViewModel
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.*
 
 // ─── Stateful entry point ─────────────────────────────────────────────────────
 // Owns ViewModel, collects State & SideEffects, delegates rendering to stateless Content.
@@ -309,13 +312,13 @@ fun AddTenantContent(
                 Spacer(Modifier.height(24.dp))
 
                 Text(
-                    text = "Tenant Documents (Nepal)",
+                    text = stringResource(Res.string.tenant_documents_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "Upload citizenship or passport for verification",
+                    text = stringResource(Res.string.tenant_documents_subtitle),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -326,13 +329,13 @@ fun AddTenantContent(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     AppDocumentPicker(
-                        title = "Citizenship (Front)",
+                        title = stringResource(Res.string.citizenship_front),
                         file = citizenshipFront,
                         onClick = { },
                         modifier = Modifier.weight(1f)
                     )
                     AppDocumentPicker(
-                        title = "Citizenship (Back)",
+                        title = stringResource(Res.string.citizenship_back),
                         file = citizenshipBack,
                         onClick = { },
                         modifier = Modifier.weight(1f)
@@ -342,7 +345,7 @@ fun AddTenantContent(
                 Spacer(Modifier.height(16.dp))
 
                 AppDocumentPicker(
-                    title = "Passport (Optional)",
+                    title = stringResource(Res.string.passport_optional),
                     file = passportDoc,
                     onClick = { },
                     modifier = Modifier.fillMaxWidth()

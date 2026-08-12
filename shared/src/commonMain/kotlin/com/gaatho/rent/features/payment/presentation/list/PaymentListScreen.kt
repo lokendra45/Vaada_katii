@@ -25,6 +25,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.AppDimensions
+import com.gaatho.rent.core.designsystem.ExtendedColorHex
+import com.gaatho.rent.core.designsystem.Radius
+import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.designsystem.Spacing
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.core.ui.components.AppSearchBar
@@ -79,7 +82,7 @@ private fun PaymentListContent(
                 }
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) { paddings ->
         Column(
             modifier = Modifier
@@ -188,12 +191,14 @@ private fun PaymentRowItem(
 
     Surface(
         onClick = onClick,
-        color = Color.Transparent
+        color = Color.Transparent,
+        shape = RoundedCornerShape(Radius.Md),
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 14.dp),
+                .padding(vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Circular Avatar (Finzo style)

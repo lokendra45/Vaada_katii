@@ -8,12 +8,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-import com.gaatho.rent.core.designsystem.softShadow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.foundation.border
+import com.gaatho.rent.core.designsystem.AppShadow.figmaCardShadow
 
 /**
- * Standardized AppCard replacing all default Material Cards.
- * Features the ultra-soft "floating" shadow and pure white backgrounds 
- * by default (no hard borders).
+ * Standardized Figma-aligned card surface.
  */
 @Composable
 fun AppCard(
@@ -21,14 +21,21 @@ fun AppCard(
     shape: Shape = MaterialTheme.shapes.medium, // Defaults to our new 24.dp organic radius
     containerColor: Color = MaterialTheme.colorScheme.surface, // Pure White
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
+    shadowElevation: Dp = 0.dp,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Surface(
-        modifier = modifier.softShadow(shape = shape),
+        modifier = modifier
+            .figmaCardShadow(shape = shape)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant,
+                shape = shape
+            ),
         shape = shape,
         color = containerColor,
         contentColor = contentColor,
-        shadowElevation = 0.dp // We use our custom softShadow instead
+        shadowElevation = shadowElevation
     ) {
         androidx.compose.foundation.layout.Column(content = content)
     }

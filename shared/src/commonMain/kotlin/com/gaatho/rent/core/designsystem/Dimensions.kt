@@ -9,15 +9,25 @@ import androidx.compose.ui.unit.dp
  * 8pt grid system. All values are multiples of 4dp.
  */
 object Spacing {
-    /** 8dp — base grid unit */
-    val BaseUnit        = 8.dp
-    /** 24dp — standard screen edge padding */
-    val ScreenPadding   = 24.dp
-    /** 32dp — separation between high-level sections */
-    val SectionGap      = 32.dp
-    /** 16dp — separation between items/cards within a section */
-    val ItemGap         = 16.dp
-    /** 8dp — tight label/icon stacking */
+    /** Figma Spec Spacing Scale */
+    val Scale2          = 2.dp
+    val Scale4          = 4.dp
+    val Scale6          = 6.dp
+    val Scale8          = 8.dp
+    val Scale10         = 10.dp
+    val Scale12         = 12.dp
+    val Scale16         = 16.dp
+    val Scale20         = 20.dp
+    val Scale24         = 24.dp
+    val Scale28         = 28.dp
+
+    /** 20dp — standard screen edge padding (Figma spec) */
+    val ScreenPadding   = 20.dp
+    /** 24dp — separation between high-level sections */
+    val SectionGap      = 24.dp
+    /** 12dp — separation between list items */
+    val ItemGap         = 12.dp
+    /** 8dp — gap between Title and Description (Hierarchy spec) */
     val StackTight      = 8.dp
     /** 16dp — loose stacking within a component */
     val StackLoose      = 16.dp
@@ -27,18 +37,20 @@ object Spacing {
  * Corner radius tokens (rem → dp at 16px/rem base).
  */
 object Radius {
-    /** 4dp — small chips, tags */
-    val Sm      = 4.dp
-    /** 8dp — default subtle rounding */
-    val Default = 8.dp
-    /** 12dp — cards, buttons, inputs (primary usage) */
-    val Md      = 12.dp
-    /** 16dp — large containers, bottom sheets */
-    val Lg      = 16.dp
-    /** 24dp — extra-large cards */
+    /** 9-10px — Small element (inputs, small cards) */
+    val Sm      = 10.dp
+    /** 12px — Figma dashboard buttons and compact controls */
+    val Button  = 12.dp
+    /** 14px — Medium radius (cards, containers) */
+    val Default = 14.dp
+    /** 14px — Medium radius (cards, containers) */
+    val Md      = 14.dp
+    /** 50px — Large radius (tags, badges) */
+    val Lg      = 50.dp
+    /** 24dp — extra-large cards (optional) */
     val Xl      = 24.dp
-    /** 9999dp — pill shape for badges and filter chips */
-    val Full    = 9999.dp
+    /** 100px+ — Full round (avatars, pills) */
+    val Full    = 100.dp
 }
 
 /**
@@ -60,7 +72,7 @@ object AppDimensions {
     val RadiusSmall             get() = Radius.Sm
     val radiusMd                get() = Radius.Md
     val RadiusMedium            get() = Radius.Md
-    val TextFieldCornerRadius   get() = Radius.Md
+    val TextFieldCornerRadius   get() = Radius.Sm
     val radiusLg                get() = Radius.Lg
     val RadiusLarge             get() = Radius.Lg
     val radiusXl                get() = Radius.Xl
@@ -69,8 +81,11 @@ object AppDimensions {
 
     // ── Component sizes ───────────────────────────────────────────────────
     val TextFieldBorderWidth       get() = 1.dp
-    val TextFieldHorizontalPadding get() = Spacing.ItemGap   // 16dp
-    val TextFieldVerticalPadding   get() = Spacing.StackLoose // 12dp
-    val ButtonHeightMedium         get() = 48.dp
-    val ButtonHeightLarge          get() = 56.dp
+    val TextFieldHeight            get() = 50.dp
+    val TextFieldHorizontalPadding get() = 14.dp
+    val TextFieldVerticalPadding   get() = Spacing.Scale16
+    val FieldLabelGap              get() = Spacing.Scale8
+    val ButtonHeightMedium         get() = 44.dp
+    val ButtonHeightLarge          get() = 45.dp
+    val ActionButtonRadius         get() = Radius.Button
 }

@@ -14,11 +14,11 @@ import androidx.compose.ui.graphics.Color
 // Light Color Scheme — exact YAML token mapping
 // ─────────────────────────────────────────────────────────────────────────────
 private val QuietPremiumLight = lightColorScheme(
-    primary                = Primary,
-    onPrimary              = OnPrimary,
-    primaryContainer       = PrimaryContainer,
-    onPrimaryContainer     = OnPrimaryContainer,
-    inversePrimary         = InversePrimary,
+    primary                = LightPrimary,
+    onPrimary              = LightOnPrimary,
+    primaryContainer       = LightPrimaryContainer,
+    onPrimaryContainer     = LightOnPrimaryContainer,
+    inversePrimary         = LightInversePrimary,
     secondary              = Secondary,
     onSecondary            = OnSecondary,
     secondaryContainer     = SecondaryContainer,
@@ -31,23 +31,23 @@ private val QuietPremiumLight = lightColorScheme(
     onError                = OnError,
     errorContainer         = ErrorContainer,
     onErrorContainer       = OnErrorContainer,
-    background             = Background,
-    onBackground           = OnBackground,
-    surface                = Surface,
-    onSurface              = OnSurface,
-    surfaceVariant         = SurfaceVariant,
-    onSurfaceVariant       = OnSurfaceVariant,
-    inverseSurface         = InverseSurface,
-    inverseOnSurface       = InverseOnSurface,
-    outline                = Outline,
-    outlineVariant         = OutlineVariant,
+    background             = LightBackground,
+    onBackground           = LightOnBackground,
+    surface                = LightSurface,
+    onSurface              = LightOnSurface,
+    surfaceVariant         = LightSurfaceVariant,
+    onSurfaceVariant       = LightOnSurfaceVariant,
+    inverseSurface         = LightInverseSurface,
+    inverseOnSurface       = LightInverseOnSurface,
+    outline                = LightOutline,
+    outlineVariant         = LightOutlineVariant,
     scrim                  = Color(0xFF000000),
-    surfaceTint            = SurfaceTint,
-    surfaceContainerLowest = SurfaceContainerLowest,
-    surfaceContainerLow    = SurfaceContainerLow,
-    surfaceContainer       = SurfaceContainer,
-    surfaceContainerHigh   = SurfaceContainerHigh,
-    surfaceContainerHighest= SurfaceContainerHighest,
+    surfaceTint            = LightSurfaceTint,
+    surfaceContainerLowest = LightSurfaceContainerLowest,
+    surfaceContainerLow    = LightSurfaceContainerLow,
+    surfaceContainer       = LightSurfaceContainer,
+    surfaceContainerHigh   = LightSurfaceContainerHigh,
+    surfaceContainerHighest= LightSurfaceContainerHighest,
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -93,9 +93,9 @@ private val QuietPremiumDark = darkColorScheme(
 @Composable
 fun rentManagerShapes(): Shapes {
     return Shapes(
-        small = RoundedCornerShape(8.dp),
-        medium = RoundedCornerShape(24.dp), // Premium organic large radius
-        large = RoundedCornerShape(50) // Pill shape for primary buttons
+        small = RoundedCornerShape(Radius.Sm),
+        medium = RoundedCornerShape(Radius.Md), 
+        large = RoundedCornerShape(Radius.Lg)
     )
 }
 

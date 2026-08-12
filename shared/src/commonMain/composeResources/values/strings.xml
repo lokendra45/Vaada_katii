@@ -196,4 +196,16 @@
     <!-- Property -->
     <string name="property_create_button">Create Property</string>
 
+    <!-- Document Picker -->
+    <string name="document_picker_upload_hint">Upload JPG, PNG or PDF</string>
+    <string name="document_picker_max_size">Max size 5MB</string>
+    <string name="document_picker_attached">Document attached</string>
+
+    <!-- Add Tenant -->
+    <string name="tenant_documents_title">Tenant Documents (Nepal)</string>
+    <string name="tenant_documents_subtitle">Upload citizenship or passport for verification</string>
+    <string name="citizenship_front">Citizenship (Front)</string>
+    <string name="citizenship_back">Citizenship (Back)</string>
+    <string name="passport_optional">Passport (Optional)</string>
+
 </resources>
