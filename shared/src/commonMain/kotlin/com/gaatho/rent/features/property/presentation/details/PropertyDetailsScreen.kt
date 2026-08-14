@@ -2,6 +2,7 @@ package com.gaatho.rent.features.property.presentation.details
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +47,7 @@ import com.gaatho.rent.core.designsystem.components.RentManagerPrimaryButton
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.core.ui.components.AppCard
 import com.gaatho.rent.core.ui.components.AppStatusBadge
+import com.gaatho.rent.core.ui.components.AppSummaryCard
 import com.gaatho.rent.core.ui.components.AppTopBar
 import com.gaatho.rent.core.utils.CurrencyUtil
 import com.gaatho.rent.core.utils.toImageBitmap
@@ -55,7 +57,6 @@ import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
-import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
 import rentmanagerapp.shared.generated.resources.Res
 import rentmanagerapp.shared.generated.resources.add_tenant
@@ -73,6 +74,9 @@ import rentmanagerapp.shared.generated.resources.total_units_value
 import rentmanagerapp.shared.generated.resources.unit_assignments_title
 import rentmanagerapp.shared.generated.resources.vacant_label
 import rentmanagerapp.shared.generated.resources.vacant_label_short
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.rememberViewModelStoreOwner
+import org.koin.compose.viewmodel.koinViewModel
 
 // ─── Entry point ──────────────────────────────────────────────────────────────
 
@@ -84,7 +88,7 @@ fun PropertyDetailsScreen(
     onNavigateToAddTenant: () -> Unit = {},
     viewModel: PropertyDetailsViewModel = koinInject(parameters = { parametersOf(propertyId) })
 ) {
-    val state by viewModel.collectAsState()
+    val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
 
     viewModel.collectSideEffect { effect ->
         when (effect) {
@@ -95,14 +99,14 @@ fun PropertyDetailsScreen(
         }
     }
 
-    PropertyDetailsContent(state = state, onAction = viewModel::onAction)
+    PropertyDetailsContent(propertyId = propertyId, onAction = viewModel::onAction)
 }
 
 // ─── Content ──────────────────────────────────────────────────────────────────
 
 @Composable
 private fun PropertyDetailsContent(
-    state: PropertyDetailsState,
+    propertyId: String,
     onAction: (PropertyDetailsAction) -> Unit,
 ) {
     Scaffold(
@@ -132,114 +136,159 @@ private fun PropertyDetailsContent(
                 .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
         ) {
-            when (val propState = state.propertyState) {
-                is UiState.Loading, UiState.Idle -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                    }
-                }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
+            ) {
+                Spacer(Modifier.height(8.dp))
 
-                is UiState.Error -> {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().padding(40.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(text = propState.message, color = MaterialTheme.colorScheme.error)
-                    }
-                }
+                PropertyIdentitySection(propertyId = propertyId)
 
-                is UiState.Success -> {
-                    val property = propState.data
-                    val occupied = state.occupiedUnits
-                    val total = state.totalUnits
-                    val vacant = (total - occupied).coerceAtLeast(0)
+                Spacer(Modifier.height(20.dp))
 
-                    val collected = (state.financialState as? UiState.Success<FinancialSummary>)?.data?.totalCollected ?: 0L
-                    val expected = state.monthlyIncome
-                    val percent = if (expected > 0) ((collected * 100) / expected).toInt() else 0
+                PropertyStatsSection(propertyId = propertyId)
 
-                    val assignedUnits =
-                        (state.unitsState as? UiState.Success<ImmutableList<UnitDisplayModel>>)?.data
-                            ?.filter { it.paymentStatus != UnitPaymentStatus.VACANT }
-                            ?: emptyList()
+                Spacer(Modifier.height(20.dp))
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .padding(horizontal = 24.dp)
-                    ) {
-                        Spacer(Modifier.height(8.dp))
+                PropertyUnitsSection(
+                    propertyId = propertyId,
+                    onAction = onAction
+                )
 
-                        // 1. Hero image
-                        PropertyHeroImage(imageUrl = property.imageUrl)
+                Spacer(Modifier.height(24.dp))
+            }
+        }
+    }
+}
 
-                        Spacer(Modifier.height(16.dp))
+@Composable
+private fun PropertyIdentitySection(propertyId: String) {
+    val viewModelStoreOwner = rememberViewModelStoreOwner()
+    val viewModel = koinViewModel<PropertyIdentityViewModel>(
+        viewModelStoreOwner = viewModelStoreOwner,
+        parameters = { parametersOf(propertyId) }
+    )
+    val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
 
-                        // 2. Property identity
-                        Text(
-                            text = property.name,
-                            style = MaterialTheme.typography.headlineMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp,
-                                color = MaterialTheme.colorScheme.onSurface
-                            ),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = property.address,
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            ),
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
+    when (val s = state.propertyState) {
+        is UiState.Success -> {
+            val property = s.data
+            PropertyHeroImage(imageUrl = property.imageUrl)
 
-                        Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(16.dp))
 
-                        // 3. Stats row
-                        StatsRow(
-                            totalUnits = total,
-                            occupiedUnits = occupied,
-                            vacantUnits = vacant
-                        )
+            Text(
+                text = property.name,
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = property.address,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        is UiState.Loading, UiState.Idle -> {
+            Box(modifier = Modifier.fillMaxWidth().height(160.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+        }
+        is UiState.Error -> {
+            Text(text = s.message, color = MaterialTheme.colorScheme.error)
+        }
+    }
+}
 
-                        Spacer(Modifier.height(20.dp))
+@Composable
+private fun PropertyStatsSection(propertyId: String) {
+    val viewModelStoreOwner = rememberViewModelStoreOwner()
+    val viewModel = koinViewModel<PropertyStatsViewModel>(
+        viewModelStoreOwner = viewModelStoreOwner,
+        parameters = { parametersOf(propertyId) }
+    )
+    val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
 
-                        // 4. Collection summary
-                        CollectionSummaryCard(collected = collected, expected = expected, percent = percent)
+    val vacant = (state.totalUnits - state.occupiedUnits).coerceAtLeast(0)
 
-                        Spacer(Modifier.height(20.dp))
+    StatsRow(
+        totalUnits = state.totalUnits,
+        occupiedUnits = state.occupiedUnits,
+        vacantUnits = vacant
+    )
 
-                        // 5. Unit assignments
-                        Text(
-                            text = stringResource(Res.string.unit_assignments_title),
-                            style = MaterialTheme.typography.titleSmall.copy(
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 11.sp,
-                                letterSpacing = 0.22.sp,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        )
-                        Spacer(Modifier.height(12.dp))
+    Spacer(Modifier.height(20.dp))
 
-                        if (assignedUnits.isEmpty()) {
-                            UnitAssignmentsEmpty()
-                        } else {
-                            assignedUnits.forEachIndexed { index, unit ->
-                                if (index > 0) Spacer(Modifier.height(12.dp))
-                                TenantRow(unit = unit)
-                            }
-                        }
+    when (val s = state.financialState) {
+        is UiState.Success -> {
+            val collected = s.data.totalCollected
+            val expected = state.monthlyIncome
+            val percent = if (expected > 0) ((collected * 100) / expected).toInt() else 0
+            CollectionSummaryCard(collected = collected, expected = expected, percent = percent)
+        }
+        is UiState.Loading -> {
+             Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+        }
+        is UiState.Error -> {}
+        UiState.Idle -> {}
+    }
+}
 
-                        Spacer(Modifier.height(24.dp))
-                    }
+@Composable
+private fun PropertyUnitsSection(
+    propertyId: String,
+    onAction: (PropertyDetailsAction) -> Unit
+) {
+    val viewModelStoreOwner = rememberViewModelStoreOwner()
+    val viewModel = koinViewModel<PropertyUnitsViewModel>(
+        viewModelStoreOwner = viewModelStoreOwner,
+        parameters = { parametersOf(propertyId) }
+    )
+    val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
+
+    Text(
+        text = stringResource(Res.string.unit_assignments_title),
+        style = MaterialTheme.typography.titleSmall.copy(
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 11.sp,
+            letterSpacing = 0.22.sp,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    )
+    Spacer(Modifier.height(12.dp))
+
+    when (val s = state.unitsState) {
+        is UiState.Success -> {
+            val assignedUnits = s.data.filter { it.paymentStatus != UnitPaymentStatus.VACANT }
+            if (assignedUnits.isEmpty()) {
+                UnitAssignmentsEmpty()
+            } else {
+                assignedUnits.forEachIndexed { index, unit ->
+                    if (index > 0) Spacer(Modifier.height(12.dp))
+                    TenantRow(unit = unit)
                 }
             }
         }
+        is UiState.Loading -> {
+             Box(modifier = Modifier.fillMaxWidth().padding(20.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+        }
+        is UiState.Error -> {}
+        UiState.Idle -> {}
     }
 }
 
@@ -251,9 +300,14 @@ private fun PropertyHeroImage(imageUrl: String?) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(160.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainer),
+            .height(180.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                shape = RoundedCornerShape(16.dp)
+            ),
         contentAlignment = Alignment.Center
     ) {
         if (imageUrl != null) {
@@ -286,12 +340,31 @@ private fun PropertyHeroImage(imageUrl: String?) {
         }
 
         if (!isRendered) {
-            Icon(
-                imageVector = Icons.Default.Home,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                modifier = Modifier.size(40.dp)
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Home,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "No Image Added",
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -304,19 +377,19 @@ private fun StatsRow(totalUnits: Int, occupiedUnits: Int, vacantUnits: Int) {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        StatCard(
+        AppSummaryCard(
             label = stringResource(Res.string.total_units_label),
-            value = stringResource(Res.string.total_units_value, totalUnits),
+            value = totalUnits.toString(),
             valueColor = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)
         )
-        StatCard(
+        AppSummaryCard(
             label = stringResource(Res.string.occupied),
             value = stringResource(Res.string.occupied_label, occupiedUnits),
             valueColor = MaterialTheme.colorScheme.primary,
             modifier = Modifier.weight(1f)
         )
-        StatCard(
+        AppSummaryCard(
             label = stringResource(Res.string.vacant_label_short),
             value = stringResource(Res.string.vacant_label, vacantUnits),
             valueColor = AppColors.Error,
@@ -325,44 +398,7 @@ private fun StatsRow(totalUnits: Int, occupiedUnits: Int, vacantUnits: Int) {
     }
 }
 
-@Composable
-private fun StatCard(
-    label: String,
-    value: String,
-    valueColor: Color,
-    modifier: Modifier = Modifier,
-) {
-    AppCard(
-        modifier = modifier.height(64.dp),
-        shape = RoundedCornerShape(12.dp),
-        useCardShadow = false
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                ),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 13.sp,
-                    color = valueColor
-                ),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
-}
+
 
 // ─── Collection summary ───────────────────────────────────────────────────────
 
@@ -580,30 +616,12 @@ private val previewFinancials = FinancialSummary(
     outstandingDues = 18_500L,
 )
 
-@Preview(name = "Property Details — Success")
-@Composable
-private fun PropertyDetailsSuccessPreview() {
-    RentManagerTheme {
-        PropertyDetailsContent(
-            state = PropertyDetailsState(
-                propertyState = UiState.Success(previewProperty),
-                unitsState = UiState.Success(previewUnits),
-                financialState = UiState.Success(previewFinancials),
-                monthlyIncome = 160_000L,
-                occupiedUnits = 3,
-                totalUnits = 4,
-            ),
-            onAction = {}
-        )
-    }
-}
-
 @Preview(name = "Property Details — Loading")
 @Composable
 private fun PropertyDetailsLoadingPreview() {
     RentManagerTheme {
         PropertyDetailsContent(
-            state = PropertyDetailsState(),
+            propertyId = "123",
             onAction = {}
         )
     }

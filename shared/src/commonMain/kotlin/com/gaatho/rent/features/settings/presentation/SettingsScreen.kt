@@ -32,7 +32,6 @@ import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.ui.components.AppConfirmDialog
 import org.koin.compose.koinInject
-import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
 
 import org.koin.compose.viewmodel.koinViewModel
@@ -51,7 +50,7 @@ fun SettingsScreen(
     val languageViewModel = koinViewModel<LanguageViewModel>()
     val currentLanguageCode by languageViewModel.languageCode.collectAsStateWithLifecycle()
     
-    val state by viewModel.collectAsState()
+    val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
     viewModel.collectSideEffect { effect ->
@@ -182,14 +181,14 @@ private fun SettingsContent(
                     onDismissRequest = { languageDropDownVisible = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("English") },
+                        text = { Text(stringResource(Res.string.language_english)) },
                         onClick = {
                             onLanguageChanged("en")
                             languageDropDownVisible = false
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("नेपाली") },
+                        text = { Text(stringResource(Res.string.language_nepali)) },
                         onClick = {
                             onLanguageChanged("ne")
                             languageDropDownVisible = false

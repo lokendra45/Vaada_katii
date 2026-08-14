@@ -29,82 +29,9 @@ class PropertyDetailsViewModel(
     }
 
     private fun observeData() = intent {
-        val ownerId = userIdentityProvider.currentUserId()
-
-        combine(
-            propertyRepository.getProperties(ownerId),
-            tenantRepository.getTenants(ownerId)
-        ) { properties, tenants ->
-            val property = properties.firstOrNull { it.id == propertyId }
-            val propertyTenants = tenants.filter { it.propertyId == propertyId }
-            Pair(property, propertyTenants)
-        }
-            .catch { e ->
-                reduce {
-                    state.copy(
-                        propertyState = UiState.Error(e.message ?: "Failed to load property"),
-                        unitsState = UiState.Error("Failed to load units"),
-                        financialState = UiState.Error("Failed to load financials"),
-                    )
-                }
-            }
-            .collect { (property, tenants) ->
-                val units = buildUnitList(tenants)
-                val occupied = units.count { it.paymentStatus != UnitPaymentStatus.VACANT }
-                val monthlyIncome = units
-                    .filter { it.paymentStatus != UnitPaymentStatus.VACANT }
-                    .sumOf { it.rentPerMonth }
-                val totalCollected = units
-                    .filter { it.paymentStatus == UnitPaymentStatus.PAID }
-                    .sumOf { it.rentPerMonth }
-                val outstanding = units
-                    .filter { it.paymentStatus == UnitPaymentStatus.OVERDUE }
-                    .sumOf { it.rentPerMonth }
-                val currentMonth = kotlin.time.Clock.System
-                    .now()
-                    .toLocalDateTime(TimeZone.currentSystemDefault())
-                    .month
-                    .name
-                    .lowercase()
-                    .replaceFirstChar { it.uppercaseChar() }
-
-                reduce {
-                    state.copy(
-                        propertyState = if (property != null) UiState.Success(property)
-                        else UiState.Error("Property not found"),
-                        unitsState = UiState.Success(units.toImmutableList()),
-                        financialState = UiState.Success(
-                            FinancialSummary(
-                                currentMonth = currentMonth,
-                                totalCollected = totalCollected,
-                                outstandingDues = outstanding,
-                            )
-                        ),
-                        monthlyIncome = monthlyIncome,
-                        occupiedUnits = occupied,
-                        totalUnits = units.size,
-                    )
-                }
-            }
+        // Top level viewmodel doesn't load component state anymore
     }
 
-    /** Maps tenants to unit display rows. Each tenant's roomNumber becomes the unit label. */
-    private fun buildUnitList(tenants: List<Tenant>): List<UnitDisplayModel> {
-        if (tenants.isEmpty()) return emptyList()
-        return tenants.map { tenant ->
-            val status = when {
-                tenant.status.equals("Overdue", ignoreCase = true) -> UnitPaymentStatus.OVERDUE
-                tenant.status.equals("Active", ignoreCase = true) -> UnitPaymentStatus.PAID
-                else -> UnitPaymentStatus.VACANT
-            }
-            UnitDisplayModel(
-                unitNumber = tenant.roomNumber ?: "—",
-                tenantName = if (status == UnitPaymentStatus.VACANT) null else tenant.name,
-                rentPerMonth = tenant.rentAmount,
-                paymentStatus = status,
-            )
-        }
-    }
 
     override fun onAction(action: PropertyDetailsAction) {
         when (action) {

@@ -13,7 +13,7 @@ import com.gaatho.rent.features.dashboard.presentation.components.DashboardBotto
 import com.gaatho.rent.features.dashboard.presentation.components.DashboardContent
 import com.gaatho.rent.features.dashboard.presentation.model.DashboardTab
 import org.koin.compose.viewmodel.koinViewModel
-import org.orbitmvi.orbit.compose.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 /**
  * The main structural shell of the application after login.
@@ -34,7 +34,7 @@ fun MainDashboardScreen(
     onNavigateToLogin: () -> Unit = {}
 ) {
     val viewModel: MainDashboardViewModel = koinViewModel()
-    val state by viewModel.collectAsState()
+    val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
 
     MainDashboardContent(
         state = state,

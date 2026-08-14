@@ -35,10 +35,10 @@ import com.gaatho.rent.core.utils.TenantUtils
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
-import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
 import rentmanagerapp.shared.generated.resources.Res
 import rentmanagerapp.shared.generated.resources.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun PaymentDetailsScreen(
@@ -47,7 +47,7 @@ fun PaymentDetailsScreen(
     onNavigateToEdit: (String) -> Unit = {}
 ) {
     val viewModel: PaymentDetailsViewModel = koinViewModel(parameters = { parametersOf(paymentId) })
-    val state by viewModel.collectAsState()
+    val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
     viewModel.collectSideEffect { sideEffect ->
@@ -121,7 +121,7 @@ private fun PaymentDetailsContent(
                         ) {
                             Icon(imageVector = Icons.Default.Download, contentDescription = null, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Download\nReceipt", textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                            Text(stringResource(Res.string.download_receipt_action), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                         }
 
                         Button(
@@ -132,7 +132,7 @@ private fun PaymentDetailsContent(
                         ) {
                             Icon(imageVector = Icons.Default.Share, contentDescription = null, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Share Details", textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                            Text(stringResource(Res.string.share_details_action), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                         }
                     }
                 }
@@ -159,7 +159,7 @@ private fun PaymentDetailsContent(
                         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text(text = result.message, color = MaterialTheme.colorScheme.error)
                             Button(onClick = { onAction(PaymentDetailsAction.OnRetry) }) {
-                                Text("Retry")
+                                Text(stringResource(Res.string.retry))
                             }
                         }
                     }
@@ -303,24 +303,15 @@ private fun PaymentDetailsContent(
         }
 
         if (state.showDeleteConfirm) {
-            AlertDialog(
-                onDismissRequest = { onAction(PaymentDetailsAction.OnDeleteDismissed) },
-                icon = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-                title = { Text("Delete Payment") },
-                text = { Text("Are you sure you want to delete this payment? This action cannot be undone.") },
-                confirmButton = {
-                    Button(
-                        onClick = { onAction(PaymentDetailsAction.OnDeleteConfirmed) },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                    ) {
-                        Text("Delete")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { onAction(PaymentDetailsAction.OnDeleteDismissed) }) {
-                        Text("Cancel")
-                    }
-                }
+            com.gaatho.rent.core.ui.components.AppDialog(
+                icon = Icons.Default.Delete,
+                title = stringResource(Res.string.delete_payment_title),
+                body = stringResource(Res.string.delete_payment_desc),
+                confirmText = stringResource(Res.string.delete_action),
+                dismissText = stringResource(Res.string.cancel_action),
+                onConfirm = { onAction(PaymentDetailsAction.OnDeleteConfirmed) },
+                onDismiss = { onAction(PaymentDetailsAction.OnDeleteDismissed) },
+                variant = com.gaatho.rent.core.ui.components.AppDialog.Variant.Destructive
             )
         }
     }

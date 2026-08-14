@@ -14,7 +14,7 @@ import com.gaatho.rent.core.database.security.SecretString
             entity = TenantEntity::class,
             parentColumns = ["id"],
             childColumns = ["tenant_id"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.SET_NULL
         ),
         ForeignKey(
             entity = PropertyEntity::class,
@@ -24,9 +24,16 @@ import com.gaatho.rent.core.database.security.SecretString
         )
     ],
     indices = [
-        Index(value = ["owner_id"]),
-        Index(value = ["tenant_id"]),
-        Index(value = ["property_id"])
+        // payment(owner_id, date, id)
+        Index(value = ["owner_id", "date", "id"]),
+        // payment(owner_id, status, date, id)
+        Index(value = ["owner_id", "status", "date", "id"]),
+        // payment(tenant_id, date, id)
+        Index(value = ["tenant_id", "date", "id"]),
+        // payment(owner_id, property_id, date, id)
+        Index(value = ["owner_id", "property_id", "date", "id"]),
+        // Idempotency check for production reliability
+        Index(value = ["idempotency_key"], unique = true)
     ]
 )
 data class PaymentEntity(
@@ -35,7 +42,7 @@ data class PaymentEntity(
     @ColumnInfo(name = "owner_id")
     val ownerId: String,
     @ColumnInfo(name = "tenant_id")
-    val tenantId: String,
+    val tenantId: String?,
     @ColumnInfo(name = "property_id")
     val propertyId: String?,
     val amount: Long,
@@ -51,6 +58,14 @@ data class PaymentEntity(
     @ColumnInfo(name = "sync_status", defaultValue = "PENDING")
     val syncStatus: String = "PENDING",
     @ColumnInfo(name = "last_sync_error")
-    val lastSyncError: String? = null
+    val lastSyncError: String? = null,
+    @ColumnInfo(name = "device_id", defaultValue = "")
+    val deviceId: String = "",
+    @ColumnInfo(name = "version", defaultValue = "1")
+    val version: Int = 1,
+    @ColumnInfo(name = "deleted_at")
+    val deletedAt: String? = null,
+    @ColumnInfo(name = "idempotency_key")
+    val idempotencyKey: String? = null
 )
 

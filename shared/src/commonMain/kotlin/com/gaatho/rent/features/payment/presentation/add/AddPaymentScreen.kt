@@ -30,7 +30,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -73,13 +72,14 @@ import rentmanagerapp.shared.generated.resources.payment_remarks_label
 import rentmanagerapp.shared.generated.resources.payment_remarks_placeholder
 import rentmanagerapp.shared.generated.resources.payment_tenant_label
 import rentmanagerapp.shared.generated.resources.payment_tenant_placeholder
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun AddPaymentScreen(
     onNavigateBack: () -> Unit
 ) {
     val viewModel: AddPaymentViewModel = koinViewModel()
-    val state by viewModel.container.stateFlow.collectAsState()
+    val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
     val snackbarState = rememberAppSnackbarState()
 
     LaunchedEffect(viewModel.container.sideEffectFlow) {

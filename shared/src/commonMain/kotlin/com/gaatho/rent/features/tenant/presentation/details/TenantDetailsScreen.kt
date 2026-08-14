@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,7 +30,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,12 +39,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.rememberViewModelStoreOwner
 import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.ui.UiState
+import com.gaatho.rent.core.ui.components.AppActionPill
+import com.gaatho.rent.core.ui.components.AppStatusBadge
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 // ─── Entry point ─────────────────────────────────────────────────────────────
@@ -58,31 +60,30 @@ fun TenantDetailsScreen(
     onNavigateToEdit: (String) -> Unit = {},
     viewModel: TenantDetailsViewModel = koinInject(parameters = { parametersOf(tenantId) })
 ) {
-    val state by viewModel.container.stateFlow.collectAsState()
-
     LaunchedEffect(viewModel.container.sideEffectFlow) {
         viewModel.container.sideEffectFlow.collect { effect ->
             when (effect) {
-                is TenantDetailsEffect.NavigateBack          -> onNavigateBack()
-                is TenantDetailsEffect.NavigateToEdit        -> onNavigateToEdit(effect.tenantId)
-                is TenantDetailsEffect.OpenEmailApp          -> {}
-                is TenantDetailsEffect.OpenPhoneApp          -> {}
-                is TenantDetailsEffect.NavigateToTransactions -> {}
-                is TenantDetailsEffect.ShowToast             -> {}
-                is TenantDetailsEffect.ShowError             -> {}
+                is TenantDetailsEffect.NavigateBack -> onNavigateBack()
             }
         }
     }
 
-    TenantDetailsContent(state = state, onAction = viewModel::onAction)
+    TenantDetailsContent(
+        tenantId = tenantId,
+        onAction = viewModel::onAction,
+        onNavigateToEdit = onNavigateToEdit
+    )
 }
+
+// Removed LaunchEffect here since it's merged above
 
 // ─── Content ─────────────────────────────────────────────────────────────────
 
 @Composable
 private fun TenantDetailsContent(
-    state: TenantDetailsState,
-    onAction: (TenantDetailsAction) -> Unit
+    tenantId: String,
+    onAction: (TenantDetailsAction) -> Unit,
+    onNavigateToEdit: (String) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -90,7 +91,7 @@ private fun TenantDetailsContent(
                 title = "Tenant Profile",
                 onBackClick = { onAction(TenantDetailsAction.OnBackClicked) },
                 actions = {
-                    IconButton(onClick = { onAction(TenantDetailsAction.OnEditClicked) }) {
+                    IconButton(onClick = { onNavigateToEdit(tenantId) }) {
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "Edit",
@@ -117,49 +118,127 @@ private fun TenantDetailsContent(
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(20.dp))
-            when (val s = state.profileState) {
-                is UiState.Success -> ProfileCard(s.data, onAction)
-                is UiState.Loading -> { TenantDetailsSkeleton() }
-                else -> {}
-            }
+            
+            ProfileSection(tenantId = tenantId, onNavigateToEdit = onNavigateToEdit)
 
             Spacer(Modifier.height(24.dp))
-            when (val s = state.leaseState) {
-                is UiState.Success -> RentDetailsSection(s.data)
-                else -> {}
-            }
+            
+            LeaseSection(tenantId = tenantId)
 
             Spacer(Modifier.height(24.dp))
-            when (val s = state.transactionsState) {
-                is UiState.Success -> PaymentHistorySection(s.data, onAction)
-                else -> {}
-            }
+            
+            TransactionsSection(tenantId = tenantId)
 
             Spacer(Modifier.height(64.dp))
         }
-
-        if (state.showDeleteConfirm) {
-            com.gaatho.rent.core.ui.components.AppDialog(
-                variant = com.gaatho.rent.core.ui.components.AppDialog.Variant.Destructive,
-                layout = com.gaatho.rent.core.ui.components.AppDialog.Layout.Center,
-                icon = Icons.Default.Delete,
-                title = "Delete Tenant",
-                body = "Are you sure you want to delete this tenant? This action cannot be undone.",
-                confirmText = "Delete",
-                dismissText = "Cancel",
-                onConfirm = { onAction(TenantDetailsAction.OnDeleteConfirmed) },
-                onDismiss = { onAction(TenantDetailsAction.OnDeleteDismissed) }
-            )
-        }
     }
 }
+
+@Composable
+private fun ProfileSection(
+    tenantId: String,
+    onNavigateToEdit: (String) -> Unit
+) {
+    val viewModelStoreOwner = rememberViewModelStoreOwner()
+    val viewModel = koinViewModel<TenantProfileViewModel>(
+        viewModelStoreOwner = viewModelStoreOwner,
+        parameters = { parametersOf(tenantId) }
+    )
+    val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
+
+    LaunchedEffect(viewModel.container.sideEffectFlow) {
+        viewModel.container.sideEffectFlow.collect { effect ->
+            when (effect) {
+                is TenantProfileEffect.NavigateToEdit -> onNavigateToEdit(effect.tenantId)
+                is TenantProfileEffect.NavigateBack -> {} // Handle back if deleted
+                is TenantProfileEffect.OpenEmailApp -> {}
+                is TenantProfileEffect.OpenPhoneApp -> {}
+                is TenantProfileEffect.ShowToast -> {}
+                is TenantProfileEffect.ShowError -> {}
+            }
+        }
+    }
+
+    when (val s = state.profileState) {
+        is UiState.Success -> ProfileCard(s.data, viewModel::onAction)
+        is UiState.Loading -> TenantDetailsSkeleton()
+        else -> {}
+    }
+
+    if (state.showDeleteConfirm) {
+        com.gaatho.rent.core.ui.components.AppDialog(
+            variant = com.gaatho.rent.core.ui.components.AppDialog.Variant.Destructive,
+            layout = com.gaatho.rent.core.ui.components.AppDialog.Layout.Center,
+            icon = Icons.Default.Delete,
+            title = "Delete Tenant",
+            body = "Are you sure you want to delete this tenant? This action cannot be undone.",
+            confirmText = "Delete",
+            dismissText = "Cancel",
+            onConfirm = { viewModel.onAction(TenantProfileAction.OnDeleteConfirmed) },
+            onDismiss = { viewModel.onAction(TenantProfileAction.OnDeleteDismissed) }
+        )
+    }
+}
+
+@Composable
+private fun LeaseSection(
+    tenantId: String
+) {
+    val viewModelStoreOwner = rememberViewModelStoreOwner()
+    val viewModel = koinViewModel<TenantLeaseViewModel>(
+        viewModelStoreOwner = viewModelStoreOwner,
+        parameters = { parametersOf(tenantId) }
+    )
+    val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
+    
+    LaunchedEffect(viewModel.container.sideEffectFlow) {
+        viewModel.container.sideEffectFlow.collect { effect ->
+            when (effect) {
+                is TenantLeaseEffect.ShowToast -> {}
+            }
+        }
+    }
+
+    when (val s = state.leaseState) {
+        is UiState.Success -> RentDetailsSection(s.data)
+        else -> {}
+    }
+}
+
+@Composable
+private fun TransactionsSection(
+    tenantId: String
+) {
+    val viewModelStoreOwner = rememberViewModelStoreOwner()
+    val viewModel = koinViewModel<TenantTransactionsViewModel>(
+        viewModelStoreOwner = viewModelStoreOwner,
+        parameters = { parametersOf(tenantId) }
+    )
+    val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
+    
+    LaunchedEffect(viewModel.container.sideEffectFlow) {
+        viewModel.container.sideEffectFlow.collect { effect ->
+            when (effect) {
+                is TenantTransactionsEffect.NavigateToTransactions -> {}
+                is TenantTransactionsEffect.ShowToast -> {}
+            }
+        }
+    }
+
+    when (val s = state.transactionsState) {
+        is UiState.Success -> PaymentHistorySection(s.data, viewModel::onAction)
+        else -> {}
+    }
+}
+
+// Delete confirm handled inside ProfileSection now
 
 // ─── Profile Card ─────────────────────────────────────────────────────────────
 
 @Composable
 private fun ProfileCard(
     profile: TenantProfileDisplayModel,
-    onAction: (TenantDetailsAction) -> Unit
+    onAction: (TenantProfileAction) -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -222,16 +301,16 @@ private fun ProfileCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                ActionPill(
+                AppActionPill(
                     icon = Icons.Outlined.Call,
-                    label = "Call",
-                    onClick = { onAction(TenantDetailsAction.OnCallClicked) },
+                    label = "Call", // Should ideally be string resource, but keeping it simple for now
+                    onClick = { onAction(TenantProfileAction.OnCallClicked) },
                     modifier = Modifier.weight(1f)
                 )
-                ActionPill(
+                AppActionPill(
                     icon = Icons.Outlined.Notifications,
-                    label = "Remind",
-                    onClick = { onAction(TenantDetailsAction.OnPaymentClicked) },
+                    label = "Remind", // Should ideally be string resource
+                    onClick = { onAction(TenantProfileAction.OnMessageClicked) },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -239,41 +318,7 @@ private fun ProfileCard(
     }
 }
 
-@Composable
-private fun ActionPill(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(100.dp),
-        color = AppColors.EmeraldAccentLight,
-        modifier = modifier.wrapContentSize(),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxSize().padding(5.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = AppColors.EmeraldAccent,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(Modifier.width(6.dp))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    color = AppColors.EmeraldAccent
-                )
-            )
-        }
-    }
-}
+
 
 // ─── Rent Details ─────────────────────────────────────────────────────────────
 
@@ -349,7 +394,7 @@ private fun RentInfoRow(
 @Composable
 private fun PaymentHistorySection(
     transactions: ImmutableList<TenantTransactionDisplayModel>,
-    onAction: (TenantDetailsAction) -> Unit
+    onAction: (TenantTransactionsAction) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -363,7 +408,7 @@ private fun PaymentHistorySection(
             transactions.forEach { tx ->
                 HistoryRow(
                     tx = tx,
-                    onClick = { onAction(TenantDetailsAction.OnTransactionClicked(tx.id)) }
+                    onClick = { onAction(TenantTransactionsAction.OnTransactionClicked(tx.id)) }
                 )
             }
         }
@@ -402,69 +447,30 @@ private fun HistoryRow(tx: TenantTransactionDisplayModel, onClick: () -> Unit) {
                 )
             }
 
-            StatusPill(status = tx.status, isPaid = tx.isPaid)
+            AppStatusBadge(
+                label = tx.status,
+                containerColor = if (tx.isPaid) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else Color(0xFFF59E0B).copy(alpha = 0.15f),
+                contentColor = if (tx.isPaid) MaterialTheme.colorScheme.primary else Color(0xFFF59E0B),
+                horizontalPadding = 12.dp,
+                verticalPadding = 5.dp
+            )
         }
     }
 }
 
-@Composable
-private fun StatusPill(status: String, isPaid: Boolean) {
-    val (bg, text) = if (isPaid) {
-        AppColors.EmeraldAccentLight to AppColors.EmeraldAccent
-    } else {
-        Color(0xFFFFF7E8) to Color(0xFFF59E0B)
-    }
 
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(100.dp))
-            .background(bg)
-            .padding(horizontal = 12.dp, vertical = 5.dp)
-    ) {
-        Text(
-            text = status,
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = FontWeight.SemiBold,
-                color = text
-            )
-        )
-    }
-}
 
 // ─── Previews ─────────────────────────────────────────────────────────────────
 
-private fun previewState() = TenantDetailsState(
-    tenantId = "1",
-    profileState = UiState.Success(
-        TenantProfileDisplayModel(
-            id = "1", name = "Suman Maharjan",
-            address = "Sundar Niwas", isVerified = true,
-            phone = "+977 98510-23456",
-            movedInDate = "12 July 2023"
-        )
-    ),
-    leaseState = UiState.Success(
-        TenantLeaseDisplayModel(
-            monthlyRent = "NPR 25,000", status = "Active", isActive = true,
-            startDate = "July 12, 2023", endDate = "Ongoing",
-            securityDeposit = "NPR 50,000",
-            paymentDueDate = "5th of every month"
-        )
-    ),
-    transactionsState = UiState.Success(
-        persistentListOf(
-            TenantTransactionDisplayModel("t1", "Rent Payment", "Ashwin 2080", "NPR 25,000", "Paid", true, "eSewa"),
-            TenantTransactionDisplayModel("t2", "Rent Payment", "Bhadra 2080", "NPR 25,000", "Paid", true, "Cash"),
-            TenantTransactionDisplayModel("t3", "Rent Payment", "Shrawan 2080", "NPR 25,000", "Pending", false, "Bank")
-        )
-    )
-)
+// Previews mock the unified state slightly differently now, so we remove the previewState() 
+// since the sub-components manage their own states. We rely on the composable previews 
+// displaying the empty states.
 
 @Preview(showBackground = true, widthDp = 360)
 @Composable
 private fun PreviewLight() {
     RentManagerTheme(darkTheme = false) {
-        TenantDetailsContent(state = previewState(), onAction = {})
+        TenantDetailsContent(tenantId = "1", onAction = {}, onNavigateToEdit = {})
     }
 }
 
@@ -472,7 +478,7 @@ private fun PreviewLight() {
 @Composable
 private fun PreviewDark() {
     RentManagerTheme(darkTheme = true) {
-        TenantDetailsContent(state = previewState(), onAction = {})
+        TenantDetailsContent(tenantId = "1", onAction = {}, onNavigateToEdit = {})
     }
 }
 

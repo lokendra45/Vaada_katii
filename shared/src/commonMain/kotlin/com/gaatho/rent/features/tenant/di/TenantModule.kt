@@ -4,17 +4,20 @@ import com.gaatho.rent.features.tenant.data.repository.CloudTenantRepository
 import com.gaatho.rent.features.tenant.data.repository.LocalTenantRepository
 import com.gaatho.rent.features.tenant.data.repository.ProxyTenantRepository
 import com.gaatho.rent.features.tenant.data.repository.TenantRepository
-import com.gaatho.rent.features.tenant.presentation.list.TenantsListViewModel
 import com.gaatho.rent.features.tenant.presentation.edit.EditTenantViewModel
+import com.gaatho.rent.features.tenant.presentation.list.TenantsListViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val tenantModule = module {
-    single { LocalTenantRepository(get()) }
+    single { LocalTenantRepository(get(), get()) }
     single { CloudTenantRepository(get()) }
     single<TenantRepository> { ProxyTenantRepository(get(), get(), get()) }
 
     viewModel { TenantsListViewModel(get(), get(), get(), get()) }
-    viewModel { params -> com.gaatho.rent.features.tenant.presentation.details.TenantDetailsViewModel(tenantId = params.get(), get(), get(), get()) }
+    viewModel { params -> com.gaatho.rent.features.tenant.presentation.details.TenantDetailsViewModel(tenantId = params.get()) }
+    viewModel { params -> com.gaatho.rent.features.tenant.presentation.details.TenantProfileViewModel(tenantId = params.get(), get()) }
+    viewModel { params -> com.gaatho.rent.features.tenant.presentation.details.TenantLeaseViewModel(tenantId = params.get(), get()) }
+    viewModel { params -> com.gaatho.rent.features.tenant.presentation.details.TenantTransactionsViewModel(tenantId = params.get(), get()) }
     viewModel { params -> EditTenantViewModel(tenantId = params.get(), get(), get(), get()) }
 }

@@ -1,7 +1,6 @@
 package com.gaatho.rent.features.property.presentation.edit
 
 import kotlinx.serialization.Serializable
-
 import androidx.compose.ui.text.input.TextFieldValue
 import kotlinx.serialization.Transient
 

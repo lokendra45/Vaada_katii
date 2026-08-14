@@ -23,6 +23,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.*
 import com.gaatho.rent.core.designsystem.Radius
 import com.gaatho.rent.core.designsystem.Spacing
 
@@ -185,7 +188,7 @@ fun AppDatePickerDialog(
                         },
                         shape = RoundedCornerShape(Radius.Md)
                     ) {
-                        Text("Confirm", style = MaterialTheme.typography.labelLarge)
+                        Text(stringResource(Res.string.confirm_action), style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }

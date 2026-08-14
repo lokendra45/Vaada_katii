@@ -32,6 +32,8 @@ data class Property(
     val description: String = "",
     val billingCycle: String = "1st of the month",
     val amenities: Set<String> = emptySet(),
+    val occupiedUnits: Int = 0,
+    val pendingAmount: Long = 0L,
     val createdAt: String? = null,
     val updatedAt: String? = null
 )

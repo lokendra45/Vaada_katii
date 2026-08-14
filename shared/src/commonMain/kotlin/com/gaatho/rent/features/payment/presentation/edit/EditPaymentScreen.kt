@@ -19,6 +19,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.*
 import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.designsystem.components.RentManagerOutlinedButton
@@ -35,8 +38,8 @@ import com.gaatho.rent.features.payment.presentation.add.PaymentMethod
 import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
-import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun EditPaymentScreen(
@@ -44,7 +47,7 @@ fun EditPaymentScreen(
     onNavigateBack: () -> Unit
 ) {
     val viewModel: EditPaymentViewModel = koinViewModel(parameters = { parametersOf(paymentId) })
-    val state by viewModel.collectAsState()
+    val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
     viewModel.collectSideEffect { effect ->
@@ -262,24 +265,15 @@ fun EditPaymentContent(
     }
 
     if (state.showDeleteConfirm) {
-        AlertDialog(
-            onDismissRequest = { onAction(EditPaymentAction.OnDeleteDismissed) },
-            icon = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-            title = { Text("Delete Payment?") },
-            text = { Text("This will permanently delete this payment. This action cannot be undone.") },
-            confirmButton = {
-                Button(
-                    onClick = { onAction(EditPaymentAction.OnDeleteConfirmed) },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Delete")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { onAction(EditPaymentAction.OnDeleteDismissed) }) {
-                    Text("Cancel")
-                }
-            }
+        com.gaatho.rent.core.ui.components.AppDialog(
+            icon = Icons.Default.Delete,
+            title = stringResource(Res.string.delete_payment_title),
+            body = stringResource(Res.string.delete_payment_desc),
+            confirmText = stringResource(Res.string.delete_action),
+            dismissText = stringResource(Res.string.cancel_action),
+            onConfirm = { onAction(EditPaymentAction.OnDeleteConfirmed) },
+            onDismiss = { onAction(EditPaymentAction.OnDeleteDismissed) },
+            variant = com.gaatho.rent.core.ui.components.AppDialog.Variant.Destructive
         )
     }
 }

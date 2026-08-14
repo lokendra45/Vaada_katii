@@ -20,7 +20,8 @@ actual val platformModule = module {
         Room.databaseBuilder<AppDatabase>(
             context = context.applicationContext,
             name = dbFile.absolutePath
-        )
+        ).setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
+         .fallbackToDestructiveMigrationOnDowngrade()
     }
     single<ConnectivityObserver> { AndroidConnectivityObserver(get()) }
     single<DataStore<Preferences>> { createDataStore(get<Context>()) }

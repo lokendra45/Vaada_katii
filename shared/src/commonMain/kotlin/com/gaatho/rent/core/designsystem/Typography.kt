@@ -9,33 +9,33 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.Font
 import rentmanagerapp.shared.generated.resources.Res
-import rentmanagerapp.shared.generated.resources.inter_variable
+import rentmanagerapp.shared.generated.resources.satoshi_variable
 
 @Composable
-fun interFontFamily(): FontFamily {
+fun satoshiFontFamily(): FontFamily {
     return FontFamily(
-        Font(resource = Res.font.inter_variable, weight = FontWeight.Normal),
-        Font(resource = Res.font.inter_variable, weight = FontWeight.Medium),
-        Font(resource = Res.font.inter_variable, weight = FontWeight.SemiBold),
-        Font(resource = Res.font.inter_variable, weight = FontWeight.Bold),
-        Font(resource = Res.font.inter_variable, weight = FontWeight.ExtraBold)
+        Font(resource = Res.font.satoshi_variable, weight = FontWeight.Normal),
+        Font(resource = Res.font.satoshi_variable, weight = FontWeight.Medium),
+        Font(resource = Res.font.satoshi_variable, weight = FontWeight.SemiBold),
+        Font(resource = Res.font.satoshi_variable, weight = FontWeight.Bold),
+        Font(resource = Res.font.satoshi_variable, weight = FontWeight.ExtraBold)
     )
 }
 
 @Composable
 fun rentManagerTypography(): Typography {
-    val inter = interFontFamily()
-    return remember(inter) {
+    val satoshi = satoshiFontFamily()
+    return remember(satoshi) {
         Typography(
             displayMedium = TextStyle(
-                fontFamily = inter,
+                fontFamily = satoshi,
                 fontWeight = FontWeight.ExtraBold,
-                fontSize = 20.sp,
+                fontSize = 18.sp,
             ),
             
             // Screen titles and compact section headers.
             headlineMedium = TextStyle(
-                fontFamily = inter,
+                fontFamily = satoshi,
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp,
             
@@ -43,14 +43,14 @@ fun rentManagerTypography(): Typography {
             
             // Sub-Screen Titles
             titleLarge = TextStyle(
-                fontFamily = inter,
+                fontFamily = satoshi,
                 fontWeight = FontWeight.Bold,
                 fontSize = 13.sp,
             
             ),
 
             titleMedium = TextStyle(
-                fontFamily = inter,
+                fontFamily = satoshi,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 12.sp,
             
@@ -58,7 +58,7 @@ fun rentManagerTypography(): Typography {
             
             // Body Large
             bodyLarge = TextStyle(
-                fontFamily = inter,
+                fontFamily = satoshi,
                 fontWeight = FontWeight.Medium,
                 fontSize = 13.sp,
              
@@ -66,7 +66,7 @@ fun rentManagerTypography(): Typography {
             
             // List Item Titles (from Figma "General": 12px Medium)
             bodyMedium = TextStyle(
-                fontFamily = inter,
+                fontFamily = satoshi,
                 fontWeight = FontWeight.Medium,
                 fontSize = 12.sp,
               
@@ -74,7 +74,7 @@ fun rentManagerTypography(): Typography {
             
             // Small Body / Descriptions (from Figma: 10.29px Regular)
             bodySmall = TextStyle(
-                fontFamily = inter,
+                fontFamily = satoshi,
                 fontWeight = FontWeight.Normal,
                 fontSize = 10.sp,
                
@@ -82,7 +82,7 @@ fun rentManagerTypography(): Typography {
             
             // Tabs / Highlight Labels (from Figma "Category": 12px SemiBold)
             labelLarge = TextStyle(
-                fontFamily = inter,
+                fontFamily = satoshi,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 11.sp,
             
@@ -90,7 +90,7 @@ fun rentManagerTypography(): Typography {
             
             // Small Metadata
             labelMedium = TextStyle(
-                fontFamily = inter,
+                fontFamily = satoshi,
                 fontWeight = FontWeight.Medium,
                 fontSize = 9.5.sp,
             
@@ -98,7 +98,7 @@ fun rentManagerTypography(): Typography {
             
             // Tiny Labels
             labelSmall = TextStyle(
-                fontFamily = inter,
+                fontFamily = satoshi,
                 fontWeight = FontWeight.Normal,
                 fontSize = 8.sp,
         
@@ -109,11 +109,11 @@ fun rentManagerTypography(): Typography {
 
 /**
  * Tabular-numeral style for financial data.
- * Exact match to Figma: Inter Medium ~21px.
+ * Uses Satoshi ExtraBold ~21px.
  */
 @Composable
 fun monoDataTextStyle(): TextStyle = TextStyle(
-    fontFamily = interFontFamily(),
+    fontFamily = satoshiFontFamily(),
     fontWeight = FontWeight.ExtraBold,
     fontSize = 20.sp
 )

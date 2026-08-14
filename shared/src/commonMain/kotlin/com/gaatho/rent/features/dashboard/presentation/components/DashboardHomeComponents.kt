@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -39,6 +40,7 @@ import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.AppShadow.figmaButtonShadow
 import com.gaatho.rent.core.designsystem.AppShadow.figmaCardShadow
 import com.gaatho.rent.core.designsystem.AppShadow.figmaHeroShadow
+import com.gaatho.rent.core.ui.components.AppListItemSurface
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import rentmanagerapp.shared.generated.resources.Res
@@ -391,15 +393,11 @@ private fun DashboardMetricCard(
     metric: DashboardMetricUi,
     modifier: Modifier = Modifier
 ) {
-    val shape = RoundedCornerShape(16.dp)
-    Surface(
-        modifier = modifier
-            .height(90.dp)
-            .figmaCardShadow(shape = shape),
-        shape = shape,
-        color = MaterialTheme.colorScheme.surface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        shadowElevation = 0.dp
+    // heightIn(min) instead of fixed height — prevents label text from being clipped
+    // on small screens or larger font-scale settings.
+    AppListItemSurface(
+        modifier = modifier.heightIn(min = 84.dp),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(
             modifier = Modifier.padding(14.dp),
@@ -496,20 +494,17 @@ private fun DashboardActivityCard(
     avatarColor: Color,
     onClick: () -> Unit
 ) {
-    val shape = RoundedCornerShape(14.dp)
-    Surface(
+    // Uses AppListItemSurface for consistent border + shadow across all list items.
+    // heightIn(min=64.dp) lets the row grow if text wraps on small screens.
+    AppListItemSurface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(64.dp)
-            .figmaCardShadow(shape = shape)
-            .clickable(onClick = onClick),
-        shape = shape,
-        color = MaterialTheme.colorScheme.surface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        shadowElevation = 0.dp
+            .heightIn(min = 64.dp),
+        shape = RoundedCornerShape(14.dp),
+        onClick = onClick
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {

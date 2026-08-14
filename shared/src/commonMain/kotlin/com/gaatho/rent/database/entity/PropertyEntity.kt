@@ -8,7 +8,10 @@ import com.gaatho.rent.core.database.security.SecretString
 
 @Entity(
     tableName = "property",
-    indices = [Index(value = ["owner_id"])]
+    indices = [
+        // property(owner_id, deleted_at, name, id)
+        Index(value = ["owner_id", "deleted_at", "name", "id"])
+    ]
 )
 data class PropertyEntity(
     @PrimaryKey
@@ -38,6 +41,12 @@ data class PropertyEntity(
     @ColumnInfo(name = "sync_status", defaultValue = "PENDING")
     val syncStatus: String = "PENDING",
     @ColumnInfo(name = "last_sync_error")
-    val lastSyncError: String? = null
+    val lastSyncError: String? = null,
+    @ColumnInfo(name = "device_id", defaultValue = "")
+    val deviceId: String = "",
+    @ColumnInfo(name = "version", defaultValue = "1")
+    val version: Int = 1,
+    @ColumnInfo(name = "deleted_at")
+    val deletedAt: String? = null
 )
 

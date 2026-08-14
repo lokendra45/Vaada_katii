@@ -1,6 +1,10 @@
 package com.gaatho.rent.features.tenant.presentation.list
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import androidx.paging.map
 import com.gaatho.rent.core.auth.UserIdentityProvider
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.ui.UiState
@@ -8,22 +12,18 @@ import com.gaatho.rent.features.property.data.repository.PropertyRepository
 import com.gaatho.rent.features.tenant.data.repository.TenantRepository
 import com.gaatho.rent.features.tenant.domain.model.Tenant
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.flow.catch
-import org.orbitmvi.orbit.viewmodel.orbitContainer
-import androidx.paging.PagingData
-import androidx.paging.map
-import androidx.paging.cachedIn
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.onEach
+import org.orbitmvi.orbit.viewmodel.orbitContainer
 
 class TenantsListViewModel(
     private val tenantRepository: TenantRepository,
@@ -35,18 +35,14 @@ class TenantsListViewModel(
     private val ownerId: String
         get() = userIdentityProvider.currentUserId()
 
-    /**
-     * Search query lives in its own MutableStateFlow — NOT in Orbit state.
-     *
-     * NiA pattern: raw typing never triggers Orbit reduce(). The UI holds its own
-     * mutableStateOf for the text field and calls [onSearchQueryChanged] directly.
-     * A 300ms debounce prevents the Pager from restarting on every keystroke.
-     */
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+    private val _searchText = MutableStateFlow("")
+    val searchText = _searchText.asStateFlow()
+
+    private val _isSearching = MutableStateFlow(false)
+    val isSearching = _isSearching.asStateFlow()
 
     fun onSearchQueryChanged(query: String) {
-        _searchQuery.value = query
+        _searchText.value = query
     }
 
     override val container = orbitContainer<TenantsListState, TenantsListSideEffect>(
@@ -57,11 +53,11 @@ class TenantsListViewModel(
         observeProperties()
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class, kotlinx.coroutines.FlowPreview::class)
     val pagedTenantsFlow: Flow<PagingData<TenantDisplayModel>> = combine(
-        // Debounce raw search — waits 300ms, never restarts Pager on every keystroke.
-        _searchQuery
-            .debounce(300L)
+        _searchText
+            .debounce(500L)
+            .onEach { _isSearching.value = true }
             .distinctUntilChanged(),
         // Filters (status, property) still live in Orbit state — intentional taps, not rapid typing.
         container.stateFlow
@@ -73,10 +69,12 @@ class TenantsListViewModel(
                 )
             }
             .distinctUntilChanged()
-    ) { debouncedSearch, filters ->
-        Pair(debouncedSearch, filters)
+    ) { search, filters ->
+        search to filters
     }
-        .flatMapLatest { (search, filters) ->
+        .flatMapLatest { pair ->
+            val search = pair.first
+            val filters = pair.second
             val statusFilter = if (filters.status == "All statuses") "" else filters.status
             val propertyId = if (filters.propertyName == "All properties") ""
             else filters.properties?.find { it.name == filters.propertyName }?.id ?: ""
@@ -87,7 +85,11 @@ class TenantsListViewModel(
                 statusFilter = statusFilter,
                 propertyId = propertyId
             ).map { pagingData ->
+                _isSearching.value = false
                 pagingData.map { mapToDisplayModel(it) }
+            }.catch { 
+                _isSearching.value = false 
+                throw it 
             }
         }
         .cachedIn(viewModelScope)

@@ -8,6 +8,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import androidx.paging.PagingData
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ProxyPaymentRepository(
@@ -22,6 +23,16 @@ class ProxyPaymentRepository(
             // Cloud sync logic will be added here later (e.g. fetching from cloud and saving to local).
             local.getPaymentsByOwner(ownerId)
         }
+    }
+
+    override fun getPagedPayments(
+        ownerId: String,
+        searchQuery: String,
+        statusFilter: String
+    ): Flow<PagingData<Payment>> {
+        // Paged queries always use local DB (offline-first).
+        // Cloud data is synced into local DB separately.
+        return local.getPagedPayments(ownerId, searchQuery, statusFilter)
     }
 
     override fun getPaymentsByTenant(tenantId: String): Flow<List<Payment>> {

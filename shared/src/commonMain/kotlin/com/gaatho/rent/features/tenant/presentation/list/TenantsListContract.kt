@@ -1,6 +1,5 @@
 package com.gaatho.rent.features.tenant.presentation.list
 
-import androidx.compose.runtime.Immutable
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.features.property.domain.model.Property
 import com.gaatho.rent.features.tenant.domain.model.Tenant
@@ -11,7 +10,6 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.Transient
 
 @Serializable
-@Immutable
 data class TenantDisplayModel(
     val id: String,
     val name: String,
@@ -36,10 +34,11 @@ data class TenantDisplayModel(
  */
 @Serializable
 data class TenantsListState(
+    val selectedStatus: String = "All statuses",
+    val selectedProperty: String = "All properties",
     @Transient
     val propertiesState: UiState<ImmutableList<Property>> = UiState.Idle,
-    val selectedStatus: String = "All statuses",
-    val selectedProperty: String = "All properties"
+    val debouncedQuery: String = ""
 )
 
 sealed interface TenantsListSideEffect {

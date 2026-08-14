@@ -4,17 +4,16 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import co.touchlab.kermit.Logger
-
+import com.gaatho.rent.database.dao.PaymentDao
 import com.gaatho.rent.database.dao.PropertyDao
 import com.gaatho.rent.database.dao.TenantDao
-import com.gaatho.rent.database.dao.PaymentDao
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 /**
  * Worker that handles background syncing of offline records to Supabase.
@@ -78,7 +77,7 @@ class SyncWorker(
                     PaymentSyncModel(
                         id = p.id,
                         owner_id = p.ownerId,
-                        tenant_id = p.tenantId,
+                        tenant_id = p.tenantId.orEmpty(),
                         property_id = p.propertyId,
                         amount = p.amount,
                         date = p.date,

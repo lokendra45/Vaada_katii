@@ -1,6 +1,5 @@
 package com.gaatho.rent.features.property.presentation.list
 
-import androidx.compose.runtime.Immutable
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.features.property.domain.model.Property
 import kotlinx.serialization.Serializable
@@ -38,7 +37,8 @@ data class PropertyDisplayModel(
 
 @Serializable
 data class PropertyListState(
-    val selectedFilter: String = PropertyListFilters.All
+    val selectedFilter: String = PropertyListFilters.All,
+    val debouncedQuery: String = ""
 )
 
 object PropertyListFilters {

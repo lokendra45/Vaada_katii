@@ -1,5 +1,6 @@
 package com.gaatho.rent.features.splash.presentation
 
+
 /**
  * State representation for the Splash screen.
  */

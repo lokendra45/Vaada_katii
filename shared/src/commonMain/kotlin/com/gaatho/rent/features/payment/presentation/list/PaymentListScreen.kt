@@ -1,5 +1,8 @@
 package com.gaatho.rent.features.payment.presentation.list
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,30 +19,33 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,14 +55,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemContentType
+import androidx.paging.compose.itemKey
 import com.gaatho.rent.core.designsystem.AppColors
-import com.gaatho.rent.core.ui.UiState
+import com.gaatho.rent.core.ui.components.AppBadge
+import com.gaatho.rent.core.ui.components.AppBadgeType
+import com.gaatho.rent.core.ui.components.AppListItemSurface
 import com.gaatho.rent.core.ui.components.AppSearchBar
-import com.gaatho.rent.core.ui.components.AppStatusBadge
 import com.gaatho.rent.core.utils.CurrencyUtil
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -66,8 +75,6 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import rentmanagerapp.shared.generated.resources.Res
 import rentmanagerapp.shared.generated.resources.add_payment
-import rentmanagerapp.shared.generated.resources.collected_label
-import rentmanagerapp.shared.generated.resources.empty_payments
 import rentmanagerapp.shared.generated.resources.filter_all_months
 import rentmanagerapp.shared.generated.resources.no_payments_found
 import rentmanagerapp.shared.generated.resources.no_payments_found_subtitle
@@ -80,7 +87,7 @@ import rentmanagerapp.shared.generated.resources.payment_method_khalti
 import rentmanagerapp.shared.generated.resources.payments_title
 import rentmanagerapp.shared.generated.resources.pending_label
 import rentmanagerapp.shared.generated.resources.retry
-import rentmanagerapp.shared.generated.resources.search_payments
+import rentmanagerapp.shared.generated.resources.collected_label
 
 @Composable
 fun PaymentListScreen(
@@ -90,7 +97,10 @@ fun PaymentListScreen(
     viewModel: PaymentListViewModel = koinInject()
 ) {
     val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
-    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val searchText by viewModel.searchText.collectAsStateWithLifecycle()
+    val isSearching by viewModel.isSearching.collectAsStateWithLifecycle()
+    val pagedPayments = viewModel.pagedPaymentsFlow.collectAsLazyPagingItems()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(viewModel.container.sideEffectFlow) {
         viewModel.container.sideEffectFlow.collect { effect ->
@@ -106,7 +116,10 @@ fun PaymentListScreen(
 
     PaymentListContent(
         state = state,
-        searchQuery = searchQuery,
+        searchText = searchText,
+        isSearching = isSearching,
+        pagedPayments = pagedPayments,
+        onNavigateToAddPayment = onNavigateToAddPayment,
         onSearchQueryChanged = viewModel::onSearchQueryChanged,
         onAction = viewModel::onAction
     )
@@ -116,26 +129,54 @@ fun PaymentListScreen(
 @Composable
 private fun PaymentListContent(
     state: PaymentListState,
-    searchQuery: String,
+    searchText: String,
+    isSearching: Boolean,
+    pagedPayments: LazyPagingItems<PaymentDisplayModel>,
+    onNavigateToAddPayment: () -> Unit,
     onSearchQueryChanged: (String) -> Unit,
     onAction: (PaymentListAction) -> Unit
 ) {
-    val payments = (state.paymentsState as? UiState.Success)?.data ?: persistentListOf<PaymentDisplayModel>()
-    val collected = payments.filter { it.isPaid }.sumOf { it.amount }
-    val pending = payments.filter { !it.isPaid }.sumOf { it.amount }
-    val today = remember { kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date }
+    val today = remember {
+        kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+    }
+
+    val listState = rememberLazyListState()
+    var isFabVisible by remember { mutableStateOf(true) }
+
+    LaunchedEffect(listState) {
+        var previousIndex = listState.firstVisibleItemIndex
+        var previousScrollOffset = listState.firstVisibleItemScrollOffset
+
+        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
+            .collect { (index, offset) ->
+                if (index > previousIndex || (index == previousIndex && offset > previousScrollOffset + 10)) {
+                    isFabVisible = false
+                } else if (index < previousIndex || (index == previousIndex && offset < previousScrollOffset - 10)) {
+                    isFabVisible = true
+                }
+                previousIndex = index
+                previousScrollOffset = offset
+            }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { onAction(PaymentListAction.OnAddPaymentClicked) },
-                shape = RoundedCornerShape(50),
-                containerColor = AppColors.EmeraldAccent,
-                contentColor = Color.White,
-                icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                text = { Text(stringResource(Res.string.add_payment)) }
-            )
+            AnimatedVisibility(
+                visible = isFabVisible,
+                enter = slideInVertically(initialOffsetY = { it * 2 }),
+                exit = slideOutVertically(targetOffsetY = { it * 2 })
+            ) {
+                ExtendedFloatingActionButton(
+                    onClick = { onAction(PaymentListAction.OnAddPaymentClicked) },
+                    shape = RoundedCornerShape(50),
+                    containerColor = AppColors.EmeraldAccent,
+                    contentColor = Color.White,
+                    icon = { Icon(Icons.Default.AttachMoney, contentDescription = null) },
+                    text = { Text(stringResource(Res.string.add_payment)) },
+                    expanded = true
+                )
+            }
         }
     ) { paddings ->
         Column(
@@ -171,36 +212,13 @@ private fun PaymentListContent(
                     )
                 }
 
-                // Summary — collected / pending
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    SummaryBox(
-                        label = stringResource(Res.string.collected_label),
-                        value = "NPR ${CurrencyUtil.formatNpr(collected.toDouble(), includeSymbol = false)}",
-                        accent = AppColors.EmeraldAccent,
-                        background = Color(0xFFECFDF5),
-                        modifier = Modifier.weight(1f)
-                    )
-                    SummaryBox(
-                        label = stringResource(Res.string.pending_label),
-                        value = "NPR ${CurrencyUtil.formatNpr(pending.toDouble(), includeSymbol = false)}",
-                        accent = Color(0xFFDB354F),
-                        background = Color(0xFFFFF3F5),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
                 Spacer(Modifier.height(16.dp))
 
                 // Search
                 AppSearchBar(
-                    query = searchQuery,
+                    query = searchText,
                     onQueryChange = onSearchQueryChanged,
-                    placeholderText = stringResource(Res.string.search_payments),
+                    placeholderText = "Search by tenant or property...",
                     suggestions = emptyList(),
                     onSuggestionSelected = {},
                     modifier = Modifier
@@ -210,56 +228,94 @@ private fun PaymentListContent(
 
                 Spacer(Modifier.height(4.dp))
 
-                when (val s = state.paymentsState) {
-                    is UiState.Loading, UiState.Idle -> {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator()
+                if (isSearching) {
+                    PaymentSkeletonLoadingState()
+                } else {
+                    // Paged content with LoadState handling
+                    when (pagedPayments.loadState.refresh) {
+                        is LoadState.Loading -> {
+                            PaymentSkeletonLoadingState()
                         }
-                    }
-                    is UiState.Error -> {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(text = s.message, color = MaterialTheme.colorScheme.error)
-                                Spacer(Modifier.height(16.dp))
-                                Button(onClick = { onAction(PaymentListAction.OnRetry) }) {
-                                    Text(stringResource(Res.string.retry))
+                        is LoadState.Error -> {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        text = "Failed to load payments",
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                    Spacer(Modifier.height(16.dp))
+                                    Button(onClick = { pagedPayments.retry() }) {
+                                        Text(stringResource(Res.string.retry))
+                                    }
                                 }
                             }
                         }
-                    }
-                    is UiState.Success -> {
-                        if (s.data.isEmpty()) {
-                            Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
-                                com.gaatho.rent.core.ui.components.AppIllustratedEmptyState(
-                                    illustration = Res.drawable.empty_payments,
-                                    title = stringResource(Res.string.no_payments_found),
-                                    description = stringResource(Res.string.no_payments_found_subtitle),
-                                    buttonText = stringResource(Res.string.add_payment),
-                                    onButtonClick = { onAction(PaymentListAction.OnAddPaymentClicked) }
-                                )
-                            }
-                        } else {
-                            val groups = buildGroups(s.data)
-                            LazyColumn(
-                                modifier = Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(
-                                    start = 24.dp,
-                                    end = 24.dp,
-                                    top = 8.dp,
-                                    bottom = 96.dp
-                                )
-                            ) {
-                                groups.forEach { group ->
-                                    item(key = "header_${group.date}") {
-                                        SectionHeader(
-                                            text = paymentGroupHeader(group.date, today)
-                                        )
+                        is LoadState.NotLoading -> {
+                            if (pagedPayments.itemCount == 0) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize().padding(32.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    com.gaatho.rent.core.ui.components.AppIllustratedEmptyState(
+                                        icon = Icons.Default.AttachMoney,
+                                        title = stringResource(Res.string.no_payments_found),
+                                        description = stringResource(Res.string.no_payments_found_subtitle)
+                                    )
+                                }
+                            } else {
+                                LazyColumn(
+                                    state = listState,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentPadding = PaddingValues(
+                                        top = 8.dp,
+                                        bottom = 100.dp
+                                    ),
+                                    verticalArrangement = Arrangement.spacedBy(0.dp)
+                                ) {
+                                    // Group items by date for section headers
+                                    var lastDate: String? = null
+                                    for (index in 0 until pagedPayments.itemCount) {
+                                        val payment = pagedPayments.peek(index)
+                                        val date = payment?.date
+                                        if (date != null && date != lastDate) {
+                                            lastDate = date
+                                            val headerDate = date
+                                            item(key = "header_$headerDate") {
+                                                SectionHeader(
+                                                    text = paymentGroupHeader(headerDate, today)
+                                                )
+                                            }
+                                        }
+                                        item(
+                                            key = payment?.id ?: "item_$index",
+                                            contentType = "paymentRow"
+                                        ) {
+                                            val p = pagedPayments[index]
+                                            if (p != null) {
+                                                PaymentRowItem(
+                                                    payment = p,
+                                                    onPaymentClicked = { id ->
+                                                        onAction(PaymentListAction.OnPaymentClicked(id))
+                                                    },
+                                                    modifier = Modifier.animateItem()
+                                                )
+                                            }
+                                        }
                                     }
-                                    items(group.items, key = { it.id }) { payment ->
-                                        PaymentRowItem(
-                                            payment = payment,
-                                            onClick = { onAction(PaymentListAction.OnPaymentClicked(payment.id)) }
-                                        )
+
+                                    // Append loading indicator
+                                    if (pagedPayments.loadState.append is LoadState.Loading) {
+                                        item {
+                                            Box(
+                                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -271,41 +327,6 @@ private fun PaymentListContent(
     }
 }
 
-@Composable
-private fun SummaryBox(
-    label: String,
-    value: String,
-    accent: Color,
-    background: Color,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        modifier = modifier.height(57.dp),
-        shape = RoundedCornerShape(10.dp),
-        color = background
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
-                color = accent
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = accent
-                ),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -379,7 +400,7 @@ private fun SectionHeader(text: String) {
         text = text,
         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+        modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
     )
 }
 
@@ -387,7 +408,8 @@ private fun SectionHeader(text: String) {
 @Composable
 private fun PaymentRowItem(
     payment: PaymentDisplayModel,
-    onClick: () -> Unit
+    onPaymentClicked: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val initials = payment.tenantName.split(" ")
         .take(2)
@@ -397,35 +419,31 @@ private fun PaymentRowItem(
         append(payment.propertyName)
         if (payment.unit != null) append(" - Unit ${payment.unit}")
     }
-
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(10.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(64.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+    Column(modifier = modifier) {
+        AppListItemSurface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(0.dp),
+            onClick = { onPaymentClicked(payment.id) }
         ) {
-            Box(
+            Row(
                 modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFE8F5E9)),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = initials,
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                    color = AppColors.EmeraldAccent
-                )
-            }
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = initials,
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
 
             Spacer(Modifier.width(12.dp))
 
@@ -460,7 +478,7 @@ private fun PaymentRowItem(
 
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "NPR ${CurrencyUtil.formatNpr(payment.amount.toDouble(), includeSymbol = false)}",
+                    text = payment.formattedAmount,
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.Medium,
                         fontSize = 12.sp
@@ -470,8 +488,20 @@ private fun PaymentRowItem(
                 Spacer(Modifier.height(4.dp))
                 PaymentMethodBadge(payment.paymentMethod)
             }
+            Spacer(modifier = Modifier.width(12.dp))
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                modifier = Modifier.size(20.dp).align(Alignment.CenterVertically)
+            )
         }
+        HorizontalDivider(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        )
     }
+}
 }
 
 @Composable
@@ -485,40 +515,10 @@ private fun PaymentMethodBadge(method: String?) {
         "KHALTI" -> stringResource(Res.string.payment_method_khalti)
         else -> normalized.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() }
     }
-    AppStatusBadge(
-        label = label,
-        containerColor = if (isCash) Color(0xFFFFF3F5) else AppColors.EmeraldAccentLight,
-        contentColor = if (isCash) AppColors.Error else AppColors.EmeraldAccent,
-        fontSize = 9.sp,
-        verticalPadding = 2.dp
+    AppBadge(
+        text = label,
+        type = if (isCash) AppBadgeType.WARNING else AppBadgeType.INFO
     )
-}
-@Immutable
-private data class PaymentGroup(
-    val date: String,
-    val items: List<PaymentDisplayModel>
-)
-
-private fun buildGroups(
-    payments: ImmutableList<PaymentDisplayModel>
-): ImmutableList<PaymentGroup> {
-    if (payments.isEmpty()) return persistentListOf()
-
-    val groups = mutableListOf<PaymentGroup>()
-    var currentDate = payments.first().date
-    var bucket = mutableListOf<PaymentDisplayModel>()
-
-    for (payment in payments) {
-        if (payment.date != currentDate) {
-            groups += PaymentGroup(currentDate, bucket.toImmutableList())
-            currentDate = payment.date
-            bucket = mutableListOf()
-        }
-        bucket += payment
-    }
-    groups += PaymentGroup(currentDate, bucket.toImmutableList())
-
-    return groups.toImmutableList()
 }
 
 private val monthNames = arrayOf(
@@ -550,4 +550,39 @@ private fun currentMonthLabel(): String {
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     )
     return "${shortMonths[now.month.ordinal]} ${now.year}"
+}
+
+@Composable
+fun PaymentSkeletonLoadingState(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        repeat(5) {
+            Row(
+                modifier = Modifier.fillMaxWidth().height(64.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                com.gaatho.rent.core.ui.components.AppShimmerBox(
+                    modifier = Modifier.size(40.dp),
+                    shape = CircleShape
+                )
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    com.gaatho.rent.core.ui.components.AppShimmerBox(modifier = Modifier.fillMaxWidth(0.5f).height(14.dp))
+                    com.gaatho.rent.core.ui.components.AppShimmerBox(modifier = Modifier.fillMaxWidth(0.3f).height(10.dp))
+                }
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    com.gaatho.rent.core.ui.components.AppShimmerBox(modifier = Modifier.width(60.dp).height(14.dp))
+                    com.gaatho.rent.core.ui.components.AppShimmerBox(modifier = Modifier.width(40.dp).height(14.dp), shape = RoundedCornerShape(12.dp))
+                }
+            }
+        }
+    }
 }

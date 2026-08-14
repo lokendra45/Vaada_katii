@@ -1,13 +1,8 @@
 package com.gaatho.rent.features.payment.presentation.list
 
-import androidx.compose.runtime.Immutable
-import com.gaatho.rent.core.ui.UiState
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 
 @Serializable
-@Immutable
 data class PaymentDisplayModel(
     val id: String,
     val tenantId: String,
@@ -17,6 +12,7 @@ data class PaymentDisplayModel(
     val date: String,
     val dateLabel: String,
     val amount: Long,
+    val formattedAmount: String,
     val status: String,
     val isPaid: Boolean,
     val unit: String? = null,
@@ -25,10 +21,9 @@ data class PaymentDisplayModel(
 
 @Serializable
 data class PaymentListState(
-    @Transient
-    val paymentsState: UiState<ImmutableList<PaymentDisplayModel>> = UiState.Idle,
     val selectedStatus: String = PaymentListFilters.AllStatuses,
-    val selectedMonth: String = PaymentListFilters.AllMonths
+    val selectedMonth: String = PaymentListFilters.AllMonths,
+    val debouncedQuery: String = ""
 )
 
 object PaymentListFilters {

@@ -43,7 +43,7 @@ data class TenantSyncModel(
 data class PaymentSyncModel(
     val id: String,
     val owner_id: String,
-    val tenant_id: String,
+    val tenant_id: String?,
     val property_id: String?,
     val amount: Long,
     val date: String,

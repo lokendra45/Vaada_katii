@@ -30,19 +30,10 @@ data class FinancialSummary(
 
 // ─── Main state ───────────────────────────────────────────────────────────────
 
-@Serializable
 data class PropertyDetailsState(
-    @Transient
-    val propertyState: UiState<Property> = UiState.Loading,
-    @Transient
-    val unitsState: UiState<ImmutableList<UnitDisplayModel>> = UiState.Loading,
-    @Transient
-    val financialState: UiState<FinancialSummary> = UiState.Loading,
-    val monthlyIncome: Long = 0L,
-    val occupiedUnits: Int = 0,
-    val totalUnits: Int = 0,
+    val propertyId: String = "",
     val showDeleteConfirm: Boolean = false,
-    val isDeleting: Boolean = false,
+    val isDeleting: Boolean = false
 )
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
@@ -54,7 +45,7 @@ sealed interface PropertyDetailsAction {
     data object OnDeleteClicked : PropertyDetailsAction
     data object OnDeleteConfirmed : PropertyDetailsAction
     data object OnDeleteDismissed : PropertyDetailsAction
-    data class OnUnitClicked(val unitNumber: String) : PropertyDetailsAction
+data class OnUnitClicked(val unitNumber: String) : PropertyDetailsAction
     data object OnViewAllUnitsClicked : PropertyDetailsAction
 }
 
@@ -62,7 +53,7 @@ sealed interface PropertyDetailsAction {
 
 sealed interface PropertyDetailsSideEffect {
     data object NavigateBack : PropertyDetailsSideEffect
-    data class NavigateToEdit(val propertyId: String) : PropertyDetailsSideEffect
+data class NavigateToEdit(val propertyId: String) : PropertyDetailsSideEffect
     data object NavigateToAddTenant : PropertyDetailsSideEffect
-    data class ShowError(val message: String) : PropertyDetailsSideEffect
+data class ShowError(val message: String) : PropertyDetailsSideEffect
 }

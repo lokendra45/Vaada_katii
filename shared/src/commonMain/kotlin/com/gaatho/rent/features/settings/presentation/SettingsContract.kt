@@ -1,6 +1,5 @@
 package com.gaatho.rent.features.settings.presentation
 
-import androidx.compose.runtime.Immutable
 
 
 data class SettingsState(

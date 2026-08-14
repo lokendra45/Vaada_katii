@@ -11,14 +11,35 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val propertyModule = module {
-    single { LocalPropertyRepository(get()) }
+    single { LocalPropertyRepository(get(), get()) }
     single { CloudPropertyRepository(get()) }
     single<PropertyRepository> { ProxyPropertyRepository(get(), get(), get()) }
-    viewModel { PropertyListViewModel(get(), get(), get(), get(), get()) }
+    viewModel { PropertyListViewModel(get(), get(), get()) }
     viewModel { params ->
         PropertyDetailsViewModel(
             propertyId = params.get(),
             propertyRepository = get(),
+            tenantRepository = get(),
+            userIdentityProvider = get()
+        )
+    }
+    viewModel { params ->
+        com.gaatho.rent.features.property.presentation.details.PropertyIdentityViewModel(
+            propertyId = params.get(),
+            propertyRepository = get(),
+            userIdentityProvider = get()
+        )
+    }
+    viewModel { params ->
+        com.gaatho.rent.features.property.presentation.details.PropertyStatsViewModel(
+            propertyId = params.get(),
+            tenantRepository = get(),
+            userIdentityProvider = get()
+        )
+    }
+    viewModel { params ->
+        com.gaatho.rent.features.property.presentation.details.PropertyUnitsViewModel(
+            propertyId = params.get(),
             tenantRepository = get(),
             userIdentityProvider = get()
         )

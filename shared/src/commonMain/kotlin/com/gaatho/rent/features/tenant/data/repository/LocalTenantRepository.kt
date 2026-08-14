@@ -1,7 +1,18 @@
 package com.gaatho.rent.features.tenant.data.repository
 
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
+import com.gaatho.rent.core.database.security.SecretString
 import com.gaatho.rent.core.logging.AppLogger
+import com.gaatho.rent.core.utils.DateTimeUtil
+import com.gaatho.rent.core.utils.IsoDateUtil
+import com.gaatho.rent.core.utils.StringUtil
+import com.gaatho.rent.database.AppDatabase
 import com.gaatho.rent.database.dao.TenantDao
+import com.gaatho.rent.database.entity.TenantEntity
+import com.gaatho.rent.database.projection.TenantListRow
 import com.gaatho.rent.features.tenant.domain.model.Tenant
 import com.skydoves.sandwich.ApiResponse
 import kotlinx.coroutines.Dispatchers
@@ -10,25 +21,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import com.gaatho.rent.database.entity.TenantEntity
-import com.gaatho.rent.database.entity.TenantWithPropertyName
-import com.gaatho.rent.core.utils.DateTimeUtil
-import com.gaatho.rent.core.database.security.SecretString
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.map
-import androidx.paging.PagingSource
-import androidx.paging.PagingState
 
 class LocalTenantRepository(
+    private val database: AppDatabase,
     private val tenantDao: TenantDao
 ) : TenantRepository {
 
     override fun getTenants(ownerId: String): Flow<List<Tenant>> {
         return tenantDao.selectTenantsWithProperties(ownerId)
             .map { list ->
-                list.map { it.tenant.toDomain(it.propertyName) }
+                list.filter { it.tenant.deletedAt == null }.map { it.tenant.toDomain(it.propertyName) }
             }
             .flowOn(Dispatchers.IO)
     }
@@ -39,21 +41,26 @@ class LocalTenantRepository(
         statusFilter: String,
         propertyId: String
     ): Flow<PagingData<Tenant>> {
+        val normalizedSearch = StringUtil.escapeLike(StringUtil.normalizeSearch(searchQuery))
+
         return Pager(
             config = PagingConfig(
                 pageSize = 20,
-                enablePlaceholders = false
+                initialLoadSize = 20,
+                prefetchDistance = 5,
+                enablePlaceholders = true,
+                maxSize = 100
             ),
             pagingSourceFactory = {
-                tenantDao.selectPagedTenantsWithProperties(
+                tenantDao.selectPagedTenantListRows(
                     ownerId = ownerId,
-                    searchQuery = searchQuery,
+                    searchQuery = normalizedSearch,
                     statusFilter = statusFilter,
                     propertyId = propertyId
                 )
             }
         ).flow.map { pagingData ->
-            pagingData.map { it.tenant.toDomain(it.propertyName) }
+            pagingData.map { row -> row.toDomain() }
         }
     }
 
@@ -98,6 +105,19 @@ class LocalTenantRepository(
             }
         }
 
+    /** Maps narrow [TenantListRow] projection (for list screens). */
+    private fun TenantListRow.toDomain() = Tenant(
+        id = id,
+        ownerId = ownerId,
+        propertyId = propertyId,
+        propertyName = propertyName,
+        name = name,
+        status = status,
+        roomNumber = roomNumber,
+        rentAmount = rentAmount
+    )
+
+    /** Maps full [TenantEntity] (for detail/edit screens where email/phone are shown). */
     private fun TenantEntity.toDomain(resolvedPropertyName: String?) = Tenant(
         id = id,
         ownerId = ownerId,
@@ -123,7 +143,9 @@ class LocalTenantRepository(
         roomNumber = roomNumber,
         rentAmount = rentAmount,
         status = status,
-        createdAt = createdAt ?: DateTimeUtil.nowIsoString(),
-        updatedAt = updatedAt ?: DateTimeUtil.nowIsoString()
+        createdAt = IsoDateUtil.normalize(createdAt ?: DateTimeUtil.nowIsoString()) ?: DateTimeUtil.nowIsoString(),
+        updatedAt = IsoDateUtil.normalize(updatedAt ?: DateTimeUtil.nowIsoString()) ?: DateTimeUtil.nowIsoString(),
+        syncStatus = "PENDING"
     )
 }
+

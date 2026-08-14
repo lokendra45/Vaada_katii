@@ -1,12 +1,10 @@
 package com.gaatho.rent.features.auth.presentation
 
-import androidx.compose.runtime.Immutable
 import com.gaatho.rent.core.auth.UserRole
 import com.gaatho.rent.core.ui.UiState
 import kotlinx.serialization.Serializable
 
 @Serializable
-@Immutable
 data class AuthState(
     val authUiState: UiState<Unit> = UiState.Idle,
     val emailInput: String = "",

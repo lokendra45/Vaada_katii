@@ -27,8 +27,8 @@ import com.gaatho.rent.features.dashboard.presentation.components.DashboardRecen
 import com.gaatho.rent.features.dashboard.presentation.components.DashboardWelcomeHeader
 import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.viewmodel.koinViewModel
-import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun HomeScreen(
@@ -39,7 +39,7 @@ fun HomeScreen(
     onNavigateToTenantDetails: (String) -> Unit = {}
 ) {
     val viewModel: HomeViewModel = koinViewModel()
-    val state by viewModel.collectAsState()
+    val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
 
     viewModel.collectSideEffect { effect ->
         when (effect) {

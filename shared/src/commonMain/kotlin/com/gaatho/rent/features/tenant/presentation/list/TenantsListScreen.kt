@@ -20,17 +20,30 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.foundation.border
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -52,15 +65,21 @@ import androidx.paging.compose.itemKey
 import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.AppDimensions
 import com.gaatho.rent.core.designsystem.RentManagerTheme
+import com.gaatho.rent.core.ui.components.AppListItemSurface
+import com.gaatho.rent.core.ui.components.AppCard
 import com.gaatho.rent.core.ui.components.AppSearchBar
+import com.gaatho.rent.core.ui.components.AppBadge
+import com.gaatho.rent.core.ui.components.AppBadgeType
 import com.gaatho.rent.core.utils.CurrencyUtil
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.flowOf
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
 import rentmanagerapp.shared.generated.resources.Res
 import rentmanagerapp.shared.generated.resources.empty_tenants
+import rentmanagerapp.shared.generated.resources.retry
+import rentmanagerapp.shared.generated.resources.tenant_failed_load
 
 @Composable
 fun TenantsListScreen(
@@ -69,8 +88,9 @@ fun TenantsListScreen(
     onNavigateBack: (() -> Unit)? = null
 ) {
     val viewModel: TenantsListViewModel = koinViewModel()
-    val state by viewModel.collectAsState()
-    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
+    val searchText by viewModel.searchText.collectAsStateWithLifecycle()
+    val isSearching by viewModel.isSearching.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
     viewModel.collectSideEffect { sideEffect ->
@@ -87,7 +107,8 @@ fun TenantsListScreen(
 
     TenantsListContent(
         state = state,
-        searchQuery = searchQuery,
+        searchText = searchText,
+        isSearching = isSearching,
         pagedTenants = pagedTenants,
         onNavigateToAddTenant = onNavigateToAddTenant,
         onNavigateBack = onNavigateBack,
@@ -101,7 +122,8 @@ fun TenantsListScreen(
 @Composable
 fun TenantsListContent(
     state: TenantsListState,
-    searchQuery: String = "",
+    searchText: String,
+    isSearching: Boolean,
     pagedTenants: LazyPagingItems<TenantDisplayModel>,
     onNavigateToAddTenant: () -> Unit,
     onAction: (TenantsListAction) -> Unit,
@@ -110,25 +132,50 @@ fun TenantsListContent(
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
 
+    val listState = rememberLazyListState()
+    var isFabVisible by remember { mutableStateOf(true) }
+
+    LaunchedEffect(listState) {
+        var previousIndex = listState.firstVisibleItemIndex
+        var previousScrollOffset = listState.firstVisibleItemScrollOffset
+
+        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
+            .collect { (index, offset) ->
+                if (index > previousIndex || (index == previousIndex && offset > previousScrollOffset + 10)) {
+                    isFabVisible = false
+                } else if (index < previousIndex || (index == previousIndex && offset < previousScrollOffset - 10)) {
+                    isFabVisible = true
+                }
+                previousIndex = index
+                previousScrollOffset = offset
+            }
+    }
+
     Scaffold(
         topBar = {
             com.gaatho.rent.core.ui.components.AppTopBar(
                 title = "Tenants",
                 onBackClick = onNavigateBack,
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                containerColor = MaterialTheme.colorScheme.background
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNavigateToAddTenant,
-                shape = CircleShape,
-                containerColor = AppColors.EmeraldAccent,
-                contentColor = Color.White,
-                modifier = Modifier.size(56.dp)
+            AnimatedVisibility(
+                visible = isFabVisible,
+                enter = slideInVertically(initialOffsetY = { it * 2 }),
+                exit = slideOutVertically(targetOffsetY = { it * 2 })
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Tenant")
+                ExtendedFloatingActionButton(
+                    onClick = onNavigateToAddTenant,
+                    shape = RoundedCornerShape(50),
+                    containerColor = AppColors.EmeraldAccent,
+                    contentColor = Color.White,
+                    icon = { Icon(Icons.Default.Add, contentDescription = "Add Tenant") },
+                    text = { Text("Add Tenant") },
+                    expanded = true
+                )
             }
         }
     ) { padding ->
@@ -152,7 +199,7 @@ fun TenantsListContent(
                     val searchSuggestions = remember { emptyList<com.gaatho.rent.core.ui.components.SearchSuggestionItem>() }
 
                     AppSearchBar(
-                        query = searchQuery,
+                        query = searchText,
                         onQueryChange = onSearchQueryChanged,
                         placeholderText = "Search tenants...",
                         suggestions = searchSuggestions,
@@ -171,71 +218,88 @@ fun TenantsListContent(
                     )
                 }
 
-                when (pagedTenants.loadState.refresh) {
-                    is LoadState.Loading -> {
-                        TenantSkeletonLoadingState()
-                    }
-
-                    is LoadState.Error -> {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Text("Failed to load tenants", style = MaterialTheme.typography.titleMedium)
-                                Button(onClick = { pagedTenants.retry() }) {
-                                    Text("Retry")
-                                }
+                if (isSearching) {
+                    TenantSkeletonLoadingState()
+                } else {
+                    com.gaatho.rent.core.ui.components.AppAnimatedState(
+                        targetState = pagedTenants.loadState.refresh,
+                        modifier = Modifier.fillMaxSize()
+                    ) { refreshState ->
+                        when (refreshState) {
+                            is LoadState.Loading -> {
+                                TenantSkeletonLoadingState()
                             }
-                        }
-                    }
-
-                    is LoadState.NotLoading -> {
-                        if (pagedTenants.itemCount == 0) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f)
-                                    .padding(32.dp)
-                            ) {
-                                com.gaatho.rent.core.ui.components.AppIllustratedEmptyState(
-                                    illustration = Res.drawable.empty_tenants,
-                                    title = "No tenants found",
-                                    description = "Add your first tenant to start tracking rent",
-                                    buttonText = "Add Tenant",
-                                    onButtonClick = onNavigateToAddTenant
-                                )
-                            }
-                        } else {
-                            LazyColumn(
-                                modifier = Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(
-                                    start = 16.dp,
-                                    end = 16.dp,
-                                    top = 8.dp,
-                                    bottom = 100.dp
-                                ),
-                                verticalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                items(
-                                    count = pagedTenants.itemCount,
-                                    key = pagedTenants.itemKey { it.id },
-                                    contentType = pagedTenants.itemContentType { "tenantRow" }
-                                ) { index ->
-                                    val tenant = pagedTenants[index]
-                                    if (tenant != null) {
-                                        TenantRowItem(
-                                            tenant = tenant,
-                                            onClick = { onAction(TenantsListAction.OnTenantClicked(tenant.id)) }
-                                        )
+                            is LoadState.Error -> {
+                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text(stringResource(Res.string.tenant_failed_load), style = MaterialTheme.typography.titleMedium)
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Button(onClick = { pagedTenants.retry() }) {
+                                            Text(stringResource(Res.string.retry))
+                                        }
                                     }
                                 }
-
-                                if (pagedTenants.loadState.append is LoadState.Loading) {
-                                    item {
+                            }
+                            is LoadState.NotLoading -> {
+                                if (pagedTenants.itemCount == 0) {
+                                    if (state.debouncedQuery.isNotEmpty() || state.selectedStatus != "All statuses" || state.selectedProperty != "All properties") {
                                         Box(
-                                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                                            contentAlignment = Alignment.Center
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier.fillMaxWidth().weight(1f).padding(32.dp)
                                         ) {
-                                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                                            Text("No tenants found matching your criteria.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        }
+                                    } else {
+                                        Box(
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .weight(1f)
+                                                .padding(32.dp)
+                                        ) {
+                                            com.gaatho.rent.core.ui.components.AppIllustratedEmptyState(
+                                                icon = Icons.Default.Person,
+                                                title = "No tenants found",
+                                                description = "Add your first tenant to start tracking rent"
+                                            )
+                                        }
+                                    }
+                                } else {
+                                    LazyColumn(
+                                        state = listState,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentPadding = PaddingValues(
+                                            start = 20.dp,
+                                            end = 20.dp,
+                                            top = 8.dp,
+                                            bottom = 100.dp
+                                        ),
+                                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        items(
+                                            count = pagedTenants.itemCount,
+                                            key = pagedTenants.itemKey { it.id },
+                                            contentType = pagedTenants.itemContentType { "tenantRow" }
+                                        ) { index ->
+                                            val tenant = pagedTenants[index]
+                                            if (tenant != null) {
+                                                TenantRowItem(
+                                                    tenant = tenant,
+                                                    onClick = { onAction(TenantsListAction.OnTenantClicked(tenant.id)) },
+                                                    modifier = Modifier.animateItem()
+                                                )
+                                            }
+                                        }
+
+                                        if (pagedTenants.loadState.append is LoadState.Loading) {
+                                            item {
+                                                Box(
+                                                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -291,113 +355,189 @@ private fun TenantsFilterStrip(
 @Composable
 private fun TenantRowItem(
     tenant: TenantDisplayModel,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Surface(
+    AppCard(
+        modifier = modifier.fillMaxWidth(),
         onClick = onClick,
-        shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 0.dp,
-        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        useCardShadow = false,
+        containerColor = MaterialTheme.colorScheme.surface,
+        borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(Color(tenant.avatarBgColorHex)),
-                contentAlignment = Alignment.Center
+            // --- Top Row: Avatar & Name/Status & Quick Actions ---
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = tenant.initials,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        color = Color(tenant.avatarTextColorHex),
-                        fontWeight = FontWeight.Medium
-                    )
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                // Avatar
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(Color(tenant.avatarBgColorHex)),
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
+                        text = tenant.initials,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            color = Color(tenant.avatarTextColorHex),
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                // Name & Status
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
                         text = tenant.name,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    StatusPill(status = tenant.status, isActive = tenant.isActive)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    AppBadge(
+                        text = tenant.status,
+                        type = if (tenant.isActive) AppBadgeType.SUCCESS 
+                               else if (tenant.status.equals("Pending", ignoreCase = true)) AppBadgeType.WARNING 
+                               else AppBadgeType.NEUTRAL
+                    )
                 }
 
-                Text(
-                    text = tenant.subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                // Quick Actions (Icon Buttons)
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowRight,
+                    contentDescription = "View Details",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.size(24.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(2.dp)
+            // --- Bottom Section: Property & Rent Info ---
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .padding(12.dp)
             ) {
-                Text(
-                    text = CurrencyUtil.formatNprLabel(tenant.rentAmount),
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = "/ month",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Property Info
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        Text(
+                            text = "Property Details",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        if (tenant.propertyName.isNullOrBlank()) {
+                            Box(
+                                modifier = Modifier
+                                    .padding(top = 4.dp)
+                                    .clip(RoundedCornerShape(100.dp))
+                                    .background(MaterialTheme.colorScheme.primaryContainer)
+                                    .clickable { /* TODO: Trigger assign action */ }
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = "Assign",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Text(
+                                        text = "Assign",
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                }
+                            }
+                        } else {
+                            Text(
+                                text = tenant.propertyName,
+                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            if (!tenant.roomNumber.isNullOrBlank()) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.LocationOn,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                    Text(
+                                        text = "Unit ${tenant.roomNumber}",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    // Rent Info
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        Text(
+                            text = "Rent",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = CurrencyUtil.formatNprLabel(tenant.rentAmount),
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "/ month",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         }
     }
 }
 
-@Composable
-private fun StatusPill(status: String, isActive: Boolean) {
-    val (bg, text) = when {
-        status.equals("Pending", ignoreCase = true) ->
-            Color(0xFFFFF7E8) to Color(0xFFF59E0B)
-        isActive || status.equals("Active", ignoreCase = true) ->
-            AppColors.EmeraldAccentLight to AppColors.EmeraldAccent
-        else ->
-            Color(0xFFF3F4F6) to Color(0xFF64748B)
-    }
 
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(100.dp))
-            .background(bg)
-            .padding(horizontal = 8.dp, vertical = 3.dp)
-    ) {
-        Text(
-            text = status,
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = FontWeight.SemiBold,
-                color = text
-            )
-        )
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
@@ -433,6 +573,8 @@ fun TenantsListScreenPreview() {
         val pagedTenants = flowOf(PagingData.from(dummyTenants)).collectAsLazyPagingItems()
         TenantsListContent(
             state = dummyState,
+            searchText = "",
+            isSearching = false,
             pagedTenants = pagedTenants,
             onNavigateToAddTenant = {},
             onAction = {},

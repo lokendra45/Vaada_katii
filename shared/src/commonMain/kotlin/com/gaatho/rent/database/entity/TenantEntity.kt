@@ -18,8 +18,12 @@ import com.gaatho.rent.core.database.security.SecretString
         )
     ],
     indices = [
-        Index(value = ["owner_id"]),
-        Index(value = ["property_id"])
+        // tenant(owner_id, deleted_at, name, id)
+        Index(value = ["owner_id", "deleted_at", "name", "id"]),
+        // tenant(owner_id, status, deleted_at, id)
+        Index(value = ["owner_id", "status", "deleted_at", "id"]),
+        // tenant(property_id, owner_id, status)
+        Index(value = ["property_id", "owner_id", "status"])
     ]
 )
 data class TenantEntity(
@@ -44,6 +48,12 @@ data class TenantEntity(
     @ColumnInfo(name = "sync_status", defaultValue = "PENDING")
     val syncStatus: String = "PENDING",
     @ColumnInfo(name = "last_sync_error")
-    val lastSyncError: String? = null
+    val lastSyncError: String? = null,
+    @ColumnInfo(name = "device_id", defaultValue = "")
+    val deviceId: String = "",
+    @ColumnInfo(name = "version", defaultValue = "1")
+    val version: Int = 1,
+    @ColumnInfo(name = "deleted_at")
+    val deletedAt: String? = null
 )
 

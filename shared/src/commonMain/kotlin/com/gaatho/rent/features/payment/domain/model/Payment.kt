@@ -28,6 +28,10 @@ data class Payment(
     val status: String = "Paid",
     val paymentMethod: String? = null,
     val notes: String? = null,
+    val tenantName: String? = null,
+    val propertyName: String? = null,
+    val roomNumber: String? = null,
+    val idempotencyKey: String? = null,
     val createdAt: String? = null,
     val updatedAt: String? = null
 )

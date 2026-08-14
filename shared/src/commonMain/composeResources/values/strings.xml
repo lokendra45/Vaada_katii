@@ -247,11 +247,39 @@
     <string name="document_picker_max_size">Max size 5MB</string>
     <string name="document_picker_attached">Document attached</string>
 
-    <!-- Add Tenant -->
-    <string name="tenant_documents_title">Tenant Documents (Nepal)</string>
-    <string name="tenant_documents_subtitle">Upload citizenship or passport for verification</string>
-    <string name="citizenship_front">Citizenship (Front)</string>
-    <string name="citizenship_back">Citizenship (Back)</string>
-    <string name="passport_optional">Passport (Optional)</string>
+    <!-- Add Tenant Screen -->
+    <string name="add_tenant_screen_title">Add New Tenant</string>
+    <string name="add_tenant_btn">Add Tenant</string>
+    <string name="tenant_full_name_label">Tenant Full Name</string>
+    <string name="tenant_full_name_placeholder">e.g. Suman Maharjan</string>
+    <string name="tenant_phone_placeholder">e.g. 9841XXXXXX</string>
+    <string name="tenant_email_placeholder">e.g. name@domain.com</string>
+    <string name="assign_property_label">Assign Property</string>
+    <string name="assign_property_placeholder">Select Property</string>
+    <string name="unit_number_label">Unit Number</string>
+    <string name="unit_number_placeholder">e.g. Unit 2B</string>
+    <string name="rent_amount_label">Rent Amount (NPR)</string>
+    <string name="rent_amount_placeholder">e.g. 25,000</string>
+    <string name="move_in_date_label">Move-In Date</string>
+    <string name="move_in_date_placeholder">Select date</string>
+    <string name="lease_duration_label">Lease Duration</string>
+    <string name="lease_duration_placeholder">1 Year</string>
+    <string name="security_deposit_label">Security Deposit (NPR)</string>
+    <string name="security_deposit_placeholder">e.g. 50,000</string>
+    <string name="id_proof_upload_label">ID Proof Upload (Nagarikta / Passport)</string>
+    <string name="tenant_success_title">Success!</string>
+    <string name="tenant_saved_body">Tenant has been saved successfully.</string>
+    <!-- Newly Extracted Strings -->
+    <string name="remove_tenant_title">Remove Tenant?</string>
+    <string name="remove_tenant_desc">This will permanently remove this tenant. This action cannot be undone.</string>
+    <string name="remove_action">Remove</string>
+    <string name="download_receipt_action">Download\nReceipt</string>
+    <string name="share_details_action">Share Details</string>
+    <string name="delete_payment_title">Delete Payment?</string>
+    <string name="delete_payment_desc">Are you sure you want to delete this payment? This action cannot be undone.</string>
+    <string name="language_english">English</string>
+    <string name="language_nepali">नेपाली</string>
+    <string name="confirm_action">Confirm</string>
+    <string name="done_action">Done</string>
 
 </resources>

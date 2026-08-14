@@ -1,12 +1,16 @@
 package com.gaatho.rent
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import com.gaatho.rent.core.auth.UserIdentityProvider
 import com.gaatho.rent.core.designsystem.RentManagerTheme
-import com.gaatho.rent.core.navigation.AppNavigation
-
 import com.gaatho.rent.core.environment.AppEnvironment
+import com.gaatho.rent.core.navigation.AppNavigation
 import com.gaatho.rent.core.security.presentation.components.BiometricGate
-import io.github.vinceglb.filekit.FileKit
+import com.gaatho.rent.core.utils.seedDatabase
+import com.gaatho.rent.features.property.data.repository.PropertyRepository
+import com.gaatho.rent.features.tenant.data.repository.TenantRepository
+import org.koin.compose.koinInject
 
 /**
  * Root composable entry point for the entire application.
@@ -22,6 +26,14 @@ import io.github.vinceglb.filekit.FileKit
  */
 @Composable
 fun App() {
+    val propertyRepo = koinInject<PropertyRepository>()
+    val tenantRepo = koinInject<TenantRepository>()
+    val userIdentityProvider = koinInject<UserIdentityProvider>()
+
+    LaunchedEffect(Unit) {
+        seedDatabase(propertyRepo, tenantRepo, userIdentityProvider.currentUserId())
+    }
+
     AppEnvironment {
         RentManagerTheme {
             BiometricGate {

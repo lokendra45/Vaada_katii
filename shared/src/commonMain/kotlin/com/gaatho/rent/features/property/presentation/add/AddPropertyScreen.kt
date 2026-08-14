@@ -33,7 +33,6 @@ import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
-import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
 import rentmanagerapp.shared.generated.resources.Res
 import rentmanagerapp.shared.generated.resources.add_property_title
@@ -53,6 +52,7 @@ import rentmanagerapp.shared.generated.resources.property_type_placeholder
 import rentmanagerapp.shared.generated.resources.rent_placeholder
 import rentmanagerapp.shared.generated.resources.save_property_btn
 import rentmanagerapp.shared.generated.resources.units_placeholder
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 // ─── Stateful entry point ─────────────────────────────────────────────────────
 // Owns ViewModel, collects State & SideEffects, delegates rendering to stateless Content.
@@ -62,7 +62,7 @@ fun AddPropertyScreen(
     onNavigateBack: () -> Unit,
     viewModel: EditPropertyViewModel = koinInject(parameters = { parametersOf("new") })
 ) {
-    val state by viewModel.collectAsState()
+    val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
     viewModel.collectSideEffect { effect ->

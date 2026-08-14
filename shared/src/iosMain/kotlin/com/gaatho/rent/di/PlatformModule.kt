@@ -18,7 +18,8 @@ actual val platformModule = module {
         val dbFilePath = NSHomeDirectory() + "/rent_manager.db"
         Room.databaseBuilder<AppDatabase>(
             name = dbFilePath
-        )
+        ).setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
+         .fallbackToDestructiveMigrationOnDowngrade()
     }
     single<ConnectivityObserver> { IosConnectivityObserver() }
     single<DataStore<Preferences>> { createDataStore() }

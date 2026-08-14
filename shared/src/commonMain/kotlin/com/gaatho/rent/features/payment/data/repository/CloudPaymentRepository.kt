@@ -9,6 +9,7 @@ import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
+import androidx.paging.PagingData
 
 class CloudPaymentRepository(
     private val supabase: SupabaseClient
@@ -20,6 +21,15 @@ class CloudPaymentRepository(
         // Implement when Supabase sync is fully built.
         // For now, this is a stub.
         emit(emptyList())
+    }
+
+    override fun getPagedPayments(
+        ownerId: String,
+        searchQuery: String,
+        statusFilter: String
+    ): Flow<PagingData<Payment>> {
+        // Cloud paging not implemented yet. Offline-first uses local DB.
+        return emptyFlow()
     }
 
     override fun getPaymentsByTenant(tenantId: String): Flow<List<Payment>> {

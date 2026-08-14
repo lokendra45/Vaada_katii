@@ -24,6 +24,7 @@ class LocalGuestSessionManager(
         return getOrCreateGuestIdSynchronized()
     }
 
+    @Suppress("DEPRECATION")
     @Synchronized
     private fun getOrCreateGuestIdSynchronized(): String {
         cachedGuestId?.let { return it }

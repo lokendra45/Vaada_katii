@@ -23,7 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,13 +30,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.designsystem.components.RentManagerPrimaryButton
+import com.gaatho.rent.core.ui.components.AppBottomActionBar
 import com.gaatho.rent.core.ui.components.AppDatePickerDialog
 import com.gaatho.rent.core.ui.components.AppDialog
 import com.gaatho.rent.core.ui.components.AppDocumentPicker
@@ -50,10 +49,35 @@ import com.gaatho.rent.features.tenant.presentation.edit.EditTenantSideEffect
 import com.gaatho.rent.features.tenant.presentation.edit.EditTenantState
 import com.gaatho.rent.features.tenant.presentation.edit.EditTenantViewModel
 import kotlinx.collections.immutable.persistentListOf
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
-import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.add_tenant_btn
+import rentmanagerapp.shared.generated.resources.add_tenant_screen_title
+import rentmanagerapp.shared.generated.resources.assign_property_label
+import rentmanagerapp.shared.generated.resources.assign_property_placeholder
+import rentmanagerapp.shared.generated.resources.continue_btn
+import rentmanagerapp.shared.generated.resources.id_proof_upload_label
+import rentmanagerapp.shared.generated.resources.lease_duration_label
+import rentmanagerapp.shared.generated.resources.lease_duration_placeholder
+import rentmanagerapp.shared.generated.resources.move_in_date_label
+import rentmanagerapp.shared.generated.resources.move_in_date_placeholder
+import rentmanagerapp.shared.generated.resources.rent_amount_label
+import rentmanagerapp.shared.generated.resources.rent_amount_placeholder
+import rentmanagerapp.shared.generated.resources.security_deposit_label
+import rentmanagerapp.shared.generated.resources.security_deposit_placeholder
+import rentmanagerapp.shared.generated.resources.tenant_email_label
+import rentmanagerapp.shared.generated.resources.tenant_email_placeholder
+import rentmanagerapp.shared.generated.resources.tenant_full_name_label
+import rentmanagerapp.shared.generated.resources.tenant_full_name_placeholder
+import rentmanagerapp.shared.generated.resources.tenant_phone_label
+import rentmanagerapp.shared.generated.resources.tenant_phone_placeholder
+import rentmanagerapp.shared.generated.resources.tenant_saved_body
+import rentmanagerapp.shared.generated.resources.tenant_success_title
+import rentmanagerapp.shared.generated.resources.unit_number_label
+import rentmanagerapp.shared.generated.resources.unit_number_placeholder
 
 // ─── Stateful entry point ─────────────────────────────────────────────────────
 
@@ -62,7 +86,7 @@ fun AddTenantScreen(
     onNavigateBack: () -> Unit,
     viewModel: EditTenantViewModel = koinInject(parameters = { parametersOf("new") })
 ) {
-    val state by viewModel.collectAsState()
+    val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
     viewModel.collectSideEffect { effect ->
@@ -76,14 +100,10 @@ fun AddTenantScreen(
     Scaffold(
         topBar = {
             AppTopBar(
-                title = "Add New Tenant",
+                title = stringResource(Res.string.add_tenant_screen_title),
                 onBackClick = { viewModel.onAction(EditTenantAction.OnBackClicked) },
                 containerColor = MaterialTheme.colorScheme.background,
-                titleStyle = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                titleStyle = MaterialTheme.typography.headlineMedium
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -110,9 +130,9 @@ fun AddTenantContent(
             variant = AppDialog.Variant.Success,
             layout = AppDialog.Layout.Center,
             icon = Icons.Default.CheckCircle,
-            title = "Success!",
-            body = "Tenant has been saved successfully.",
-            confirmText = "OK",
+            title = stringResource(Res.string.tenant_success_title),
+            body = stringResource(Res.string.tenant_saved_body),
+            confirmText = stringResource(Res.string.continue_btn),
             onConfirm = { onAction(EditTenantAction.OnSuccessDialogDismissed) },
             onDismiss = { onAction(EditTenantAction.OnSuccessDialogDismissed) }
         )
@@ -120,15 +140,6 @@ fun AddTenantContent(
 
     val scrollState = rememberScrollState()
 
-    val labelStyle = MaterialTheme.typography.bodyMedium.copy(
-        fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
-        color = MaterialTheme.colorScheme.onSurface
-    )
-    val fieldStyle = MaterialTheme.typography.bodyMedium.copy(
-        fontWeight = FontWeight.Normal,
-        fontSize = 13.sp
-    )
     val fieldShape = RoundedCornerShape(12.dp)
 
     val propertyNames = remember(state.propertyOptions) {
@@ -174,11 +185,9 @@ fun AddTenantContent(
             AppTextField(
                 value = state.name,
                 onValueChange = { onAction(EditTenantAction.OnNameChanged(it)) },
-                label = "Tenant Full Name",
-                placeholder = "e.g. Suman Maharjan",
+                label = stringResource(Res.string.tenant_full_name_label),
+                placeholder = stringResource(Res.string.tenant_full_name_placeholder),
                 errorMessage = state.nameError,
-                labelStyle = labelStyle,
-                fieldTextStyle = fieldStyle,
                 shape = fieldShape,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -188,10 +197,8 @@ fun AddTenantContent(
             AppTextField(
                 value = state.phone,
                 onValueChange = { onAction(EditTenantAction.OnPhoneChanged(it)) },
-                label = "Phone Number",
-                placeholder = "e.g. 9841XXXXXX",
-                labelStyle = labelStyle,
-                fieldTextStyle = fieldStyle,
+                label = stringResource(Res.string.tenant_phone_label),
+                placeholder = stringResource(Res.string.tenant_phone_placeholder),
                 shape = fieldShape,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -201,10 +208,8 @@ fun AddTenantContent(
             AppTextField(
                 value = state.email,
                 onValueChange = { onAction(EditTenantAction.OnEmailChanged(it)) },
-                label = "Email Address",
-                placeholder = "e.g. name@domain.com",
-                labelStyle = labelStyle,
-                fieldTextStyle = fieldStyle,
+                label = stringResource(Res.string.tenant_email_label),
+                placeholder = stringResource(Res.string.tenant_email_placeholder),
                 shape = fieldShape,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -218,10 +223,8 @@ fun AddTenantContent(
                     val id = state.propertyOptions.find { it.name == name }?.id
                     if (id != null) onAction(EditTenantAction.OnPropertySelected(id))
                 },
-                label = "Assign Property",
-                placeholder = "Select Property",
-                labelStyle = labelStyle,
-                fieldTextStyle = fieldStyle,
+                label = stringResource(Res.string.assign_property_label),
+                placeholder = stringResource(Res.string.assign_property_placeholder),
                 shape = fieldShape,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -236,21 +239,17 @@ fun AddTenantContent(
                 AppTextField(
                     value = state.unitNumber,
                     onValueChange = { onAction(EditTenantAction.OnUnitNumberChanged(it)) },
-                    label = "Unit Number",
-                    placeholder = "e.g. Unit 2B",
-                    labelStyle = labelStyle,
-                    fieldTextStyle = fieldStyle,
+                    label = stringResource(Res.string.unit_number_label),
+                    placeholder = stringResource(Res.string.unit_number_placeholder),
                     shape = fieldShape,
                     modifier = Modifier.weight(1f)
                 )
                 AppTextField(
                     value = state.rentAmount,
                     onValueChange = { onAction(EditTenantAction.OnRentChanged(it)) },
-                    label = "Rent Amount (NPR)",
-                    placeholder = "e.g. 25,000",
+                    label = stringResource(Res.string.rent_amount_label),
+                    placeholder = stringResource(Res.string.rent_amount_placeholder),
                     errorMessage = state.rentError,
-                    labelStyle = labelStyle,
-                    fieldTextStyle = fieldStyle,
                     shape = fieldShape,
                     modifier = Modifier.weight(1f)
                 )
@@ -267,10 +266,8 @@ fun AddTenantContent(
                     value = DateTimeUtil.formatDisplayDate(state.moveInDate),
                     onValueChange = {},
                     readOnly = true,
-                    label = "Move-In Date",
-                    placeholder = "Select date",
-                    labelStyle = labelStyle,
-                    fieldTextStyle = fieldStyle,
+                    label = stringResource(Res.string.move_in_date_label),
+                    placeholder = stringResource(Res.string.move_in_date_placeholder),
                     shape = fieldShape,
                     trailingIcon = {
                         Icon(
@@ -289,10 +286,8 @@ fun AddTenantContent(
                     options = leaseDurations,
                     selectedItem = state.leaseDuration,
                     onItemSelected = { onAction(EditTenantAction.OnLeaseDurationSelected(it)) },
-                    label = "Lease Duration",
-                    placeholder = "1 Year",
-                    labelStyle = labelStyle,
-                    fieldTextStyle = fieldStyle,
+                    label = stringResource(Res.string.lease_duration_label),
+                    placeholder = stringResource(Res.string.lease_duration_placeholder),
                     shape = fieldShape,
                     modifier = Modifier.weight(1f)
                 )
@@ -303,10 +298,8 @@ fun AddTenantContent(
             AppTextField(
                 value = state.securityDeposit,
                 onValueChange = { onAction(EditTenantAction.OnSecurityDepositChanged(it)) },
-                label = "Security Deposit (NPR)",
-                placeholder = "e.g. 50,000",
-                labelStyle = labelStyle,
-                fieldTextStyle = fieldStyle,
+                label = stringResource(Res.string.security_deposit_label),
+                placeholder = stringResource(Res.string.security_deposit_placeholder),
                 shape = fieldShape,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -314,7 +307,7 @@ fun AddTenantContent(
             Spacer(Modifier.height(20.dp))
 
             AppDocumentPicker(
-                title = "ID Proof Upload (Nagarikta / Passport)",
+                title = stringResource(Res.string.id_proof_upload_label),
                 file = state.uploadedDocumentName,
                 onClick = {},
                 modifier = Modifier.fillMaxWidth()
@@ -324,13 +317,11 @@ fun AddTenantContent(
         }
 
         // ── Submit ──────────────────────────────────────────────────────────
-        Surface(color = MaterialTheme.colorScheme.background) {
+        AppBottomActionBar {
             RentManagerPrimaryButton(
-                text = "Add Tenant",
+                text = stringResource(Res.string.add_tenant_btn),
                 onClick = { onAction(EditTenantAction.OnSaveClicked) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                modifier = Modifier.fillMaxWidth(),
                 isLoading = state.isSaving
             )
         }

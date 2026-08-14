@@ -37,7 +37,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.gaatho.rent.core.designsystem.AppDimensions
 import com.gaatho.rent.core.designsystem.RentManagerTheme
 
@@ -139,14 +138,8 @@ fun AppTextField(
         else -> MaterialTheme.colorScheme.outlineVariant
     }
 
-    val effectiveLabelStyle = labelStyle ?: MaterialTheme.typography.bodyLarge.copy(
-        fontWeight = FontWeight.Medium,
-        fontSize = 16.sp
-    )
-    val effectiveFieldStyle = fieldTextStyle ?: MaterialTheme.typography.bodyLarge.copy(
-        fontWeight = FontWeight.Medium,
-        fontSize = 14.sp
-    )
+    val effectiveLabelStyle = labelStyle ?: MaterialTheme.typography.labelLarge
+    val effectiveFieldStyle = fieldTextStyle ?: MaterialTheme.typography.bodyLarge
 
     Column(modifier = modifier.fillMaxWidth()) {
         if (label != null || topRightLabel != null) {
