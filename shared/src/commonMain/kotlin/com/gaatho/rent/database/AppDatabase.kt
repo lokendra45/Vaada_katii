@@ -21,10 +21,11 @@ import com.gaatho.rent.database.converter.StringCollectionConverter
 
 @Database(
     entities = [PropertyEntity::class, TenantEntity::class, PaymentEntity::class, AppSettingsEntity::class],
-    version = 3,
+    version = 4,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
-        AutoMigration(from = 2, to = 3)
+        AutoMigration(from = 2, to = 3),
+        AutoMigration(from = 3, to = 4)
     ]
 )
 @ColumnTypeConverters(EncryptedStringConverter::class, StringCollectionConverter::class)

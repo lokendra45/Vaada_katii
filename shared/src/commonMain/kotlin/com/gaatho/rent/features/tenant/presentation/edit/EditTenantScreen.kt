@@ -1,35 +1,42 @@
 package com.gaatho.rent.features.tenant.presentation.edit
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.gaatho.rent.core.designsystem.AppDimensions
-import com.gaatho.rent.core.designsystem.components.RentManagerButton
+import androidx.compose.ui.unit.sp
+import com.gaatho.rent.core.designsystem.AppColors
+import com.gaatho.rent.core.designsystem.RentManagerTheme
+import com.gaatho.rent.core.designsystem.components.RentManagerOutlinedButton
+import com.gaatho.rent.core.designsystem.components.RentManagerPrimaryButton
+import com.gaatho.rent.core.ui.components.AppCard
+import com.gaatho.rent.core.ui.components.AppDatePickerDialog
+import com.gaatho.rent.core.ui.components.AppDialog
 import com.gaatho.rent.core.ui.components.AppDropdown
 import com.gaatho.rent.core.ui.components.AppTextField
+import com.gaatho.rent.core.ui.components.AppTopBar
+import com.gaatho.rent.core.utils.DateTimeUtil
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toPersistentList
 import org.koin.compose.koinInject
-import androidx.compose.ui.text.input.TextFieldValue
 import org.koin.core.parameter.parametersOf
 import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditTenantScreen(
     tenantId: String,
@@ -49,9 +56,15 @@ fun EditTenantScreen(
 
     Scaffold(
         topBar = {
-            com.gaatho.rent.core.ui.components.AppTopBar(
-                title = if (tenantId == "new") "Add Tenant" else "Edit Tenant",
-                onBackClick = { viewModel.onAction(EditTenantAction.OnBackClicked) }
+            AppTopBar(
+                title = "Edit Tenant Details",
+                onBackClick = { viewModel.onAction(EditTenantAction.OnBackClicked) },
+                containerColor = MaterialTheme.colorScheme.background,
+                titleStyle = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -66,26 +79,65 @@ fun EditTenantScreen(
 }
 
 @Composable
-private fun EditTenantContent(
+fun EditTenantContent(
     state: EditTenantState,
     onAction: (EditTenantAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    if (state.showSuccessDialog) {
+        AppDialog(
+            variant = AppDialog.Variant.Success,
+            layout = AppDialog.Layout.Center,
+            icon = Icons.Default.CheckCircle,
+            title = "Success!",
+            body = "Tenant has been saved successfully.",
+            confirmText = "OK",
+            onConfirm = { onAction(EditTenantAction.OnSuccessDialogDismissed) },
+            onDismiss = { onAction(EditTenantAction.OnSuccessDialogDismissed) }
+        )
+    }
+
     val scrollState = rememberScrollState()
-    val iconTint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+
+    val labelStyle = MaterialTheme.typography.bodyMedium.copy(
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
+        color = MaterialTheme.colorScheme.onSurface
+    )
+    val fieldStyle = MaterialTheme.typography.bodyMedium.copy(
+        fontWeight = FontWeight.Normal,
+        fontSize = 13.sp
+    )
+    val fieldShape = RoundedCornerShape(12.dp)
+
+    val propertyNames = remember(state.propertyOptions) {
+        state.propertyOptions.map { it.name }.let(::persistentListOf)
+    }
+    val selectedPropertyName = state.propertyOptions.find { it.id == state.propertyId }?.name
+
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    if (showDatePicker) {
+        AppDatePickerDialog(
+            selectedDate = state.moveInDate,
+            onDateSelected = {
+                onAction(EditTenantAction.OnMoveInDateChanged(it))
+                showDatePicker = false
+            },
+            onDismiss = { showDatePicker = false },
+            title = "Move-In Date"
+        )
+    }
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-
         if (state.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) { CircularProgressIndicator() }
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
             return@Column
         }
 
@@ -96,58 +148,19 @@ private fun EditTenantContent(
                 .verticalScroll(scrollState)
                 .padding(horizontal = 24.dp)
         ) {
-            // Photo placeholder
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                val initials = state.name.text
-                    .takeIf { it.isNotBlank() }
-                    ?.split(" ")
-                    ?.mapNotNull { it.firstOrNull()?.toString() }
-                    ?.take(2)
-                    ?.joinToString("") ?: "T"
-
-                Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = initials,
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = if (state.propertyOptions.isEmpty() && state.name.text.isBlank()) "Fill in the details below" else "Edit tenant details below",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            Spacer(Modifier.height(16.dp))
 
             AppTextField(
                 value = state.name,
                 onValueChange = { onAction(EditTenantAction.OnNameChanged(it)) },
-                label = "Full Name",
-                placeholder = "e.g. Suman Shrestha",
-                leadingIcon = {
-                    Icon(Icons.Default.Person, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp))
-                }
+                label = "Tenant Full Name",
+                placeholder = "e.g. Suman Maharjan",
+                errorMessage = state.nameError,
+                labelStyle = labelStyle,
+                fieldTextStyle = fieldStyle,
+                shape = fieldShape,
+                modifier = Modifier.fillMaxWidth()
             )
-            if (state.nameError != null) {
-                Text(
-                    text = state.nameError,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(start = 4.dp, top = 4.dp)
-                )
-            }
 
             Spacer(Modifier.height(16.dp))
 
@@ -155,10 +168,11 @@ private fun EditTenantContent(
                 value = state.phone,
                 onValueChange = { onAction(EditTenantAction.OnPhoneChanged(it)) },
                 label = "Phone Number",
-                placeholder = "e.g. +977-9841234567",
-                leadingIcon = {
-                    Icon(Icons.Default.Phone, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp))
-                }
+                placeholder = "e.g. 9841XXXXXX",
+                labelStyle = labelStyle,
+                fieldTextStyle = fieldStyle,
+                shape = fieldShape,
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(Modifier.height(16.dp))
@@ -167,67 +181,15 @@ private fun EditTenantContent(
                 value = state.email,
                 onValueChange = { onAction(EditTenantAction.OnEmailChanged(it)) },
                 label = "Email Address",
-                placeholder = "e.g. suman@example.com",
-                leadingIcon = {
-                    Icon(Icons.Default.Email, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp))
-                }
+                placeholder = "e.g. name@domain.com",
+                labelStyle = labelStyle,
+                fieldTextStyle = fieldStyle,
+                shape = fieldShape,
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(Modifier.height(16.dp))
 
-            AppTextField(
-                value = state.rentAmount,
-                onValueChange = { onAction(EditTenantAction.OnRentChanged(it)) },
-                label = "Monthly Rent (NPR)",
-                placeholder = "e.g. 15000",
-                leadingIcon = {
-                    Icon(Icons.Default.Payments, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp))
-                }
-            )
-            if (state.rentError != null) {
-                Text(
-                    text = state.rentError,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(start = 4.dp, top = 4.dp)
-                )
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                AppTextField(
-                    value = state.roomNumber,
-                    onValueChange = { onAction(EditTenantAction.OnRoomNumberChanged(it)) },
-                    label = "Room / Flat",
-                    placeholder = "e.g. 2A",
-                    modifier = Modifier.weight(1f),
-                    leadingIcon = {
-                        Icon(Icons.Default.DoorFront, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp))
-                    }
-                )
-
-                val statusOptions = persistentListOf("Active", "Inactive", "Overdue")
-                AppDropdown(
-                    options = statusOptions,
-                    selectedItem = state.status,
-                    onItemSelected = { onAction(EditTenantAction.OnStatusSelected(it)) },
-                    label = "Status",
-                    placeholder = "Active",
-                    modifier = Modifier.weight(1.2f),
-                    leadingIcon = {
-                        Icon(Icons.Default.Info, contentDescription = null, tint = iconTint, modifier = Modifier.size(18.dp))
-                    }
-                )
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            val propertyNames = state.propertyOptions.map { it.name }.toPersistentList()
-            val selectedPropertyName = state.propertyOptions.find { it.id == state.propertyId }?.name ?: ""
             AppDropdown(
                 options = propertyNames,
                 selectedItem = selectedPropertyName,
@@ -235,73 +197,202 @@ private fun EditTenantContent(
                     val id = state.propertyOptions.find { it.name == name }?.id
                     if (id != null) onAction(EditTenantAction.OnPropertySelected(id))
                 },
-                label = "Assigned Property",
+                label = "Assign Property",
                 placeholder = "Select Property",
-                leadingIcon = {
-                    Icon(Icons.Default.Home, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp))
-                }
+                labelStyle = labelStyle,
+                fieldTextStyle = fieldStyle,
+                shape = fieldShape,
+                modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                AppTextField(
+                    value = state.unitNumber,
+                    onValueChange = { onAction(EditTenantAction.OnUnitNumberChanged(it)) },
+                    label = "Unit Number",
+                    placeholder = "e.g. Unit 2B",
+                    labelStyle = labelStyle,
+                    fieldTextStyle = fieldStyle,
+                    shape = fieldShape,
+                    modifier = Modifier.weight(1f)
+                )
+                AppTextField(
+                    value = state.rentAmount,
+                    onValueChange = { onAction(EditTenantAction.OnRentChanged(it)) },
+                    label = "Rent Amount (NPR)",
+                    placeholder = "e.g. 25,000",
+                    errorMessage = state.rentError,
+                    labelStyle = labelStyle,
+                    fieldTextStyle = fieldStyle,
+                    shape = fieldShape,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                AppTextField(
+                    value = DateTimeUtil.formatDisplayDate(state.moveInDate),
+                    onValueChange = {},
+                    readOnly = true,
+                    label = "Move-In Date",
+                    placeholder = "Select date",
+                    labelStyle = labelStyle,
+                    fieldTextStyle = fieldStyle,
+                    shape = fieldShape,
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    onClick = { showDatePicker = true },
+                    modifier = Modifier.weight(1f)
+                )
+
+                val leaseDurations = persistentListOf("1 Year", "2 Years", "3 Years", "5 Years")
+                AppDropdown(
+                    options = leaseDurations,
+                    selectedItem = state.leaseDuration,
+                    onItemSelected = { onAction(EditTenantAction.OnLeaseDurationSelected(it)) },
+                    label = "Lease Duration",
+                    placeholder = "1 Year",
+                    labelStyle = labelStyle,
+                    fieldTextStyle = fieldStyle,
+                    shape = fieldShape,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            AppTextField(
+                value = state.securityDeposit,
+                onValueChange = { onAction(EditTenantAction.OnSecurityDepositChanged(it)) },
+                label = "Security Deposit (NPR)",
+                placeholder = "e.g. 50,000",
+                labelStyle = labelStyle,
+                fieldTextStyle = fieldStyle,
+                shape = fieldShape,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            IdentityDocumentCard(fileName = state.uploadedDocumentName)
+
+            Spacer(Modifier.height(24.dp))
         }
 
-        // ── Footer ────────────────────────────────────────────────────────────
-        Surface(color = MaterialTheme.colorScheme.surface) {
-            Column {
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Button(
-                        onClick = { onAction(EditTenantAction.OnBackClicked) },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(AppDimensions.ButtonHeightMedium),
-                        shape = RoundedCornerShape(AppDimensions.RadiusPill),
-                        elevation = ButtonDefaults.buttonElevation(0.dp, 0.dp, 0.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        )
-                    ) {
-                        Text(
-                            text = "Cancel",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
+        // ── Footer actions ──────────────────────────────────────────────────
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                RentManagerOutlinedButton(
+                    text = "Remove Tenant",
+                    onClick = { onAction(EditTenantAction.OnDeleteClicked) },
+                    modifier = Modifier.weight(1f),
+                    borderColor = AppColors.Error,
+                    contentColor = AppColors.Error
+                )
+                RentManagerPrimaryButton(
+                    text = "Save Changes",
+                    onClick = { onAction(EditTenantAction.OnSaveClicked) },
+                    modifier = Modifier.weight(1f),
+                    isLoading = state.isSaving
+                )
+            }
+        }
+    }
 
-                    RentManagerButton(
-                        onClick = { onAction(EditTenantAction.OnSaveClicked) },
-                        modifier = Modifier.weight(1.5f)
-                    ) {
-                        if (state.isSaving) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(18.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                        } else {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.Check,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Text(
-                                    text = "Save",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                            }
-                        }
-                    }
+    if (state.showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { onAction(EditTenantAction.OnDeleteDismissed) },
+            icon = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+            title = { Text("Remove Tenant?") },
+            text = { Text("This will permanently remove this tenant. This action cannot be undone.") },
+            confirmButton = {
+                Button(
+                    onClick = { onAction(EditTenantAction.OnDeleteConfirmed) },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Remove")
                 }
+            },
+            dismissButton = {
+                TextButton(onClick = { onAction(EditTenantAction.OnDeleteDismissed) }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
+
+// ─── Identity document card ───────────────────────────────────────────────────
+
+@Composable
+private fun IdentityDocumentCard(fileName: String?) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Identity Proof Document",
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontWeight = FontWeight.Medium,
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            ),
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        AppCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            useCardShadow = false
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Description,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp)
+                )
+                Text(
+                    text = fileName ?: "suman_nagarikta.pdf",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    ),
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1
+                )
+                Text(
+                    text = "Replace",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 10.sp,
+                        color = AppColors.Error
+                    )
+                )
             }
         }
     }
@@ -309,47 +400,35 @@ private fun EditTenantContent(
 
 // ─── Previews ─────────────────────────────────────────────────────────────────
 
-@androidx.compose.ui.tooling.preview.Preview(name = "Edit Tenant — Filled")
+@Preview(name = "Edit Tenant — Filled")
 @Composable
 private fun EditTenantFilledPreview() {
-    com.gaatho.rent.core.designsystem.RentManagerTheme {
+    RentManagerTheme {
         EditTenantContent(
             state = EditTenantState(
-                name = TextFieldValue("Suman Shrestha"),
-                phone = TextFieldValue("+977-9841234567"),
-                email = TextFieldValue("suman@example.com"),
-                rentAmount = TextFieldValue("15000"),
-                roomNumber = TextFieldValue("2A"),
-                status = "Active",
-                isLoading = false
+                name = TextFieldValue("Suman Maharjan"),
+                phone = TextFieldValue("9841876543"),
+                email = TextFieldValue("suman.maharjan@gmail.com"),
+                rentAmount = TextFieldValue("25000"),
+                unitNumber = TextFieldValue("Unit 2B"),
+                moveInDate = "2023-10-18",
+                leaseDuration = "1 Year",
+                securityDeposit = TextFieldValue("50000"),
+                isLoading = false,
+                propertyId = "prop-1",
+                propertyOptions = listOf(PropertyOption("prop-1", "Baluwatar House"))
             ),
             onAction = {}
         )
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview(name = "Edit Tenant — Loading")
+@Preview(name = "Edit Tenant — Loading")
 @Composable
 private fun EditTenantLoadingPreview() {
-    com.gaatho.rent.core.designsystem.RentManagerTheme {
+    RentManagerTheme {
         EditTenantContent(
             state = EditTenantState(isLoading = true),
-            onAction = {}
-        )
-    }
-}
-
-@androidx.compose.ui.tooling.preview.Preview(name = "Edit Tenant — Saving")
-@Composable
-private fun EditTenantSavingPreview() {
-    com.gaatho.rent.core.designsystem.RentManagerTheme {
-        EditTenantContent(
-            state = EditTenantState(
-                name = TextFieldValue("Suman Shrestha"),
-                rentAmount = TextFieldValue("15000"),
-                isLoading = false,
-                isSaving = true
-            ),
             onAction = {}
         )
     }

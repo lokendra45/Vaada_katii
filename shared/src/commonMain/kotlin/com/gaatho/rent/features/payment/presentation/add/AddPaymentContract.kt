@@ -59,12 +59,12 @@ data class PropertySelectionModel(
 )
 
 
-enum class PaymentMethod(val labelRes: StringResource) {
+enum class PaymentMethod(val labelRes: StringResource, val displayName: String) {
 
-    CASH(Res.string.payment_method_cash),
-    BANK_TRANSFER(Res.string.payment_method_bank_transfer),
-    ESEWA(Res.string.payment_method_esewa),
-    KHALTI(Res.string.payment_method_khalti)
+    CASH(Res.string.payment_method_cash, "Cash"),
+    BANK_TRANSFER(Res.string.payment_method_bank_transfer, "Bank Transfer"),
+    ESEWA(Res.string.payment_method_esewa, "eSewa"),
+    KHALTI(Res.string.payment_method_khalti, "Khalti")
 }
 
 sealed class AddPaymentAction {

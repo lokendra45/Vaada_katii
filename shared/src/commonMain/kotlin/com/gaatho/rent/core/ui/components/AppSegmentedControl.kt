@@ -86,7 +86,7 @@ fun AppFilterChips(
             val isSelected = index == selectedIndex
             Surface(
                 modifier = Modifier
-                    .height(25.dp)
+                    .height(29.dp) // Figma: 29px filter tab height
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
@@ -96,7 +96,7 @@ fun AppFilterChips(
                 border = if (isSelected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
                 Box(
-                    modifier = Modifier.padding(horizontal = 12.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp), // More horizontal breathing room
                     contentAlignment = Alignment.Center
                 ) {
                     Text(

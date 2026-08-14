@@ -28,16 +28,24 @@ data class PropertyDisplayModel(
     val imageUrl: String?,
     val totalUnits: Int,
     val occUnits: Int,
+    val vacUnits: Int,
     val statusBadge: String,
     val isVacant: Boolean,
+    val priceFormatted: String,
     val pendingText: String,
     val isPending: Boolean
 )
 
 @Serializable
 data class PropertyListState(
-    val selectedLocation: String = "All properties"
+    val selectedFilter: String = PropertyListFilters.All
 )
+
+object PropertyListFilters {
+    const val All = "All"
+    const val Residential = "Residential"
+    const val Commercial = "Commercial"
+}
 
 /**
  * One-time side effects for the Property List screen.
@@ -87,8 +95,8 @@ sealed interface PropertyListAction {
     /** The "Add Property" button was tapped. */
     data object OnAddPropertyClicked : PropertyListAction
 
-    /** A location filter pill was clicked. */
-    data class OnLocationFilterSelected(val location: String) : PropertyListAction
+    /** A filter pill was clicked. */
+    data class OnFilterSelected(val filter: String) : PropertyListAction
 
     /** A quick action pill was clicked. */
     data class OnQuickActionClicked(val message: String) : PropertyListAction

@@ -50,6 +50,7 @@ data class PropertyDetailsState(
 sealed interface PropertyDetailsAction {
     data object OnBackClicked : PropertyDetailsAction
     data object OnEditClicked : PropertyDetailsAction
+    data object OnAddTenantClicked : PropertyDetailsAction
     data object OnDeleteClicked : PropertyDetailsAction
     data object OnDeleteConfirmed : PropertyDetailsAction
     data object OnDeleteDismissed : PropertyDetailsAction
@@ -62,5 +63,6 @@ sealed interface PropertyDetailsAction {
 sealed interface PropertyDetailsSideEffect {
     data object NavigateBack : PropertyDetailsSideEffect
     data class NavigateToEdit(val propertyId: String) : PropertyDetailsSideEffect
+    data object NavigateToAddTenant : PropertyDetailsSideEffect
     data class ShowError(val message: String) : PropertyDetailsSideEffect
 }

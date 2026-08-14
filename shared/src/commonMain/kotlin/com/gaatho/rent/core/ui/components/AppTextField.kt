@@ -1,6 +1,7 @@
 package com.gaatho.rent.core.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +28,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -48,6 +51,7 @@ fun AppTextField(
     placeholder: String? = null,
     errorMessage: String? = null,
     prefix: String? = null,
+    prefixColor: Color? = null,
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -58,7 +62,11 @@ fun AppTextField(
     maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
     readOnly: Boolean = false,
     enabled: Boolean = true,
-    textStyle: TextStyle = LocalTextStyle.current
+    textStyle: TextStyle = LocalTextStyle.current,
+    labelStyle: TextStyle? = null,
+    fieldTextStyle: TextStyle? = null,
+    shape: Shape = RoundedCornerShape(AppDimensions.TextFieldCornerRadius),
+    onClick: (() -> Unit)? = null
 ) {
     var textFieldValueState by remember { mutableStateOf(TextFieldValue(text = value)) }
     val textFieldValue = textFieldValueState.copy(text = value)
@@ -77,6 +85,7 @@ fun AppTextField(
         placeholder = placeholder,
         errorMessage = errorMessage,
         prefix = prefix,
+        prefixColor = prefixColor,
         leadingIcon = leadingIcon,
         trailingIcon = trailingIcon,
         keyboardOptions = keyboardOptions,
@@ -87,7 +96,11 @@ fun AppTextField(
         maxLines = maxLines,
         readOnly = readOnly,
         enabled = enabled,
-        textStyle = textStyle
+        textStyle = textStyle,
+        labelStyle = labelStyle,
+        fieldTextStyle = fieldTextStyle,
+        shape = shape,
+        onClick = onClick
     )
 }
 
@@ -101,6 +114,7 @@ fun AppTextField(
     placeholder: String? = null,
     errorMessage: String? = null,
     prefix: String? = null,
+    prefixColor: Color? = null,
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -111,16 +125,28 @@ fun AppTextField(
     maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
     readOnly: Boolean = false,
     enabled: Boolean = true,
-    textStyle: TextStyle = LocalTextStyle.current
+    textStyle: TextStyle = LocalTextStyle.current,
+    labelStyle: TextStyle? = null,
+    fieldTextStyle: TextStyle? = null,
+    shape: Shape = RoundedCornerShape(AppDimensions.TextFieldCornerRadius),
+    onClick: (() -> Unit)? = null
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
-    val shape = RoundedCornerShape(AppDimensions.TextFieldCornerRadius)
     val borderColor = when {
         errorMessage != null -> MaterialTheme.colorScheme.error
         isFocused -> MaterialTheme.colorScheme.primary
         else -> MaterialTheme.colorScheme.outlineVariant
     }
+
+    val effectiveLabelStyle = labelStyle ?: MaterialTheme.typography.bodyLarge.copy(
+        fontWeight = FontWeight.Medium,
+        fontSize = 16.sp
+    )
+    val effectiveFieldStyle = fieldTextStyle ?: MaterialTheme.typography.bodyLarge.copy(
+        fontWeight = FontWeight.Medium,
+        fontSize = 14.sp
+    )
 
     Column(modifier = modifier.fillMaxWidth()) {
         if (label != null || topRightLabel != null) {
@@ -134,10 +160,7 @@ fun AppTextField(
                 if (label != null) {
                     Text(
                         text = label,
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 16.sp
-                        ),
+                        style = effectiveLabelStyle,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 } else {
@@ -157,7 +180,8 @@ fun AppTextField(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = if (singleLine) AppDimensions.TextFieldHeight else 90.dp),
+                .heightIn(min = if (singleLine) AppDimensions.TextFieldHeight else 90.dp)
+                .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
             shape = shape,
             color = MaterialTheme.colorScheme.surface,
             border = BorderStroke(AppDimensions.TextFieldBorderWidth, borderColor)
@@ -172,11 +196,7 @@ fun AppTextField(
                         vertical = if (singleLine) 0.dp else 14.dp
                     ),
                 textStyle = textStyle.merge(
-                    MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    effectiveFieldStyle.copy(color = MaterialTheme.colorScheme.onSurface)
                 ),
                 keyboardOptions = keyboardOptions,
                 keyboardActions = keyboardActions,
@@ -203,8 +223,10 @@ fun AppTextField(
                         if (prefix != null) {
                             Text(
                                 text = prefix,
-                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                                color = MaterialTheme.colorScheme.onSurface
+                                style = effectiveFieldStyle.copy(
+                                    color = prefixColor ?: MaterialTheme.colorScheme.onSurface
+                                ),
+                                fontWeight = FontWeight.Medium
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                         }
@@ -213,11 +235,9 @@ fun AppTextField(
                             if (value.text.isEmpty() && placeholder != null) {
                                 Text(
                                     text = placeholder,
-                                    style = MaterialTheme.typography.bodyLarge.copy(
-                                        fontWeight = FontWeight.Medium,
-                                        fontSize = 14.sp
-                                    ),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    style = effectiveFieldStyle.copy(
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 )
                             }
                             innerTextField()

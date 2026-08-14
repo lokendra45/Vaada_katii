@@ -150,7 +150,8 @@ class TenantsListViewModel(
             subtitle = subtitle, status = tenant.status, isActive = isActive,
             avatarBgColorHex = bgColor, avatarTextColorHex = textColor,
             propertyName = tenant.propertyName, roomNumber = tenant.roomNumber,
-            email = tenant.email, phone = tenant.phone
+            email = tenant.email, phone = tenant.phone,
+            rentAmount = tenant.rentAmount
         )
     }
 }

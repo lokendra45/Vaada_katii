@@ -1,41 +1,53 @@
 package com.gaatho.rent.features.tenant.presentation.details
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.automirrored.outlined.Message
-import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.outlined.Call
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.ui.UiState
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
-
-import com.gaatho.rent.core.designsystem.AppColors
-import org.jetbrains.compose.resources.stringResource
-import rentmanagerapp.shared.generated.resources.Res
-import rentmanagerapp.shared.generated.resources.*
 
 // ─── Entry point ─────────────────────────────────────────────────────────────
 
@@ -75,62 +87,51 @@ private fun TenantDetailsContent(
     Scaffold(
         topBar = {
             com.gaatho.rent.core.ui.components.AppTopBar(
-                title = stringResource(Res.string.app_name_dashboard),
+                title = "Tenant Profile",
                 onBackClick = { onAction(TenantDetailsAction.OnBackClicked) },
-            actions = {
-                    IconButton(onClick = { onAction(TenantDetailsAction.OnDeleteClicked) }) {
+                actions = {
+                    IconButton(onClick = { onAction(TenantDetailsAction.OnEditClicked) }) {
                         Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete",
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    }
-                    TextButton(onClick = { onAction(TenantDetailsAction.OnEditClicked) }) {
-                        Text(
-                            text = "Edit",
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.titleMedium
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
             )
         },
-        // Use surface instead of background to avoid pure black in dark mode
-        containerColor = MaterialTheme.colorScheme.surface
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) { paddings ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddings)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 20.dp)
         ) {
-            // ── Profile ───────────────────────────────────────────────────────
             Spacer(Modifier.height(8.dp))
+            com.gaatho.rent.core.ui.components.AppSearchBar(
+                query = "",
+                onQueryChange = {},
+                placeholderText = "Search tenants...",
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(20.dp))
             when (val s = state.profileState) {
-                is UiState.Success -> ProfileHeaderSection(s.data, onAction)
-                is UiState.Loading -> {
-                    TenantDetailsSkeleton()
-                    return@Scaffold // Hide the rest while loading
-                }
+                is UiState.Success -> ProfileCard(s.data, onAction)
+                is UiState.Loading -> { TenantDetailsSkeleton() }
                 else -> {}
             }
 
-            // ── Lease Details ─────────────────────────────────────────────────
-            Spacer(Modifier.height(32.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(24.dp))
             when (val s = state.leaseState) {
-                is UiState.Success -> LeaseDetailsSection(s.data)
+                is UiState.Success -> RentDetailsSection(s.data)
                 else -> {}
             }
 
-            // ── Transactions ──────────────────────────────────────────────────
-            Spacer(Modifier.height(32.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(24.dp))
             when (val s = state.transactionsState) {
-                is UiState.Success -> TransactionsSection(s.data, onAction)
+                is UiState.Success -> PaymentHistorySection(s.data, onAction)
                 else -> {}
             }
 
@@ -153,317 +154,214 @@ private fun TenantDetailsContent(
     }
 }
 
-// ─── Top App Bar ──────────────────────────────────────────────────────────────
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TenantTopBar(onAction: (TenantDetailsAction) -> Unit) {
-    com.gaatho.rent.core.ui.components.AppTopBar(
-        title = stringResource(Res.string.app_name_dashboard),
-        onBackClick = { onAction(TenantDetailsAction.OnBackClicked) },
-        actions = {
-            IconButton(onClick = {}) {
-                Icon(
-                    Icons.Outlined.Search,
-                    contentDescription = stringResource(Res.string.search),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    )
-}
-
-// ─── Profile Header ───────────────────────────────────────────────────────────
+// ─── Profile Card ─────────────────────────────────────────────────────────────
 
 @Composable
-private fun ProfileHeaderSection(
+private fun ProfileCard(
     profile: TenantProfileDisplayModel,
     onAction: (TenantDetailsAction) -> Unit
 ) {
-    Column(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 3.dp
     ) {
-        val initials = profile.name.split(" ")
-            .mapNotNull { it.firstOrNull()?.toString() }
-            .take(2)
-            .joinToString("")
-            
-        Box(
-            modifier = Modifier
-                .size(80.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center
+        Column(
+            modifier = Modifier.padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            val initials = profile.name.split(" ")
+                .mapNotNull { it.firstOrNull()?.toString() }
+                .take(2)
+                .joinToString("")
+
+            Box(
+                modifier = Modifier
+                    .size(72.dp)
+                    .clip(CircleShape)
+                    .background(AppColors.EmeraldAccentLight),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = initials,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.EmeraldAccent
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
             Text(
-                text = initials,
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                text = profile.name,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.W700,
+                color = MaterialTheme.colorScheme.onSurface
             )
-        }
 
-        Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(4.dp))
 
-        Text(
-            text = profile.name,
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(Modifier.height(6.dp))
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
             Text(
-                text = profile.address,
+                text = profile.phone?.takeIf { it.isNotBlank() } ?: "No phone added",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Box(
-                Modifier
-                    .size(3.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.outline)
+
+            Spacer(Modifier.height(2.dp))
+
+            Text(
+                text = profile.movedInDate?.let { "Moved in: $it" } ?: "Moved in: —",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            if (profile.isVerified) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(3.dp)
-                ) {
-                    Icon(
-                        Icons.Filled.Verified,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Text(
-                        text = stringResource(Res.string.tenant_verified),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
+
+            Spacer(Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                ActionPill(
+                    icon = Icons.Outlined.Call,
+                    label = "Call",
+                    onClick = { onAction(TenantDetailsAction.OnCallClicked) },
+                    modifier = Modifier.weight(1f)
+                )
+                ActionPill(
+                    icon = Icons.Outlined.Notifications,
+                    label = "Remind",
+                    onClick = { onAction(TenantDetailsAction.OnPaymentClicked) },
+                    modifier = Modifier.weight(1f)
+                )
             }
-        }
-
-        Spacer(Modifier.height(24.dp))
-
-        // ── Unified Quick Actions ─────────────────────
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top
-        ) {
-            TenantActionIcon(
-                icon = Icons.Outlined.AddCard,
-                label = stringResource(Res.string.payment_action),
-                onClick = { onAction(TenantDetailsAction.OnPaymentClicked) }
-            )
-            TenantActionIcon(
-                icon = Icons.Outlined.Mail,
-                label = stringResource(Res.string.email_action),
-                onClick = { onAction(TenantDetailsAction.OnEmailClicked) }
-            )
-            TenantActionIcon(
-                icon = Icons.Outlined.Call,
-                label = stringResource(Res.string.call_action),
-                onClick = { onAction(TenantDetailsAction.OnCallClicked) }
-            )
-            TenantActionIcon(
-                icon = Icons.AutoMirrored.Outlined.Message,
-                label = "Message",
-                onClick = { onAction(TenantDetailsAction.OnMessageClicked) }
-            )
-            TenantActionIcon(
-                icon = Icons.Outlined.Build,
-                label = "Repair",
-                onClick = { onAction(TenantDetailsAction.OnMaintenanceClicked) }
-            )
         }
     }
 }
 
-// ─── Circular Quick Action Button ─────────────────────────────
-
 @Composable
-private fun TenantActionIcon(
-    icon: ImageVector,
+private fun ActionPill(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.clickable(onClick = onClick)
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(100.dp),
+        color = AppColors.EmeraldAccentLight,
+        modifier = modifier.wrapContentSize(),
     ) {
-        Surface(
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.surfaceContainerLowest,
-            modifier = Modifier.size(56.dp)
+        Row(
+            modifier = Modifier.fillMaxSize().padding(5.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(icon, contentDescription = label, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-            }
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = AppColors.EmeraldAccent,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = AppColors.EmeraldAccent
+                )
+            )
         }
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = label, 
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium), 
-            color = MaterialTheme.colorScheme.onSurface
-        )
     }
 }
 
-// ─── Lease Details ────────────────────────────────────────────────────────────
+// ─── Rent Details ─────────────────────────────────────────────────────────────
 
 @Composable
-private fun LeaseDetailsSection(lease: TenantLeaseDisplayModel) {
+private fun RentDetailsSection(lease: TenantLeaseDisplayModel) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(Res.string.lease_details),
-            style = MaterialTheme.typography.headlineMedium,
+            text = "Rent Details",
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(bottom = 12.dp)
         )
 
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerLowest,
-            shadowElevation = 0.dp // Flat and borderless
+            shape = RoundedCornerShape(14.dp),
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 3.dp
         ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    LeaseCell(
-                        label = stringResource(Res.string.monthly_rent_label),
-                        value = lease.monthlyRent,
-                        valueColor = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f)
-                    )
-                    LeaseCell(
-                        label = stringResource(Res.string.status_label),
-                        value = lease.status,
-                        valueColor = if (lease.isActive) MaterialTheme.colorScheme.primary
-                                     else MaterialTheme.colorScheme.error,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Spacer(Modifier.height(24.dp))
-
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    LeaseCell(
-                        label = stringResource(Res.string.tenant_start_date_label),
-                        value = lease.startDate,
-                        valueColor = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f)
-                    )
-                    LeaseCell(
-                        label = stringResource(Res.string.tenant_end_date_label),
-                        value = lease.endDate,
-                        valueColor = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Spacer(Modifier.height(16.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                Spacer(Modifier.height(16.dp))
-
-                Text(
-                    text = stringResource(Res.string.lease_term).uppercase(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                RentInfoRow(
+                    label = "Monthly Rent",
+                    value = lease.monthlyRent,
+                    valueColor = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(Modifier.height(4.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = lease.leaseTerm,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    if (lease.isRenewable) {
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = MaterialTheme.colorScheme.surfaceContainerHigh
-                        ) {
-                            Text(
-                                text = stringResource(Res.string.renewable),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-                    }
-                }
+                HorizontalDivider(color = AppColors.CardBorder)
+                RentInfoRow(
+                    label = "Security Deposit",
+                    value = lease.securityDeposit ?: "—",
+                    valueColor = MaterialTheme.colorScheme.onSurface
+                )
+                HorizontalDivider(color = AppColors.CardBorder)
+                RentInfoRow(
+                    label = "Payment Due Date",
+                    value = lease.paymentDueDate ?: "—",
+                    valueColor = AppColors.Error
+                )
             }
         }
     }
 }
 
 @Composable
-private fun LeaseCell(
+private fun RentInfoRow(
     label: String,
     value: String,
-    valueColor: Color,
-    modifier: Modifier = Modifier
+    valueColor: Color
 ) {
-    Column(modifier = modifier) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Text(
-            text = label.uppercase(),
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = FontWeight.Medium,
-                letterSpacing = 0.5.sp
-            ),
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            fontSize = 11.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(Modifier.height(6.dp))
         Text(
             text = value,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+            fontSize = 13.sp,
             color = valueColor
         )
     }
 }
 
-// ─── Transactions ─────────────────────────────────────────────────────────────
+// ─── Payment History ──────────────────────────────────────────────────────────
 
 @Composable
-private fun TransactionsSection(
+private fun PaymentHistorySection(
     transactions: ImmutableList<TenantTransactionDisplayModel>,
     onAction: (TenantDetailsAction) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(Res.string.recent_transactions),
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = stringResource(Res.string.view_all_action),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .clickable { onAction(TenantDetailsAction.OnViewAllTransactionsClicked) }
-                    .padding(4.dp)
-            )
-        }
+        Text(
+            text = "Payment History",
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
 
-        Spacer(Modifier.height(12.dp))
-
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             transactions.forEach { tx ->
-                TransactionRow(
+                HistoryRow(
                     tx = tx,
                     onClick = { onAction(TenantDetailsAction.OnTransactionClicked(tx.id)) }
                 )
@@ -473,78 +371,63 @@ private fun TransactionsSection(
 }
 
 @Composable
-private fun TransactionRow(tx: TenantTransactionDisplayModel, onClick: () -> Unit) {
+private fun HistoryRow(tx: TenantTransactionDisplayModel, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLowest,
-        shadowElevation = 0.dp // Flat
+        shape = RoundedCornerShape(10.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 1.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = if (tx.type.contains("Deposit", ignoreCase = true))
-                        Icons.Outlined.AccountBalanceWallet
-                    else
-                        Icons.Outlined.Payments,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-
-            Spacer(Modifier.width(16.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = tx.type,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(Modifier.height(2.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Text(
                     text = tx.date,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = buildString {
+                        append(tx.amount)
+                        tx.method?.takeIf { it.isNotBlank() }?.let { append(" • $it") }
+                    },
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 9.sp
                 )
             }
 
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = tx.amount,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(Modifier.height(2.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Box(
-                        Modifier
-                            .size(6.dp)
-                            .clip(CircleShape)
-                            .background(if (tx.isPaid) AppColors.Success else MaterialTheme.colorScheme.error)
-                    )
-                    Text(
-                        text = tx.status,
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+            StatusPill(status = tx.status, isPaid = tx.isPaid)
         }
+    }
+}
+
+@Composable
+private fun StatusPill(status: String, isPaid: Boolean) {
+    val (bg, text) = if (isPaid) {
+        AppColors.EmeraldAccentLight to AppColors.EmeraldAccent
+    } else {
+        Color(0xFFFFF7E8) to Color(0xFFF59E0B)
+    }
+
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(100.dp))
+            .background(bg)
+            .padding(horizontal = 12.dp, vertical = 5.dp)
+    ) {
+        Text(
+            text = status,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontWeight = FontWeight.SemiBold,
+                color = text
+            )
+        )
     }
 }
 
@@ -554,22 +437,25 @@ private fun previewState() = TenantDetailsState(
     tenantId = "1",
     profileState = UiState.Success(
         TenantProfileDisplayModel(
-            id = "1", name = "Suman Shrestha",
-            address = "Bakhundole, Lalitpur", isVerified = true
+            id = "1", name = "Suman Maharjan",
+            address = "Sundar Niwas", isVerified = true,
+            phone = "+977 98510-23456",
+            movedInDate = "12 July 2023"
         )
     ),
     leaseState = UiState.Success(
         TenantLeaseDisplayModel(
-            monthlyRent = "रू 45,000", status = "Active", isActive = true,
-            startDate = "Sept 1, 2023", endDate = "Aug 31, 2024",
-            leaseTerm = "12 Months", isRenewable = true
+            monthlyRent = "NPR 25,000", status = "Active", isActive = true,
+            startDate = "July 12, 2023", endDate = "Ongoing",
+            securityDeposit = "NPR 50,000",
+            paymentDueDate = "5th of every month"
         )
     ),
     transactionsState = UiState.Success(
         persistentListOf(
-            TenantTransactionDisplayModel("t1", "Rent Payment",    "Nov 1, 2023",  "रू 45,000", "Paid", true),
-            TenantTransactionDisplayModel("t2", "Rent Payment",    "Oct 1, 2023",  "रू 45,000", "Paid", true),
-            TenantTransactionDisplayModel("t3", "Security Deposit","Aug 25, 2023", "रू 90,000", "Paid", true)
+            TenantTransactionDisplayModel("t1", "Rent Payment", "Ashwin 2080", "NPR 25,000", "Paid", true, "eSewa"),
+            TenantTransactionDisplayModel("t2", "Rent Payment", "Bhadra 2080", "NPR 25,000", "Paid", true, "Cash"),
+            TenantTransactionDisplayModel("t3", "Rent Payment", "Shrawan 2080", "NPR 25,000", "Pending", false, "Bank")
         )
     )
 )
@@ -597,41 +483,15 @@ private fun TenantDetailsSkeleton() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         com.gaatho.rent.core.ui.components.AppShimmerBox(
-            modifier = Modifier.size(100.dp).clip(androidx.compose.foundation.shape.CircleShape)
+            modifier = Modifier.size(100.dp).clip(CircleShape)
         )
         Spacer(Modifier.height(16.dp))
         com.gaatho.rent.core.ui.components.AppShimmerBox(
-            modifier = Modifier.width(150.dp).height(24.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+            modifier = Modifier.width(150.dp).height(24.dp).clip(RoundedCornerShape(4.dp))
         )
         Spacer(Modifier.height(8.dp))
         com.gaatho.rent.core.ui.components.AppShimmerBox(
-            modifier = Modifier.width(100.dp).height(16.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+            modifier = Modifier.width(100.dp).height(16.dp).clip(RoundedCornerShape(4.dp))
         )
-        Spacer(Modifier.height(32.dp))
-        
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
-        Spacer(Modifier.height(32.dp))
-        
-        repeat(3) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    com.gaatho.rent.core.ui.components.AppShimmerBox(
-                        modifier = Modifier.width(120.dp).height(20.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    com.gaatho.rent.core.ui.components.AppShimmerBox(
-                        modifier = Modifier.width(80.dp).height(16.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
-                    )
-                }
-                com.gaatho.rent.core.ui.components.AppShimmerBox(
-                    modifier = Modifier.width(80.dp).height(24.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
-                )
-            }
-            Spacer(Modifier.height(16.dp))
-        }
     }
 }

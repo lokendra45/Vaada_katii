@@ -114,6 +114,9 @@ class PropertyDetailsViewModel(
             PropertyDetailsAction.OnEditClicked ->
                 intent { postSideEffect(PropertyDetailsSideEffect.NavigateToEdit(propertyId)) }
 
+            PropertyDetailsAction.OnAddTenantClicked ->
+                intent { postSideEffect(PropertyDetailsSideEffect.NavigateToAddTenant) }
+
             PropertyDetailsAction.OnDeleteClicked ->
                 intent { reduce { state.copy(showDeleteConfirm = true) } }
 

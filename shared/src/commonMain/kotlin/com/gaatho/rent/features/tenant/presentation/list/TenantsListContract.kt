@@ -24,7 +24,8 @@ data class TenantDisplayModel(
     val propertyName: String?,
     val roomNumber: String?,
     val email: String?,
-    val phone: String?
+    val phone: String?,
+    val rentAmount: Long = 0L
 )
 
 /**

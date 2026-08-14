@@ -43,6 +43,10 @@ class EditPropertyViewModel(
                     city = TextFieldValue(property.address.split(",").drop(1).joinToString(",").trim()),
                     propertyType = property.propertyType,
                     totalUnits = TextFieldValue(property.totalUnits.toString()),
+                    monthlyRent = TextFieldValue(
+                        property.monthlyRent.takeIf { it > 0L }?.toString() ?: ""
+                    ),
+                    description = TextFieldValue(property.description),
                     billingCycle = "1st of the month",
                     selectedAmenities = setOf("Water", "Electricity")
                 )
@@ -71,6 +75,13 @@ class EditPropertyViewModel(
                 val digits = action.value.text.filter { it.isDigit() }
                 reduce { state.copy(totalUnits = action.value.copy(text = digits)) }
             }
+            is EditPropertyAction.OnMonthlyRentChanged -> intent {
+                val digits = action.value.text.filter { it.isDigit() }
+                reduce { state.copy(monthlyRent = action.value.copy(text = digits)) }
+            }
+            is EditPropertyAction.OnDescriptionChanged -> intent {
+                reduce { state.copy(description = action.value) }
+            }
             is EditPropertyAction.OnBillingCycleChanged ->
                 intent { reduce { state.copy(billingCycle = action.cycle) } }
             is EditPropertyAction.OnAmenityToggled -> intent {
@@ -86,6 +97,36 @@ class EditPropertyViewModel(
             }
             is EditPropertyAction.OnBackClicked ->
                 intent { postSideEffect(EditPropertySideEffect.NavigateBack) }
+            is EditPropertyAction.OnDeleteClicked -> intent {
+                reduce { state.copy(showDeleteConfirm = true) }
+            }
+            is EditPropertyAction.OnDeleteDismissed -> intent {
+                reduce { state.copy(showDeleteConfirm = false) }
+            }
+            is EditPropertyAction.OnDeleteConfirmed -> handleDelete()
+        }
+    }
+
+    private fun handleDelete() = intent {
+        reduce { state.copy(showDeleteConfirm = false, isSaving = true) }
+        val result = propertyRepository.deleteProperty(propertyId)
+        when (result) {
+            is ApiResponse.Success -> {
+                reduce { state.copy(isSaving = false) }
+                postSideEffect(EditPropertySideEffect.NavigateBack)
+            }
+            is ApiResponse.Failure.Error -> {
+                reduce { state.copy(isSaving = false) }
+                postSideEffect(EditPropertySideEffect.ShowSnackbar(
+                    ErrorMessageExtractor.extract(result, "Failed to delete property")
+                ))
+            }
+            is ApiResponse.Failure.Exception -> {
+                reduce { state.copy(isSaving = false) }
+                postSideEffect(EditPropertySideEffect.ShowSnackbar(
+                    ErrorMessageExtractor.extract(result, "Failed to delete property")
+                ))
+            }
         }
     }
 
@@ -118,6 +159,8 @@ class EditPropertyViewModel(
             address = "${s.streetAddress.text.trim()}, ${s.city.text.trim()}",
             propertyType = s.propertyType,
             totalUnits = s.totalUnits.text.toIntOrNull() ?: 1,
+            monthlyRent = s.monthlyRent.text.toLongOrNull() ?: 0L,
+            description = s.description.text.trim(),
             createdAt = com.gaatho.rent.core.utils.DateTimeUtil.nowIsoString(),
             updatedAt = com.gaatho.rent.core.utils.DateTimeUtil.nowIsoString()
         )

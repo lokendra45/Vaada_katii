@@ -167,6 +167,7 @@ object AppColors {
 
     // Emerald Accent
     val EmeraldAccent = Color(0xFF059669)
+    val EmeraldAccentDeep = Color(0xFF065F46)
     val EmeraldAccentDark = Color(0xFF0D7554)
     val EmeraldAccentLight = Color(0xFFECFDF5)
     val EmeraldAccentBorder = Color(0xFFA7F3D0)

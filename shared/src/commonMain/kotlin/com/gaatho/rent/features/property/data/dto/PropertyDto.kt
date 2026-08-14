@@ -15,6 +15,8 @@ data class PropertyDto(
     @SerialName("address") val address: String,
     @SerialName("image_url") val imageUrl: String? = null,
     @SerialName("property_type") val propertyType: String = "HOUSE",
+    @SerialName("monthly_rent") val monthlyRent: Long = 0L,
+    @SerialName("description") val description: String = "",
     @SerialName("created_at") val createdAt: String? = null,
     @SerialName("updated_at") val updatedAt: String? = null
 )
@@ -29,6 +31,8 @@ fun PropertyDto.toDomain() = Property(
     address = address,
     imageUrl = imageUrl,
     propertyType = propertyType,
+    monthlyRent = monthlyRent,
+    description = description,
     createdAt = createdAt,
     updatedAt = updatedAt
 )
@@ -43,6 +47,8 @@ fun Property.toDto() = PropertyDto(
     address = address,
     imageUrl = imageUrl,
     propertyType = propertyType,
+    monthlyRent = monthlyRent,
+    description = description,
     createdAt = createdAt,
     updatedAt = updatedAt
 )

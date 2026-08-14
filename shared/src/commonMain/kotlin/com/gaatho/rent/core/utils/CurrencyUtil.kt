@@ -73,6 +73,27 @@ object CurrencyUtil {
         return "${grouped.reverse()},$lastThree"
     }
 
+    /**
+     * Formats an amount as a plain NPR label with Western thousands grouping
+     * (`NPR 25,000`), matching the Figma form language.
+     */
+    fun formatNprLabel(amount: Long): String = "NPR ${groupWestern(amount)}"
+
+    /**
+     * Formats an amount with Western thousands grouping (`25,000`).
+     */
+    fun groupWestern(amount: Long): String {
+        val str = amount.toString()
+        val result = StringBuilder()
+        var count = 0
+        for (i in str.length - 1 downTo 0) {
+            result.append(str[i])
+            count++
+            if (count % 3 == 0 && i != 0) result.append(',')
+        }
+        return result.reverse().toString()
+    }
+
     private fun roundToTwoDecimals(value: Double): String {
         val rounded = (value * 100.0).roundToInt() / 100.0
         val str = rounded.toString()

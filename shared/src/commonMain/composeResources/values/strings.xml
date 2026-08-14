@@ -55,21 +55,50 @@
     <string name="view_all_action">View All</string>
 
     <!-- Property -->
-    <string name="properties_title">Properties</string>
+    <string name="properties_title">My Properties</string>
     <string name="total_properties_subtitle">%1$d total properties</string>
     <string name="add_property">Add property</string>
-    <string name="search_properties_hint">Search properties by name or location...</string>
+    <string name="search_properties_hint">Search properties...</string>
     <string name="filter_by_location">Filter by Location</string>
-    <string name="filter_all_locations">All Locations</string>
+    <string name="filter_all_locations">All</string>
+    <string name="filter_residential">Residential</string>
+    <string name="filter_commercial">Commercial</string>
     <string name="units_label">%1$d Units</string>
-    <string name="pending_label">Pending</string>
+    <string name="occupied_label">%1$d Occupied</string>
+    <string name="add_property_title">Add Property</string>
+    <string name="property_name_label">Property Name</string>
+    <string name="property_name_placeholder">e.g. Peaceful Villa</string>
+    <string name="address_label">Address</string>
+    <string name="address_placeholder">e.g. Koteshwor, Kathmandu</string>
+    <string name="city_label">City / Area</string>
+    <string name="city_placeholder">e.g. Kathmandu</string>
+    <string name="property_type_placeholder">Select...</string>
+    <string name="number_of_units_label">Number of Units</string>
+    <string name="units_placeholder">e.g. 4</string>
+    <string name="monthly_rent_npr_label">Monthly Rent (NPR)</string>
+    <string name="rent_placeholder">e.g. 25000</string>
+    <string name="description_label">Description</string>
+    <string name="description_placeholder">Parking, water, power back-up...</string>
+    <string name="property_photos_label">Property Photos</string>
+    <string name="save_property_btn">Save Property</string>
+    <string name="vacant_label">%1$d Vacant</string>
+    <string name="price_per_month">NPR %1$s / mo</string>
     <string name="welcome_property_empty_title">Welcome to Rent Manager Nepal 🙏</string>
     <string name="welcome_property_empty_desc">Your daily landlord productivity center. Add your first house, flat, or room to start recording rent and managing tenants.</string>
     <string name="add_first_property_btn">Add Your First Property</string>
 
     <string name="payments_title">Payments</string>
+    <string name="total_payments_subtitle">%1$d total payments</string>
+    <string name="collected_label">Collected</string>
+    <string name="pending_label">Pending</string>
     <string name="add_payment">Add Payment</string>
     <string name="search_payments">Search payments...</string>
+    <string name="filter_all_months">All months</string>
+    <string name="payment_filter_this_month">This month</string>
+    <string name="payment_filter_last_month">Last month</string>
+    <string name="payment_status_paid">Paid</string>
+    <string name="payment_status_overdue">Overdue</string>
+    <string name="payment_status_pending">Pending</string>
     <string name="no_payments_found">No Payments Found</string>
     <string name="no_payments_found_subtitle">You haven't recorded any payments yet.</string>
 
@@ -91,9 +120,13 @@
     <string name="units_title">Units</string>
     <string name="paid_label">Paid</string>
     <string name="overdue_label">Overdue</string>
-    <string name="vacant_label">Vacant</string>
+    <string name="vacant_label_short">Vacant</string>
     <string name="no_units_title">No units yet</string>
     <string name="no_units_desc">Add tenants from the Tenants tab to populate units.</string>
+    <string name="this_month_collection">This Month Collection</string>
+    <string name="unit_assignments_title">Unit Assignments</string>
+    <string name="edit_property_btn">Edit Property</string>
+    <string name="total_units_value">%1$d Units</string>
     
     <!-- Settings -->
     <string name="logout_title">Log Out?</string>
@@ -170,25 +203,38 @@
     <string name="create_account_action">Create Account</string>
     <string name="sign_in_action">Sign In</string>
     <string name="terms_of_service">TERMS OF SERVICE</string>
-    <string name="help_center">HELP CENTER</string>
+    <string name="help_center">Help Center</string>
+
+    <!-- Settings -->
+    <string name="edit_profile">Edit Profile</string>
+    <string name="notifications_label">Notifications</string>
+    <string name="biometric_lock">Biometric Lock</string>
+    <string name="pin_lock">PIN Lock</string>
+    <string name="support_section">Support</string>
+    <string name="about_gharbhada">About GharBhada</string>
+    <string name="log_out">Log Out</string>
 
     <!-- Payment -->
-    <string name="payment_add_title">Add Payment</string>
+    <string name="payment_add_title">Record Payment</string>
     <string name="success">Success</string>
     <string name="property_created_success_body">Property was successfully created and saved.</string>
     <string name="continue_btn">Continue</string>
     <string name="payment_currency">NPR </string>
     <string name="payment_amount_placeholder">0</string>
     <string name="payment_details">Payment Details</string>
-    <string name="payment_tenant_label">Tenant &amp; Unit</string>
+    <string name="payment_tenant_label">Select Tenant</string>
     <string name="payment_tenant_placeholder">Select a tenant</string>
     <string name="payment_property_label">Property</string>
     <string name="payment_property_placeholder">Select a property</string>
-    <string name="payment_date_label">Payment Date</string>
+    <string name="payment_property_unit_label">Property &amp; Unit</string>
+    <string name="payment_property_unit_placeholder">Select a tenant to see property</string>
+    <string name="payment_amount_label">Amount (NPR)</string>
+    <string name="payment_date_label">Received Date</string>
     <string name="payment_date_placeholder">DD-MMM-YYYY</string>
     <string name="payment_method">Payment Method</string>
-    <string name="payment_remarks_label">Remarks (Optional)</string>
+    <string name="payment_remarks_label">Note (Optional)</string>
     <string name="payment_remarks_placeholder">Reference ID or month...</string>
+    <string name="payment_method_bank">Bank</string>
     <string name="payment_record_button">Record Payment</string>
     <string name="payment_total_due">TOTAL DUE: NPR %s</string>
     <string name="payment_info_banner">A digital receipt and confirmation SMS will be sent to the tenant immediately.</string>

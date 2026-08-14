@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -27,6 +28,10 @@ fun AppTopBar(
     onBackClick: (() -> Unit)? = null,
     leadingContent: @Composable (() -> Unit)? = null,
     containerColor: Color = Color.Transparent,
+    titleStyle: TextStyle = MaterialTheme.typography.headlineMedium.copy(
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.onSurface
+    ),
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     TopAppBar(
@@ -34,9 +39,7 @@ fun AppTopBar(
             Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
+                    style = titleStyle,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -70,7 +73,7 @@ fun AppTopBar(
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(end = 16.dp),
+                modifier = Modifier.padding(end = 24.dp), // Figma-aligned padding
                 content = actions
             )
         },
@@ -78,7 +81,7 @@ fun AppTopBar(
             containerColor = containerColor,
             scrolledContainerColor = containerColor
         ),
-        modifier = modifier
+        modifier = modifier.padding(start = 8.dp) // Offset to align title to 24dp when no back btn
     )
 }
 
@@ -101,7 +104,7 @@ fun AppTopBarActionButton(
             containerColor = resolvedContainer,
             contentColor = resolvedContent
         ),
-        shape = MaterialTheme.shapes.large, // Pill shape from Theme.kt
+        shape = MaterialTheme.shapes.large, 
         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
         modifier = modifier.height(36.dp)
     ) {
@@ -109,5 +112,34 @@ fun AppTopBarActionButton(
             text = text,
             style = MaterialTheme.typography.titleSmall
         )
+    }
+}
+
+/**
+ * Figma-style circular icon button for Top Bars (e.g. the Green Plus button).
+ */
+@Composable
+fun AppTopBarCircleIconButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.primary,
+    contentColor: Color = MaterialTheme.colorScheme.onPrimary
+) {
+    Surface(
+        onClick = onClick,
+        shape = androidx.compose.foundation.shape.CircleShape,
+        color = containerColor,
+        modifier = modifier.size(40.dp),
+        shadowElevation = 2.dp
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(20.dp)
+            )
+        }
     }
 }

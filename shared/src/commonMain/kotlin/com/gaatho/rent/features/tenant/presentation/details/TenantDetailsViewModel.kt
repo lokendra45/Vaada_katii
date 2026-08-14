@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.collections.immutable.toImmutableList
 import com.gaatho.rent.core.utils.DateTimeUtil
+import com.gaatho.rent.core.utils.CurrencyUtil
 
 class TenantDetailsViewModel(
     private val tenantId: String,
@@ -48,11 +49,13 @@ class TenantDetailsViewModel(
                 name = tenant.name,
                 address = tenant.propertyName ?: "Unknown Property",
                 isVerified = true,
-                avatarUrl = null
+                avatarUrl = null,
+                phone = tenant.phone,
+                movedInDate = DateTimeUtil.formatReadableDate(tenant.createdAt)
             )
             
             val lease = TenantLeaseDisplayModel(
-                monthlyRent = "Rs. ${tenant.rentAmount}",
+                monthlyRent = CurrencyUtil.formatNprLabel(tenant.rentAmount),
                 status = tenant.status,
                 isActive = tenant.status == "Active",
                 startDate = DateTimeUtil.formatReadableDate(tenant.createdAt),
@@ -64,9 +67,10 @@ class TenantDetailsViewModel(
                     id = it.id,
                     type = if (it.paymentMethod == "Deposit") "Deposit" else "Rent Payment",
                     date = DateTimeUtil.formatReadableDate(it.date),
-                    amount = "Rs. ${it.amount}",
+                    amount = CurrencyUtil.formatNprLabel(it.amount),
                     status = it.status,
-                    isPaid = it.status == "Paid"
+                    isPaid = it.status == "Paid",
+                    method = it.paymentMethod
                 )
             }.toImmutableList()
 

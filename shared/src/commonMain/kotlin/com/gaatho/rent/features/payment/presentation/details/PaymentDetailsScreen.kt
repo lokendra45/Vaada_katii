@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -42,7 +43,8 @@ import rentmanagerapp.shared.generated.resources.*
 @Composable
 fun PaymentDetailsScreen(
     paymentId: String,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToEdit: (String) -> Unit = {}
 ) {
     val viewModel: PaymentDetailsViewModel = koinViewModel(parameters = { parametersOf(paymentId) })
     val state by viewModel.collectAsState()
@@ -59,6 +61,7 @@ fun PaymentDetailsScreen(
     PaymentDetailsContent(
         state = state,
         onAction = viewModel::onAction,
+        onNavigateToEdit = { onNavigateToEdit(paymentId) },
         snackbarHostState = snackbarHostState
     )
 }
@@ -68,6 +71,7 @@ fun PaymentDetailsScreen(
 private fun PaymentDetailsContent(
     state: PaymentDetailsState,
     onAction: (PaymentDetailsAction) -> Unit,
+    onNavigateToEdit: () -> Unit,
     snackbarHostState: SnackbarHostState
 ) {
     val scrollState = rememberScrollState()
@@ -78,6 +82,13 @@ private fun PaymentDetailsContent(
                 title = "Payment Details",
                 onBackClick = { onAction(PaymentDetailsAction.OnBackClicked) },
                 actions = {
+                    IconButton(onClick = onNavigateToEdit) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                     IconButton(onClick = { onAction(PaymentDetailsAction.OnDeleteClicked) }) {
                         Icon(
                             imageVector = Icons.Default.Delete,
@@ -463,6 +474,7 @@ fun PaymentDetailsScreenPreview() {
                 )
             ),
             onAction = {},
+            onNavigateToEdit = {},
             snackbarHostState = SnackbarHostState()
         )
     }
@@ -510,6 +522,7 @@ fun PaymentDetailsScreenDarkPreview() {
                 )
             ),
             onAction = {},
+            onNavigateToEdit = {},
             snackbarHostState = SnackbarHostState()
         )
     }

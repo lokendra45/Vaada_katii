@@ -25,6 +25,7 @@ class SettingsViewModel(
     private val KEY_NOTIFICATIONS = booleanPreferencesKey("pref_notifications")
     private val KEY_EMAIL_ALERTS = booleanPreferencesKey("pref_email_alerts")
     private val KEY_BIOMETRICS = booleanPreferencesKey("pref_biometrics")
+    private val KEY_PIN_LOCK = booleanPreferencesKey("pref_pin_lock")
     private val KEY_DARK_MODE = booleanPreferencesKey("pref_dark_mode")
     private val KEY_LANGUAGE = stringPreferencesKey("pref_language")
 
@@ -55,6 +56,7 @@ class SettingsViewModel(
                     notificationsEnabled = prefs[KEY_NOTIFICATIONS] ?: true,
                     emailAlertsEnabled = prefs[KEY_EMAIL_ALERTS] ?: false,
                     biometricsEnabled = prefs[KEY_BIOMETRICS] ?: true,
+                    pinLockEnabled = prefs[KEY_PIN_LOCK] ?: false,
                     darkModeEnabled = prefs[KEY_DARK_MODE] ?: false,
                     languageCode = prefs[KEY_LANGUAGE]
                 )
@@ -73,6 +75,7 @@ class SettingsViewModel(
                     togglePreference(KEY_BIOMETRICS, false)
                 }
             }
+            is SettingsAction.OnPinLockToggled -> togglePreference(KEY_PIN_LOCK, action.enabled)
             is SettingsAction.OnDarkModeToggled -> togglePreference(KEY_DARK_MODE, action.enabled)
             is SettingsAction.OnLanguageChanged -> intent {
                 dataStore.edit { it[KEY_LANGUAGE] = action.code }

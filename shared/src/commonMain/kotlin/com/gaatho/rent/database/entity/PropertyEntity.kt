@@ -23,6 +23,10 @@ data class PropertyEntity(
     val propertyType: String = "HOUSE",
     @ColumnInfo(name = "total_units", defaultValue = "1")
     val totalUnits: Int = 1,
+    @ColumnInfo(name = "monthly_rent", defaultValue = "0")
+    val monthlyRent: Long = 0L,
+    @ColumnInfo(name = "description", defaultValue = "")
+    val description: String = "",
     @ColumnInfo(name = "billing_cycle", defaultValue = "1st of the month")
     val billingCycle: String = "1st of the month",
     @ColumnInfo(name = "amenities", defaultValue = "")

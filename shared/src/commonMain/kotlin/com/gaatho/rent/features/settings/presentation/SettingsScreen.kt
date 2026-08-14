@@ -3,7 +3,6 @@ package com.gaatho.rent.features.settings.presentation
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,7 +12,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.*
@@ -29,9 +27,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.gaatho.rent.core.designsystem.RentManagerTheme
+import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.ui.components.AppConfirmDialog
 import org.koin.compose.koinInject
 import org.orbitmvi.orbit.compose.collectAsState
@@ -39,7 +37,6 @@ import org.orbitmvi.orbit.compose.collectSideEffect
 
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.environment.LanguageViewModel
 
 import org.jetbrains.compose.resources.stringResource
@@ -65,7 +62,6 @@ fun SettingsScreen(
         }
     }
 
-    // ── Logout confirm dialog
     if (state.showLogoutConfirm) {
         AppConfirmDialog(
             icon        = Icons.AutoMirrored.Outlined.Logout,
@@ -78,7 +74,6 @@ fun SettingsScreen(
         )
     }
 
-    // ── Delete account confirm dialog
     if (state.showDeleteConfirm) {
         AppConfirmDialog(
             icon        = Icons.Outlined.DeleteForever,
@@ -93,12 +88,7 @@ fun SettingsScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            com.gaatho.rent.core.ui.components.AppTopBar(
-                title = stringResource(Res.string.settings_title)
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) { padding ->
         SettingsContent(
             state = state,
@@ -128,13 +118,13 @@ private fun SettingsContent(
             .padding(bottom = 32.dp),
     ) {
 
-        // ── 0. Profile Card ──────────────────────────
+        // ── Profile Header ─────────────────────────────
         Spacer(modifier = Modifier.height(16.dp))
         SettingsCard {
             SettingsNavRow(
                 leading = {
                     ProfileAvatar(
-                        imageUrl = null, // TODO: user avatarUrl
+                        imageUrl = null,
                         displayName = state.userName,
                         modifier = Modifier.size(56.dp)
                     )
@@ -146,97 +136,46 @@ private fun SettingsContent(
             )
         }
 
-        // ── 1. Notifications ──────────────────────────────────────────────────
-        SectionLabel(stringResource(Res.string.notifications_section))
-        SettingsCard {
+        // ── Account ─────────────────────────────────────
+        SettingsGroup(title = stringResource(Res.string.account_section)) {
+            SettingsNavRow(
+                leading = { SettingsIcon(icon = Icons.Outlined.Person) },
+                title = stringResource(Res.string.edit_profile),
+                showDivider = true,
+                onClick = {}
+            )
+            SettingsNavRow(
+                leading = { SettingsIcon(icon = Icons.Outlined.Lock) },
+                title = stringResource(Res.string.change_password),
+                showDivider = false,
+                onClick = {}
+            )
+        }
+
+        // ── Preferences ────────────────────────────────
+        SettingsGroup(title = stringResource(Res.string.preferences_section)) {
             SettingsToggleRow(
                 icon = Icons.Outlined.Notifications,
-                iconTint = MaterialTheme.colorScheme.primary,
-                iconBackground = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-                title = stringResource(Res.string.push_notifications),
+                title = stringResource(Res.string.notifications_label),
                 checked = state.notificationsEnabled,
                 showDivider = true,
                 onCheckedChange = { onAction(SettingsAction.OnNotificationsToggled(it)) }
             )
             SettingsToggleRow(
-                icon = Icons.Outlined.Email,
-                iconTint = MaterialTheme.colorScheme.primary,
-                iconBackground = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-                title = stringResource(Res.string.email_alerts),
-                checked = state.emailAlertsEnabled,
-                showDivider = false,
-                onCheckedChange = { onAction(SettingsAction.OnEmailAlertsToggled(it)) }
-            )
-        }
-
-        // ── 3. Security ───────────────────────────────────────────────────────
-        SectionLabel(stringResource(Res.string.security_section))
-        SettingsCard {
-            SettingsNavRow(
-                leading = {
-                    IconCircle(
-                        icon = Icons.Outlined.Lock,
-                        tint = AppColors.Warning,
-                        background = AppColors.WarningContainer
-                    )
-                },
-                title = stringResource(Res.string.change_password),
-                showDivider = true,
-                onClick = {}
-            )
-            SettingsToggleRow(
-                icon = Icons.Outlined.Fingerprint,
-                iconTint = AppColors.Warning,
-                iconBackground = AppColors.WarningContainer,
-                title = stringResource(Res.string.biometrics),
-                subtitle = stringResource(Res.string.face_id_touch_id),
-                checked = state.biometricsEnabled,
-                showDivider = false,
-                onCheckedChange = { onAction(SettingsAction.OnBiometricsToggled(it)) }
-            )
-        }
-
-        // ── 4. Preferences ────────────────────────────────────────────────────
-        SectionLabel(stringResource(Res.string.preferences_section))
-        SettingsCard {
-            SettingsToggleRow(
                 icon = Icons.Outlined.DarkMode,
-                iconTint = MaterialTheme.colorScheme.secondary,
-                iconBackground = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
                 title = stringResource(Res.string.dark_mode),
                 checked = state.darkModeEnabled,
                 showDivider = true,
                 onCheckedChange = { onAction(SettingsAction.OnDarkModeToggled(it)) }
             )
-            SettingsNavRow(
-                leading = {
-                    IconCircle(
-                        icon = Icons.Outlined.CurrencyRupee,
-                        tint = AppColors.Success,
-                        background = AppColors.SuccessContainer
-                    )
-                },
-                title = stringResource(Res.string.currency),
-                trailingLabel = "NPR",
-                showDivider = true,
-                onClick = {}
-            )
             Box {
                 var languageDropDownVisible by remember { mutableStateOf(false) }
                 SettingsNavRow(
-                    leading = {
-                        IconCircle(
-                            icon = Icons.Outlined.Language,
-                            tint = AppColors.Info,
-                            background = AppColors.InfoContainer
-                        )
-                    },
+                    leading = { SettingsIcon(icon = Icons.Outlined.Language) },
                     title = stringResource(Res.string.language),
-                    trailingLabel = if (currentLanguageCode == "ne") "नेपाली" else "English",
-                    showDivider = false,
-                    onClick = { 
-                        languageDropDownVisible = true
-                    }
+                    trailingLabel = if (currentLanguageCode == "ne") "Nepali (नेपाली)" else "English",
+                    showDivider = true,
+                    onClick = { languageDropDownVisible = true }
                 )
                 DropdownMenu(
                     expanded = languageDropDownVisible,
@@ -258,76 +197,81 @@ private fun SettingsContent(
                     )
                 }
             }
-        }
-
-        // ── 5. Help & Support ─────────────────────────────────────────────────
-        SectionLabel(stringResource(Res.string.help_support_section))
-        SettingsCard {
             SettingsNavRow(
-                leading = {
-                    IconCircle(
-                        icon = Icons.AutoMirrored.Outlined.HelpOutline,
-                        tint = MaterialTheme.colorScheme.primary,
-                        background = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                    )
-                },
-                title = stringResource(Res.string.faq),
-                showDivider = true,
-                onClick = {}
-            )
-            SettingsNavRow(
-                leading = {
-                    IconCircle(
-                        icon = Icons.Outlined.SupportAgent,
-                        tint = MaterialTheme.colorScheme.primary,
-                        background = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                    )
-                },
-                title = stringResource(Res.string.contact_us),
-                showDivider = true,
-                onClick = {}
-            )
-            SettingsNavRow(
-                leading = {
-                    IconCircle(
-                        icon = Icons.Outlined.Policy,
-                        tint = MaterialTheme.colorScheme.primary,
-                        background = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                    )
-                },
-                title = stringResource(Res.string.privacy_policy),
+                leading = { SettingsIcon(icon = Icons.Outlined.CurrencyRupee) },
+                title = stringResource(Res.string.currency),
+                trailingLabel = "NPR (रू)",
                 showDivider = false,
                 onClick = {}
             )
         }
 
-        // ── Logout button ─────────────────────────────────────────────────────
-        Spacer(Modifier.height(28.dp))
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
-            LogoutButton(onClick = { onAction(SettingsAction.OnSignOutClicked) })
+        // ── Security ───────────────────────────────────
+        SettingsGroup(title = stringResource(Res.string.security_section)) {
+            SettingsToggleRow(
+                icon = Icons.Outlined.Fingerprint,
+                title = stringResource(Res.string.biometric_lock),
+                checked = state.biometricsEnabled,
+                showDivider = true,
+                onCheckedChange = { onAction(SettingsAction.OnBiometricsToggled(it)) }
+            )
+            SettingsToggleRow(
+                icon = Icons.Outlined.Key,
+                title = stringResource(Res.string.pin_lock),
+                checked = state.pinLockEnabled,
+                showDivider = false,
+                onCheckedChange = { onAction(SettingsAction.OnPinLockToggled(it)) }
+            )
         }
-        Spacer(Modifier.height(16.dp))
+
+        // ── Support ────────────────────────────────────
+        SettingsGroup(title = stringResource(Res.string.support_section)) {
+            SettingsNavRow(
+                leading = { SettingsIcon(icon = Icons.AutoMirrored.Outlined.HelpOutline) },
+                title = stringResource(Res.string.help_center),
+                showDivider = true,
+                onClick = {}
+            )
+            SettingsNavRow(
+                leading = { SettingsIcon(icon = Icons.Outlined.Mail) },
+                title = stringResource(Res.string.contact_us),
+                showDivider = true,
+                onClick = {}
+            )
+            SettingsNavRow(
+                leading = { SettingsIcon(icon = Icons.Outlined.Info) },
+                title = stringResource(Res.string.about_gharbhada),
+                trailingLabel = "v1.4.0",
+                showDivider = true,
+                onClick = {}
+            )
+            SettingsNavRow(
+                leading = { SettingsIcon(icon = Icons.AutoMirrored.Outlined.Logout, tint = AppColors.Error) },
+                title = stringResource(Res.string.log_out),
+                titleColor = AppColors.Error,
+                showDivider = false,
+                onClick = { onAction(SettingsAction.OnSignOutClicked) }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
-// ─── Section label ─────────────────────────────────────────────────────────────
+// ─── Group wrapper ─────────────────────────────────────────────────────────────
 
 @Composable
-private fun SectionLabel(title: String) {
+private fun SettingsGroup(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
     Text(
-        text = title.uppercase(),
-        style = MaterialTheme.typography.labelSmall.copy(
-            fontWeight = FontWeight.Medium,
-            letterSpacing = 1.2.sp
-        ),
+        text = title,
+        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier
-            .padding(horizontal = 4.dp)
-            .padding(top = 28.dp, bottom = 10.dp)
+        modifier = Modifier.padding(start = 4.dp, top = 24.dp, bottom = 10.dp)
     )
+    SettingsCard { content() }
 }
 
 // ─── Card wrapper ──────────────────────────────────────────────────────────────
@@ -338,7 +282,7 @@ private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 1.dp
+        shadowElevation = 0.dp
     ) {
         Column { content() }
     }
@@ -353,8 +297,8 @@ private fun SettingsNavRow(
     showDivider: Boolean = true,
     trailingLabel: String? = null,
     leading: @Composable () -> Unit = {},
-    trailing: (@Composable () -> Unit)? = null,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    titleColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Column {
         Row(
@@ -370,7 +314,7 @@ private fun SettingsNavRow(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = titleColor
                 )
                 if (subtitle != null) {
                     Text(
@@ -380,13 +324,11 @@ private fun SettingsNavRow(
                     )
                 }
             }
-            if (trailing != null) {
-                trailing()
-            } else if (trailingLabel != null) {
+            if (trailingLabel != null) {
                 Text(
                     text = trailingLabel,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f)
                 )
             }
             Icon(
@@ -412,14 +354,10 @@ private fun SettingsNavRow(
 private fun SettingsToggleRow(
     icon: ImageVector,
     title: String,
-    subtitle: String? = null,
     checked: Boolean,
     showDivider: Boolean = true,
-    iconTint: Color = MaterialTheme.colorScheme.primary,
-    iconBackground: Color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
     onCheckedChange: (Boolean) -> Unit
 ) {
-    // Spring scale micro-animation on toggle
     val scale by animateFloatAsState(
         targetValue = if (checked) 1.05f else 1f,
         animationSpec = spring(stiffness = Spring.StiffnessHigh),
@@ -435,21 +373,13 @@ private fun SettingsToggleRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            IconCircle(icon = icon, tint = iconTint, background = iconBackground)
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                if (subtitle != null) {
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+            SettingsIcon(icon = icon)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
+            )
             Switch(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
@@ -458,7 +388,7 @@ private fun SettingsToggleRow(
                     .scale(scale),
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = Color.White,
-                    checkedTrackColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = AppColors.EmeraldAccent,
                     uncheckedThumbColor = Color.White,
                     uncheckedTrackColor = MaterialTheme.colorScheme.outlineVariant,
                     uncheckedBorderColor = MaterialTheme.colorScheme.outlineVariant
@@ -475,21 +405,15 @@ private fun SettingsToggleRow(
     }
 }
 
-// ─── Icon circle ──────────────────────────────────────────────────────────────
+// ─── Icon ─────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun IconCircle(
+private fun SettingsIcon(
     icon: ImageVector,
-    tint: Color = MaterialTheme.colorScheme.primary,
-    background: Color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+    tint: Color = MaterialTheme.colorScheme.onSurfaceVariant
 ) {
     Box(
-        modifier = Modifier
-            .size(36.dp)
-            .background(
-                color = background,
-                shape = RoundedCornerShape(10.dp)
-            ),
+        modifier = Modifier.size(24.dp),
         contentAlignment = Alignment.Center
     ) {
         Icon(
@@ -537,75 +461,41 @@ private fun ProfileAvatar(
     }
 }
 
-// ─── Logout button ────────────────────────────────────────────────────────────
-
-@Composable
-private fun LogoutButton(onClick: () -> Unit) {
-    var pressed by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(
-        targetValue = if (pressed) 0.96f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
-        label = "logoutScale"
-    )
-
-    TextButton(
-        onClick = {
-            pressed = true
-            onClick()
-        },
-        modifier = Modifier.scale(scale),
-        shape = RoundedCornerShape(10.dp),
-        colors = ButtonDefaults.textButtonColors(
-            contentColor = MaterialTheme.colorScheme.error.copy(alpha = 0.85f)
-        )
-    ) {
-        Icon(
-            imageVector = Icons.AutoMirrored.Outlined.Logout,
-            contentDescription = null,
-            modifier = Modifier.size(18.dp)
-        )
-        Spacer(Modifier.width(8.dp))
-        Text(
-            text = stringResource(Res.string.logout_action),
-            style = MaterialTheme.typography.titleMedium,
-        )
-    }
-}
-
 // ─── Previews ─────────────────────────────────────────────────────────────────
 
-@Preview(name = "Settings — Stitch", showBackground = true, backgroundColor = 0xFFFCF8FF)
+@Preview(name = "Settings — Stitch", showBackground = true, backgroundColor = 0xFFF9FAFB)
 @Composable
 private fun SettingsScreenPreview() {
     RentManagerTheme {
         SettingsContent(
             state = SettingsState(
-                userName = "Alex Morgan",
-                userEmail = "alex.morgan@example.com",
+                userName = "Ramesh ji",
+                userEmail = "ramesh.ji@gharbhada.com",
                 notificationsEnabled = true,
                 emailAlertsEnabled = false,
                 biometricsEnabled = true,
+                pinLockEnabled = false,
                 isPremium = true
             ),
             onAction = {},
-            currentLanguageCode = "en",
+            currentLanguageCode = "ne",
             onLanguageChanged = {},
         )
     }
 }
 
-@Preview(name = "Settings — Logout Dialog", showBackground = true, backgroundColor = 0xFFFCF8FF)
+@Preview(name = "Settings — Logout Dialog", showBackground = true, backgroundColor = 0xFFF9FAFB)
 @Composable
 private fun SettingsLogoutPreview() {
     RentManagerTheme {
         SettingsContent(
             state = SettingsState(
-                userName = "Alex Morgan",
-                userEmail = "alex.morgan@example.com",
+                userName = "Ramesh ji",
+                userEmail = "ramesh.ji@gharbhada.com",
                 showLogoutConfirm = true
             ),
             onAction = {},
-            currentLanguageCode = "en",
+            currentLanguageCode = "ne",
             onLanguageChanged = {},
         )
     }

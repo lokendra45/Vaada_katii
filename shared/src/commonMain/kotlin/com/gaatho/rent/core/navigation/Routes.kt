@@ -126,4 +126,8 @@ data object PaymentListRoute : Route
 @Serializable
 data class PaymentDetailRoute(val paymentId: String) : Route
 
+/** Form for editing an existing payment. */
+@Serializable
+data class EditPaymentRoute(val paymentId: String) : Route
+
 

@@ -13,20 +13,34 @@ data class PaymentDisplayModel(
     val tenantId: String,
     val tenantName: String,
     val propertyName: String,
+    /** ISO date (YYYY-MM-DD) for grouping/sorting. */
+    val date: String,
     val dateLabel: String,
     val amount: Long,
     val status: String,
-    val isPaid: Boolean
+    val isPaid: Boolean,
+    val unit: String? = null,
+    val paymentMethod: String? = null
 )
 
 @Serializable
 data class PaymentListState(
     @Transient
     val paymentsState: UiState<ImmutableList<PaymentDisplayModel>> = UiState.Idle,
-    val searchQuery: String = "",
-    val selectedStatus: String = "All statuses",
-    val selectedMonth: String = "All months"
+    val selectedStatus: String = PaymentListFilters.AllStatuses,
+    val selectedMonth: String = PaymentListFilters.AllMonths
 )
+
+object PaymentListFilters {
+    const val AllStatuses = "All statuses"
+    const val Paid = "Paid"
+    const val Overdue = "Overdue"
+    const val Pending = "Pending"
+
+    const val AllMonths = "All months"
+    const val ThisMonth = "This month"
+    const val LastMonth = "Last month"
+}
 
 sealed interface PaymentListSideEffect {
     data class NavigateToPaymentDetails(val paymentId: String) : PaymentListSideEffect
@@ -36,7 +50,6 @@ sealed interface PaymentListSideEffect {
 
 sealed interface PaymentListAction {
     data object OnBackClicked : PaymentListAction
-    data class OnSearchQueryChanged(val query: String) : PaymentListAction
     data class OnStatusFilterChanged(val status: String) : PaymentListAction
     data class OnMonthFilterChanged(val month: String) : PaymentListAction
     data class OnPaymentClicked(val paymentId: String) : PaymentListAction

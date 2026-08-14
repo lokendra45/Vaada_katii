@@ -11,9 +11,10 @@ data class TenantTransactionDisplayModel(
     val id: String,
     val type: String, // e.g. "Rent Payment", "Maintenance Fee"
     val date: String, // e.g. "Nov 1, 2023"
-    val amount: String, // e.g. "Rs 45,000"
+    val amount: String, // e.g. "NPR 25,000"
     val status: String, // e.g. "Paid"
-    val isPaid: Boolean
+    val isPaid: Boolean,
+    val method: String? = null // e.g. "eSewa", "Cash"
 )
 
 @Serializable
@@ -24,7 +25,9 @@ data class TenantLeaseDisplayModel(
     val startDate: String, // e.g. "Sept 1, 2023"
     val endDate: String,   // e.g. "Aug 31, 2024"
     val leaseTerm: String = "12 Months", // e.g. "12 Months"
-    val isRenewable: Boolean = true
+    val isRenewable: Boolean = true,
+    val securityDeposit: String? = null, // e.g. "NPR 50,000"
+    val paymentDueDate: String? = null   // e.g. "5th of every month"
 )
 
 @Serializable
@@ -33,7 +36,9 @@ data class TenantProfileDisplayModel(
     val name: String,
     val address: String, // e.g. "Bakhundole, Lalitpur"
     val isVerified: Boolean,
-    val avatarUrl: String? = null // For placeholder or actual URL
+    val avatarUrl: String? = null, // For placeholder or actual URL
+    val phone: String? = null,     // e.g. "+977 98510-23456"
+    val movedInDate: String? = null // e.g. "12 July 2023"
 )
 
 /**

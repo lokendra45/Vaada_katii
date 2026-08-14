@@ -22,14 +22,16 @@ fun AppCard(
     containerColor: Color = MaterialTheme.colorScheme.surface, // Pure White
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
     shadowElevation: Dp = 0.dp,
+    useCardShadow: Boolean = true,
+    borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Surface(
         modifier = modifier
-            .figmaCardShadow(shape = shape)
+            .then(if (useCardShadow) Modifier.figmaCardShadow(shape = shape) else Modifier)
             .border(
                 width = 1.dp,
-                color = MaterialTheme.colorScheme.outlineVariant,
+                color = borderColor,
                 shape = shape
             ),
         shape = shape,

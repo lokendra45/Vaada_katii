@@ -12,6 +12,8 @@ import kotlinx.serialization.Serializable
  * @property imageUrl Optional URL for a cover photo of the property.
  * @property propertyType The category of the property (defaults to "HOUSE").
  * @property totalUnits The total number of rentable units (e.g., rooms or flats) in this property.
+ * @property monthlyRent The monthly rent for the property in NPR.
+ * @property description A short description of the property (parking, water, power back-up, etc.).
  * @property billingCycle The standard billing cycle (e.g., "1st of the month").
  * @property amenities A set of amenities provided by the property.
  * @property createdAt Timestamp when the property was first added.
@@ -26,6 +28,8 @@ data class Property(
     val imageUrl: String? = null,
     val propertyType: String = "HOUSE",
     val totalUnits: Int = 1,
+    val monthlyRent: Long = 0L,
+    val description: String = "",
     val billingCycle: String = "1st of the month",
     val amenities: Set<String> = emptySet(),
     val createdAt: String? = null,

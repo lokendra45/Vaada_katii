@@ -1,44 +1,78 @@
 package com.gaatho.rent.features.property.presentation.details
 
-import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.RentManagerTheme
+import com.gaatho.rent.core.designsystem.components.RentManagerOutlinedButton
+import com.gaatho.rent.core.designsystem.components.RentManagerPrimaryButton
 import com.gaatho.rent.core.ui.UiState
-import com.gaatho.rent.core.ui.components.AppDialog
+import com.gaatho.rent.core.ui.components.AppCard
+import com.gaatho.rent.core.ui.components.AppStatusBadge
+import com.gaatho.rent.core.ui.components.AppTopBar
+import com.gaatho.rent.core.utils.CurrencyUtil
+import com.gaatho.rent.core.utils.toImageBitmap
 import com.gaatho.rent.features.property.domain.model.Property
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
 import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
-
-import org.jetbrains.compose.resources.stringResource
 import rentmanagerapp.shared.generated.resources.Res
-import rentmanagerapp.shared.generated.resources.*
+import rentmanagerapp.shared.generated.resources.add_tenant
+import rentmanagerapp.shared.generated.resources.edit_property_btn
+import rentmanagerapp.shared.generated.resources.no_units_desc
+import rentmanagerapp.shared.generated.resources.no_units_title
+import rentmanagerapp.shared.generated.resources.occupied
+import rentmanagerapp.shared.generated.resources.occupied_label
+import rentmanagerapp.shared.generated.resources.overdue_label
+import rentmanagerapp.shared.generated.resources.paid_label
+import rentmanagerapp.shared.generated.resources.property_details
+import rentmanagerapp.shared.generated.resources.this_month_collection
+import rentmanagerapp.shared.generated.resources.total_units_label
+import rentmanagerapp.shared.generated.resources.total_units_value
+import rentmanagerapp.shared.generated.resources.unit_assignments_title
+import rentmanagerapp.shared.generated.resources.vacant_label
+import rentmanagerapp.shared.generated.resources.vacant_label_short
 
 // ─── Entry point ──────────────────────────────────────────────────────────────
 
@@ -47,7 +81,7 @@ fun PropertyDetailsScreen(
     propertyId: String,
     onNavigateBack: () -> Unit,
     onNavigateToEdit: (String) -> Unit = {},
-    onNavigateToTenantDetails: (String) -> Unit = {},
+    onNavigateToAddTenant: () -> Unit = {},
     viewModel: PropertyDetailsViewModel = koinInject(parameters = { parametersOf(propertyId) })
 ) {
     val state by viewModel.collectAsState()
@@ -56,6 +90,7 @@ fun PropertyDetailsScreen(
         when (effect) {
             is PropertyDetailsSideEffect.NavigateBack -> onNavigateBack()
             is PropertyDetailsSideEffect.NavigateToEdit -> onNavigateToEdit(effect.propertyId)
+            PropertyDetailsSideEffect.NavigateToAddTenant -> onNavigateToAddTenant()
             is PropertyDetailsSideEffect.ShowError -> {}
         }
     }
@@ -65,59 +100,43 @@ fun PropertyDetailsScreen(
 
 // ─── Content ──────────────────────────────────────────────────────────────────
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PropertyDetailsContent(
     state: PropertyDetailsState,
     onAction: (PropertyDetailsAction) -> Unit,
 ) {
-    val scrollState = rememberScrollState()
-
-    // Delete confirmation dialog
-    if (state.showDeleteConfirm) {
-        AppDialog(
-            variant     = AppDialog.Variant.Destructive,
-            layout      = AppDialog.Layout.Center,
-            icon        = Icons.Default.Delete,
-            title       = stringResource(Res.string.delete_property_title),
-            body        = stringResource(Res.string.delete_property_desc),
-            confirmText = stringResource(Res.string.delete_action),
-            dismissText = stringResource(Res.string.cancel_action),
-            onConfirm   = { onAction(PropertyDetailsAction.OnDeleteConfirmed) },
-            onDismiss   = { onAction(PropertyDetailsAction.OnDeleteDismissed) },
-        )
-    }
-
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            com.gaatho.rent.core.ui.components.AppTopBar(
+            AppTopBar(
                 title = stringResource(Res.string.property_details),
                 onBackClick = { onAction(PropertyDetailsAction.OnBackClicked) },
-                actions = {
-                    TextButton(
-                        onClick = { onAction(PropertyDetailsAction.OnEditClicked) }
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.edit_action),
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 15.sp
-                        )
-                    }
-                }
+                containerColor = MaterialTheme.colorScheme.background,
+                titleStyle = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        bottomBar = {
+            PropertyDetailsActionBar(
+                onEdit = { onAction(PropertyDetailsAction.OnEditClicked) },
+                onAddTenant = { onAction(PropertyDetailsAction.OnAddTenantClicked) }
+            )
+        }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
-                .verticalScroll(scrollState)
         ) {
             when (val propState = state.propertyState) {
-                is UiState.Loading -> {
-                    PropertyDetailsSkeleton()
+                is UiState.Loading, UiState.Idle -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    }
                 }
 
                 is UiState.Error -> {
@@ -131,530 +150,378 @@ private fun PropertyDetailsContent(
 
                 is UiState.Success -> {
                     val property = propState.data
+                    val occupied = state.occupiedUnits
+                    val total = state.totalUnits
+                    val vacant = (total - occupied).coerceAtLeast(0)
+
+                    val collected = (state.financialState as? UiState.Success<FinancialSummary>)?.data?.totalCollected ?: 0L
+                    val expected = state.monthlyIncome
+                    val percent = if (expected > 0) ((collected * 100) / expected).toInt() else 0
+
+                    val assignedUnits =
+                        (state.unitsState as? UiState.Success<ImmutableList<UnitDisplayModel>>)?.data
+                            ?.filter { it.paymentStatus != UnitPaymentStatus.VACANT }
+                            ?: emptyList()
 
                     Column(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(20.dp)
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 24.dp)
                     ) {
                         Spacer(Modifier.height(8.dp))
 
-                        // 1. Property Identity
-                        PropertyIdentitySection(property = property)
+                        // 1. Hero image
+                        PropertyHeroImage(imageUrl = property.imageUrl)
 
-                        // 2. Key Metrics (Monthly Income + Occupancy)
-                        KeyMetricsSection(
-                            monthlyIncome = state.monthlyIncome,
-                            occupiedUnits = state.occupiedUnits,
-                            totalUnits = state.totalUnits
+                        Spacer(Modifier.height(16.dp))
+
+                        // 2. Property identity
+                        Text(
+                            text = property.name,
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = property.address,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            ),
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
 
-                        // 3. Property Overview card
-                        PropertyOverviewCard(property = property, totalUnits = state.totalUnits)
+                        Spacer(Modifier.height(20.dp))
 
-                        // 4. Financial Summary card
-                        when (val fs = state.financialState) {
-                            is UiState.Success -> FinancialSummaryCard(summary = fs.data)
-                            else -> {}
+                        // 3. Stats row
+                        StatsRow(
+                            totalUnits = total,
+                            occupiedUnits = occupied,
+                            vacantUnits = vacant
+                        )
+
+                        Spacer(Modifier.height(20.dp))
+
+                        // 4. Collection summary
+                        CollectionSummaryCard(collected = collected, expected = expected, percent = percent)
+
+                        Spacer(Modifier.height(20.dp))
+
+                        // 5. Unit assignments
+                        Text(
+                            text = stringResource(Res.string.unit_assignments_title),
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 11.sp,
+                                letterSpacing = 0.22.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        )
+                        Spacer(Modifier.height(12.dp))
+
+                        if (assignedUnits.isEmpty()) {
+                            UnitAssignmentsEmpty()
+                        } else {
+                            assignedUnits.forEachIndexed { index, unit ->
+                                if (index > 0) Spacer(Modifier.height(12.dp))
+                                TenantRow(unit = unit)
+                            }
                         }
 
-                        // 5. Units list
-                        when (val us = state.unitsState) {
-                            is UiState.Success ->
-                                UnitsSection(
-                                    units = us.data,
-                                    onUnitClick = { onAction(PropertyDetailsAction.OnUnitClicked(it)) },
-                                    onViewAll = { onAction(PropertyDetailsAction.OnViewAllUnitsClicked) }
-                                )
-                            else -> {}
-                        }
-
-                        Spacer(Modifier.height(32.dp))
+                        Spacer(Modifier.height(24.dp))
                     }
                 }
-
-                UiState.Idle -> {}
             }
         }
     }
 }
 
-// ─── 1. Property Identity ─────────────────────────────────────────────────────
+// ─── Hero image ───────────────────────────────────────────────────────────────
 
 @Composable
-private fun PropertyIdentitySection(property: Property) {
-    Column {
-        Text(
-            text = property.name,
-            style = MaterialTheme.typography.headlineMedium.copy(
-                fontWeight = FontWeight.Bold,
-                letterSpacing = (-0.5).sp,
-                color = MaterialTheme.colorScheme.onSurface
-            ),
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = property.address,
-            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
+private fun PropertyHeroImage(imageUrl: String?) {
+    var isRendered = false
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(160.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainer),
+        contentAlignment = Alignment.Center
+    ) {
+        if (imageUrl != null) {
+            if (imageUrl.startsWith("base64:")) {
+                val base64String = imageUrl.removePrefix("base64:")
+                val bytes = try {
+                    kotlin.io.encoding.Base64.Default.decode(base64String)
+                } catch (e: Exception) {
+                    null
+                }
+                val bitmap: ImageBitmap? = bytes?.toImageBitmap()
+                if (bitmap != null) {
+                    isRendered = true
+                    Image(
+                        bitmap = bitmap,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            } else if (imageUrl.startsWith("http")) {
+                isRendered = true
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
+
+        if (!isRendered) {
+            Icon(
+                imageVector = Icons.Default.Home,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                modifier = Modifier.size(40.dp)
+            )
+        }
     }
 }
 
-// ─── 2. Key Metrics ───────────────────────────────────────────────────────────
+// ─── Stats ────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun KeyMetricsSection(
-    monthlyIncome: Long,
-    occupiedUnits: Int,
-    totalUnits: Int
-) {
+private fun StatsRow(totalUnits: Int, occupiedUnits: Int, vacantUnits: Int) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        MetricCard(
-            modifier = Modifier.weight(1f),
-            label = stringResource(Res.string.monthly_income_label)
-        ) {
-            Text(
-                text = "NPR",
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            )
-            Text(
-                text = formatNpr(monthlyIncome),
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            )
-        }
-        MetricCard(
-            modifier = Modifier.weight(1f),
-            label = stringResource(Res.string.occupancy_label)
-        ) {
-            Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
-                    text = occupiedUnits.toString(),
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                )
-                Text(
-                    text = "/$totalUnits",
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                )
-            }
-            Text(
-                text = "Units",
-                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-private fun MetricCard(
-    label: String,
-    modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp), // More rounded
-        color = MaterialTheme.colorScheme.surfaceContainerLowest, // Very light
-        shadowElevation = 0.dp // Flat
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = label.uppercase(),
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = 0.8.sp
-                ),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(Modifier.height(8.dp))
-            content()
-        }
-    }
-}
-
-// ─── 3. Property Overview ─────────────────────────────────────────────────────
-
-@Composable
-private fun PropertyOverviewCard(property: Property, totalUnits: Int) {
-    SectionCard(title = stringResource(Res.string.property_overview)) {
-        OverviewRow(label = stringResource(Res.string.property_type_label), value = property.propertyType.replace("_", " ").titleCase())
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-        OverviewRow(label = stringResource(Res.string.total_units_label), value = if (totalUnits > 0) totalUnits.toString() else "—")
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-        OverviewRow(
-            label = stringResource(Res.string.added_on_label),
-            value = property.createdAt ?: "—"
+        StatCard(
+            label = stringResource(Res.string.total_units_label),
+            value = stringResource(Res.string.total_units_value, totalUnits),
+            valueColor = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
+        )
+        StatCard(
+            label = stringResource(Res.string.occupied),
+            value = stringResource(Res.string.occupied_label, occupiedUnits),
+            valueColor = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.weight(1f)
+        )
+        StatCard(
+            label = stringResource(Res.string.vacant_label_short),
+            value = stringResource(Res.string.vacant_label, vacantUnits),
+            valueColor = AppColors.Error,
+            modifier = Modifier.weight(1f)
         )
     }
 }
 
 @Composable
-private fun OverviewRow(label: String, value: String) {
-    Column(
+private fun StatCard(
+    label: String,
+    value: String,
+    valueColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    AppCard(
+        modifier = modifier.height(64.dp),
+        shape = RoundedCornerShape(12.dp),
+        useCardShadow = false
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 10.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 13.sp,
+                    color = valueColor
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+// ─── Collection summary ───────────────────────────────────────────────────────
+
+@Composable
+private fun CollectionSummaryCard(collected: Long, expected: Long, percent: Int) {
+    val shape = RoundedCornerShape(12.dp)
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .clip(shape)
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primary,
+                        AppColors.EmeraldAccentDeep
+                    ),
+                    start = Offset.Zero,
+                    end = Offset.Infinite
+                )
+            )
+            .padding(horizontal = 16.dp, vertical = 14.dp)
     ) {
-        Text(
-            text = label.uppercase(),
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = 0.5.sp
-            ),
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
-            color = MaterialTheme.colorScheme.onSurface
-        )
-    }
-}
-
-// ─── 4. Financial Summary ─────────────────────────────────────────────────────
-
-@Composable
-private fun FinancialSummaryCard(summary: FinancialSummary) {
-    // Pulsing alpha for outstanding amount
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val pulseAlpha by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 0.6f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulseAlpha"
-    )
-
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp), // More rounded
-        color = MaterialTheme.colorScheme.surfaceContainerLowest,
-        shadowElevation = 0.dp // Flat
-    ) {
-        Column {
-            // Header row with month badge
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = stringResource(Res.string.financial_summary),
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
-                    color = MaterialTheme.colorScheme.onSurface
+                    text = stringResource(Res.string.this_month_collection),
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 11.sp,
+                        letterSpacing = 0.22.sp,
+                        color = Color.White
+                    )
                 )
-                Surface(
-                    shape = RoundedCornerShape(4.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh
-                ) {
-                    Text(
-                        text = summary.currentMonth.uppercase().take(4),
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.ExtraBold,
-                            letterSpacing = 0.8.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-                }
-            }
-
-            // Total collected
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .clip(androidx.compose.foundation.shape.CircleShape)
-                            .background(Color(0xFFDCFCE7)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                            tint = Color(0xFF16A34A),
-                            modifier = Modifier.size(12.dp)
-                        )
-                    }
-                    Text(
-                        text = stringResource(Res.string.total_collected_label),
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Spacer(Modifier.height(6.dp))
                 Text(
-                    text = "NPR ${formatNpr(summary.totalCollected)}",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
+                    text = "$percent%",
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                        color = Color.White
+                    )
                 )
             }
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-
-            // Outstanding dues
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Text(
-                        text = stringResource(Res.string.outstanding_dues_label),
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 2.dp)
-                    )
-                }
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = "NPR ${formatNpr(summary.outstandingDues)}",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.error.copy(alpha = if (summary.outstandingDues > 0) pulseAlpha else 1f)
-                )
-            }
-        }
-    }
-}
-
-// ─── 5. Units List ────────────────────────────────────────────────────────────
-
-@Composable
-private fun UnitsSection(
-    units: ImmutableList<UnitDisplayModel>,
-    onUnitClick: (String) -> Unit,
-    onViewAll: () -> Unit,
-) {
-    Column {
-        // Header row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Bottom
-        ) {
             Text(
-                text = stringResource(Res.string.units_title),
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            TextButton(onClick = onViewAll) {
-                Text(
-                    text = stringResource(Res.string.view_all_action),
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 14.sp
+                text = "NPR ${CurrencyUtil.formatNpr(collected.toDouble(), includeSymbol = false)} / " +
+                    "NPR ${CurrencyUtil.formatNpr(expected.toDouble(), includeSymbol = false)}",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = Color.White
                 )
-            }
-        }
-
-        Spacer(Modifier.height(4.dp))
-
-        if (units.isEmpty()) {
-            EmptyUnitsCard()
-        } else {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp), // More rounded
-                color = MaterialTheme.colorScheme.surfaceContainerLowest,
-                shadowElevation = 0.dp
-            ) {
-                Column {
-                    units.forEachIndexed { index, unit ->
-                        UnitRow(unit = unit, onClick = { onUnitClick(unit.unitNumber) })
-                    }
-                }
-            }
+            )
         }
     }
 }
 
+// ─── Unit assignments ─────────────────────────────────────────────────────────
+
 @Composable
-private fun UnitRow(unit: UnitDisplayModel, onClick: () -> Unit) {
-    val isVacant = unit.paymentStatus == UnitPaymentStatus.VACANT
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp)
+private fun TenantRow(unit: UnitDisplayModel) {
+    AppCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        useCardShadow = false
     ) {
-        // Unit number badge
-        if (isVacant) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Initials avatar
             Box(
                 modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(6.dp))
-                    .border(
-                        2.dp,
-                        MaterialTheme.colorScheme.outlineVariant,
-                        RoundedCornerShape(6.dp)
-                    ),
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(AppColors.EmeraldAccentLight),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = unit.unitNumber,
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = unit.tenantName?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 )
             }
-        } else {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = unit.unitNumber,
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-        }
 
-        // Name + rent
-        Column(modifier = Modifier.weight(1f)) {
-            if (unit.tenantName != null) {
+            // Name + unit/rent
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
                 Text(
-                    text = unit.tenantName,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = MaterialTheme.colorScheme.onSurface,
+                    text = unit.tenantName ?: "",
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-            } else {
                 Text(
-                    text = stringResource(Res.string.vacant_label),
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        fontStyle = FontStyle.Italic
+                    text = "Unit ${unit.unitNumber} • NPR ${CurrencyUtil.formatNpr(unit.rentPerMonth.toDouble(), includeSymbol = false)} / mo",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontSize = 10.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
-            Text(
-                text = "NPR ${formatNpr(unit.rentPerMonth)}/mo",
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+
+            // Status badge
+            val (badgeLabel, badgeBg, badgeText) = when (unit.paymentStatus) {
+                UnitPaymentStatus.PAID -> Triple(
+                    stringResource(Res.string.paid_label),
+                    AppColors.AvatarSuccess,
+                    MaterialTheme.colorScheme.primary
+                )
+                UnitPaymentStatus.OVERDUE -> Triple(
+                    stringResource(Res.string.overdue_label),
+                    AppColors.AvatarError,
+                    AppColors.Error
+                )
+                UnitPaymentStatus.VACANT -> Triple("", Color.Transparent, Color.Transparent)
+            }
+
+            if (badgeLabel.isNotEmpty()) {
+                AppStatusBadge(
+                    label = badgeLabel,
+                    containerColor = badgeBg,
+                    contentColor = badgeText
+                )
+            }
         }
-
-        // Status chip
-        UnitStatusChip(status = unit.paymentStatus)
-
-        // Chevron
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-            modifier = Modifier.size(14.dp)
-        )
     }
 }
 
 @Composable
-private fun UnitStatusChip(status: UnitPaymentStatus) {
-    val (label, bgColor, textColor, borderColor) = when (status) {
-        UnitPaymentStatus.PAID -> ChipStyle(
-            stringResource(Res.string.paid_label),
-            Color(0xFFF0FFF4), Color(0xFF15803D), Color(0xFFDCFCE7)
-        )
-        UnitPaymentStatus.OVERDUE -> ChipStyle(
-            stringResource(Res.string.overdue_label),
-            Color(0xFFFFF5F5), Color(0xFFDC2626), Color(0xFFFEE2E2)
-        )
-        UnitPaymentStatus.VACANT -> ChipStyle(
-            stringResource(Res.string.vacant_label),
-            Color(0xFFF3F4F6), Color(0xFF6B7280), Color(0xFFE5E7EB)
-        )
-    }
-
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(100.dp))
-            .background(bgColor)
-            .border(1.dp, borderColor, RoundedCornerShape(100.dp))
-            .padding(horizontal = 8.dp, vertical = 3.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 10.sp,
-                letterSpacing = 0.2.sp
-            ),
-            color = textColor
-        )
-    }
-}
-
-private data class ChipStyle(
-    val label: String,
-    val bg: Color,
-    val text: Color,
-    val border: Color
-)
-
-@Composable
-private fun EmptyUnitsCard() {
-    Surface(
+private fun UnitAssignmentsEmpty() {
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shadowElevation = 0.dp
+        shape = RoundedCornerShape(12.dp),
+        useCardShadow = false
     ) {
         Column(
-            modifier = Modifier.padding(24.dp),
+            modifier = Modifier.padding(24.dp).fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = Icons.Default.DoorBack,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(32.dp)
-            )
-            Spacer(Modifier.height(8.dp))
             Text(
                 text = stringResource(Res.string.no_units_title),
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.onSurface
             )
+            Spacer(Modifier.height(4.dp))
             Text(
                 text = stringResource(Res.string.no_units_desc),
                 style = MaterialTheme.typography.bodySmall,
@@ -664,74 +531,53 @@ private fun EmptyUnitsCard() {
     }
 }
 
-// ─── Shared section card ──────────────────────────────────────────────────────
+// ─── Action bar ───────────────────────────────────────────────────────────────
 
 @Composable
-private fun SectionCard(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp), // More rounded
-        color = MaterialTheme.colorScheme.surfaceContainerLowest,
-        shadowElevation = 0.dp
+private fun PropertyDetailsActionBar(
+    onEdit: () -> Unit,
+    onAddTenant: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(horizontal = 24.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Column {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-            content()
-        }
+        RentManagerOutlinedButton(
+            text = stringResource(Res.string.edit_property_btn),
+            onClick = onEdit,
+            modifier = Modifier.weight(1f)
+        )
+
+        RentManagerPrimaryButton(
+            text = stringResource(Res.string.add_tenant),
+            onClick = onAddTenant,
+            modifier = Modifier.weight(1f)
+        )
     }
 }
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-private fun formatNpr(amount: Long): String {
-    if (amount == 0L) return "0"
-    // Nepali-style: 1,00,000
-    val s = amount.toString()
-    if (s.length <= 3) return s
-    val last3 = s.takeLast(3)
-    val rest = s.dropLast(3)
-    val groups = mutableListOf<String>()
-    var idx = rest.length
-    while (idx > 0) {
-        val start = maxOf(0, idx - 2)
-        groups.add(0, rest.substring(start, idx))
-        idx = start
-    }
-    return groups.joinToString(",") + ",$last3"
-}
-
-private fun String.titleCase() =
-    split(" ").joinToString(" ") { it.replaceFirstChar { c -> c.uppercaseChar() } }
 
 // ─── Previews ─────────────────────────────────────────────────────────────────
 
 private val previewProperty = Property(
     id = "prop-123", ownerId = "owner-1",
-    name = "Ward 3, Jhamsikhel", address = "Jhamsikhel, Lalitpur",
+    name = "Baluwatar House", address = "Baluwatar, Kathmandu, Nepal",
+    imageUrl = null,
     propertyType = "RESIDENTIAL BUILDING", createdAt = "Jan 15, 2024"
 )
 
 private val previewUnits = persistentListOf(
-    UnitDisplayModel("1A", "Ramesh Sharma", 15_000L, UnitPaymentStatus.PAID),
-    UnitDisplayModel("1B", "Sita Magar", 15_000L, UnitPaymentStatus.OVERDUE),
-    UnitDisplayModel("2A", "Hari Thapa", 20_000L, UnitPaymentStatus.PAID),
-    UnitDisplayModel("2B", null, 20_000L, UnitPaymentStatus.VACANT),
+    UnitDisplayModel("2B", "Suman Maharjan", 25_000L, UnitPaymentStatus.PAID),
+    UnitDisplayModel("1A", "Anil Shrestha", 40_000L, UnitPaymentStatus.PAID),
+    UnitDisplayModel("3A", "Rajesh Thapa", 18_500L, UnitPaymentStatus.OVERDUE),
 )
 
 private val previewFinancials = FinancialSummary(
     currentMonth = "August",
-    totalCollected = 115_000L,
-    outstandingDues = 30_000L,
+    totalCollected = 125_000L,
+    outstandingDues = 18_500L,
 )
 
 @Preview(name = "Property Details — Success")
@@ -743,9 +589,9 @@ private fun PropertyDetailsSuccessPreview() {
                 propertyState = UiState.Success(previewProperty),
                 unitsState = UiState.Success(previewUnits),
                 financialState = UiState.Success(previewFinancials),
-                monthlyIncome = 145_000L,
-                occupiedUnits = 8,
-                totalUnits = 10,
+                monthlyIncome = 160_000L,
+                occupiedUnits = 3,
+                totalUnits = 4,
             ),
             onAction = {}
         )
@@ -760,82 +606,5 @@ private fun PropertyDetailsLoadingPreview() {
             state = PropertyDetailsState(),
             onAction = {}
         )
-    }
-}
-
-@Preview(name = "Property Details — Empty Units")
-@Composable
-private fun PropertyDetailsEmptyPreview() {
-    RentManagerTheme {
-        PropertyDetailsContent(
-            state = PropertyDetailsState(
-                propertyState = UiState.Success(previewProperty),
-                unitsState = UiState.Success(persistentListOf()),
-                financialState = UiState.Success(FinancialSummary("August", 0L, 0L)),
-                monthlyIncome = 0L, occupiedUnits = 0, totalUnits = 0,
-            ),
-            onAction = {}
-        )
-    }
-}
-
-@Preview(name = "Property Details — Delete Dialog")
-@Composable
-private fun PropertyDetailsDeletePreview() {
-    RentManagerTheme {
-        PropertyDetailsContent(
-            state = PropertyDetailsState(
-                propertyState = UiState.Success(previewProperty),
-                unitsState = UiState.Success(previewUnits),
-                financialState = UiState.Success(previewFinancials),
-                monthlyIncome = 145_000L, occupiedUnits = 8, totalUnits = 10,
-                showDeleteConfirm = true,
-            ),
-            onAction = {}
-        )
-    }
-}
-
-@Composable
-private fun PropertyDetailsSkeleton() {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
-        Spacer(Modifier.height(8.dp))
-        
-        // Property Identity
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            com.gaatho.rent.core.ui.components.AppShimmerBox(
-                modifier = Modifier.size(64.dp).clip(CircleShape)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                com.gaatho.rent.core.ui.components.AppShimmerBox(modifier = Modifier.width(150.dp).height(24.dp).clip(RoundedCornerShape(4.dp)))
-                com.gaatho.rent.core.ui.components.AppShimmerBox(modifier = Modifier.width(200.dp).height(16.dp).clip(RoundedCornerShape(4.dp)))
-            }
-        }
-        
-        // Metrics
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            com.gaatho.rent.core.ui.components.AppShimmerBox(modifier = Modifier.weight(1f).height(100.dp).clip(RoundedCornerShape(16.dp)))
-            com.gaatho.rent.core.ui.components.AppShimmerBox(modifier = Modifier.weight(1f).height(100.dp).clip(RoundedCornerShape(16.dp)))
-        }
-        
-        // Tabs
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            repeat(2) {
-                com.gaatho.rent.core.ui.components.AppShimmerBox(modifier = Modifier.weight(1f).height(48.dp).clip(RoundedCornerShape(8.dp)))
-                Spacer(modifier = Modifier.width(12.dp))
-            }
-        }
-        
-        // Content area
-        repeat(3) {
-            com.gaatho.rent.core.ui.components.AppShimmerBox(modifier = Modifier.fillMaxWidth().height(80.dp).clip(RoundedCornerShape(12.dp)))
-        }
     }
 }

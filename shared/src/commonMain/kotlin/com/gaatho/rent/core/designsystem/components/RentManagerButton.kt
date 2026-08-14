@@ -1,5 +1,6 @@
 package com.gaatho.rent.core.designsystem.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -8,9 +9,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.gaatho.rent.core.designsystem.AppDimensions
 import com.gaatho.rent.core.designsystem.AppShadow.figmaButtonShadow
@@ -75,5 +78,44 @@ fun RentManagerPrimaryButton(
                 style = MaterialTheme.typography.labelLarge
             )
         }
+    }
+}
+
+
+/**
+ * Figma-style outlined secondary button (e.g. "Edit Property"): white container,
+ * primary-colored border and label, 44dp height / 12dp radius from design tokens.
+ */
+@Composable
+fun RentManagerOutlinedButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    containerColor: Color = MaterialTheme.colorScheme.surface,
+    contentColor: Color = MaterialTheme.colorScheme.primary,
+    borderColor: Color = MaterialTheme.colorScheme.primary
+) {
+    val shape = RoundedCornerShape(AppDimensions.ActionButtonRadius)
+    OutlinedButton(
+        onClick = onClick,
+        modifier = modifier
+            .height(AppDimensions.ButtonHeightMedium)
+            .figmaButtonShadow(shape = shape),
+        enabled = enabled,
+        shape = shape,
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = containerColor,
+            contentColor = contentColor,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        border = BorderStroke(1.dp, borderColor),
+        contentPadding = ButtonDefaults.ContentPadding
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge.copy(color = contentColor)
+        )
     }
 }

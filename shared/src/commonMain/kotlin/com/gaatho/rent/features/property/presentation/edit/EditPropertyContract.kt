@@ -11,8 +11,10 @@ data class EditPropertyState(
     @Transient val name: TextFieldValue = TextFieldValue(),
     @Transient val streetAddress: TextFieldValue = TextFieldValue(),
     @Transient val city: TextFieldValue = TextFieldValue(),
-    val propertyType: String = "HOUSE",
+    val propertyType: String = "APARTMENT",
     @Transient val totalUnits: TextFieldValue = TextFieldValue("1"),
+    @Transient val monthlyRent: TextFieldValue = TextFieldValue(),
+    @Transient val description: TextFieldValue = TextFieldValue(),
     val billingCycle: String = "1st of the month",
     val selectedAmenities: Set<String> = setOf("Water", "Electricity"),
 
@@ -20,6 +22,7 @@ data class EditPropertyState(
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
     val showSuccessDialog: Boolean = false,
+    val showDeleteConfirm: Boolean = false,
 
     // Validation
     val nameError: String? = null,
@@ -37,9 +40,14 @@ sealed interface EditPropertyAction {
     data class OnCityChanged(val value: TextFieldValue) : EditPropertyAction
     data class OnTypeChanged(val type: String) : EditPropertyAction
     data class OnTotalUnitsChanged(val value: TextFieldValue) : EditPropertyAction
+    data class OnMonthlyRentChanged(val value: TextFieldValue) : EditPropertyAction
+    data class OnDescriptionChanged(val value: TextFieldValue) : EditPropertyAction
     data class OnBillingCycleChanged(val cycle: String) : EditPropertyAction
     data class OnAmenityToggled(val amenity: String) : EditPropertyAction
     data object OnSaveClicked : EditPropertyAction
     data object OnSuccessDialogDismissed : EditPropertyAction
     data object OnBackClicked : EditPropertyAction
+    data object OnDeleteClicked : EditPropertyAction
+    data object OnDeleteDismissed : EditPropertyAction
+    data object OnDeleteConfirmed : EditPropertyAction
 }

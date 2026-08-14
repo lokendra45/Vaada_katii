@@ -6,7 +6,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.Font
 import rentmanagerapp.shared.generated.resources.Res
@@ -49,8 +48,7 @@ fun rentManagerTypography(): Typography {
                 fontSize = 13.sp,
             
             ),
-            
-            // Standard Titles (from Figma: ~14px SemiBold)
+
             titleMedium = TextStyle(
                 fontFamily = inter,
                 fontWeight = FontWeight.SemiBold,

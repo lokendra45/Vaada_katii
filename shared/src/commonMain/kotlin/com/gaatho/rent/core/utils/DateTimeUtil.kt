@@ -80,4 +80,23 @@ object DateTimeUtil {
             LocalDate.parse(isoString.take(10))
         }
     }
+
+    /**
+     * Formats an ISO date (`2023-10-18`) in the Figma style: `Oct 18, 2023`.
+     * Returns the input unchanged when it cannot be parsed.
+     */
+    fun formatDisplayDate(iso: String): String {
+        if (iso.isBlank()) return ""
+        return try {
+            val date = LocalDate.parse(iso.take(10))
+            val months = arrayOf(
+                "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+            )
+            val month = months.getOrNull(date.month.ordinal) ?: "?"
+            "$month ${date.day}, ${date.year}"
+        } catch (e: Exception) {
+            iso
+        }
+    }
 }

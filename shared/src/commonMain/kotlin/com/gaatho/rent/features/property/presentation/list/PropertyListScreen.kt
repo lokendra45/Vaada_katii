@@ -45,17 +45,24 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import coil3.compose.AsyncImage
+import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.AppDimensions
 import com.gaatho.rent.core.designsystem.RentManagerTheme
-import com.gaatho.rent.core.designsystem.ExtendedColorHex
 import com.gaatho.rent.core.designsystem.Spacing
 import com.gaatho.rent.core.designsystem.Radius
+import com.gaatho.rent.core.designsystem.ExtendedColorHex
 import com.gaatho.rent.core.ui.ErrorMessageExtractor
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.features.property.domain.model.Property
 // Removed AddPropertyBottomSheet imports
 import com.gaatho.rent.core.utils.toImageBitmap
 import com.gaatho.rent.core.ui.components.AppDialog
+import com.gaatho.rent.core.ui.components.AppFilterChips
+import com.gaatho.rent.core.ui.components.AppStatusBadge
+import com.gaatho.rent.core.ui.components.AppSearchBar
+import com.gaatho.rent.core.ui.components.AppTopBarCircleIconButton
+import com.gaatho.rent.core.ui.components.AppCard
 import com.gaatho.rent.features.property.presentation.list.PropertyListAction.*
 import io.github.vinceglb.filekit.readBytes
 import kotlinx.collections.immutable.immutableListOf
@@ -144,19 +151,20 @@ fun PropertyListContent(
         topBar = {
             com.gaatho.rent.core.ui.components.AppTopBar(
                 title = stringResource(Res.string.properties_title),
-                subtitle = stringResource(Res.string.total_properties_subtitle, pagedProperties?.itemCount ?: 0),
                 actions = {
-                    com.gaatho.rent.core.ui.components.AppTopBarActionButton(
-                        text = stringResource(Res.string.add_property),
-                        onClick = { onAction(PropertyListAction.OnAddPropertyClicked) }
+                    AppTopBarCircleIconButton(
+                        icon = Icons.Default.Add,
+                        onClick = { onAction(OnAddPropertyClicked) }
                     )
-                }
+                },
+                modifier = Modifier.statusBarsPadding(),
+                containerColor = MaterialTheme.colorScheme.surface // Solid white as per Figma
             )
         },
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
         Column(
             modifier = Modifier
@@ -186,7 +194,7 @@ fun PropertyListContent(
                         onRetry = { pagedProperties.retry() },
                         modifier = Modifier.align(Alignment.Center)
                     )
-                } else if (isEmpty && searchQuery.isEmpty() && state.selectedLocation == "All properties") {
+                } else if (isEmpty && searchQuery.isEmpty() && state.selectedFilter == PropertyListFilters.All) {
                     EmptyPropertiesState(
                         onAddProperty = { onAction(PropertyListAction.OnAddPropertyClicked) },
                         modifier = Modifier.align(Alignment.Center)
@@ -195,15 +203,11 @@ fun PropertyListContent(
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(
-                            start = Spacing.ScreenPadding,
-                            end = Spacing.ScreenPadding,
-                            top = Spacing.Scale8,
                             bottom = 100.dp
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(Spacing.ItemGap)
+                        )
                     ) {
                         item {
-                            com.gaatho.rent.core.ui.components.AppSearchBar(
+                            AppSearchBar(
                                 query = searchQuery,
                                 onQueryChange = onSearchQueryChanged,
                                 placeholderText = stringResource(Res.string.search_properties_hint),
@@ -211,34 +215,35 @@ fun PropertyListContent(
                                 onSuggestionSelected = {},
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 4.dp, vertical = 4.dp)
+                                    .padding(horizontal = 24.dp, vertical = 8.dp)
+                                    .height(44.dp) // Figma Height
                             )
                         }
 
                         item {
-                            // Simplified hardcoded filters for demo
-                            val locationFilters = listOf("All properties", "Kathmandu", "Lalitpur", "Bhaktapur")
+                            val filterOptions = listOf(
+                                PropertyListFilters.All,
+                                PropertyListFilters.Residential,
+                                PropertyListFilters.Commercial
+                            )
+                            val displayLabels = listOf(
+                                "${stringResource(Res.string.filter_all_locations)} (${pagedProperties.itemCount})",
+                                stringResource(Res.string.filter_residential),
+                                stringResource(Res.string.filter_commercial)
+                            )
+                            val selectedIndex = filterOptions.indexOf(state.selectedFilter).coerceAtLeast(0)
 
-                            LazyRow(
+                            AppFilterChips(
+                                options = displayLabels,
+                                selectedIndex = selectedIndex,
+                                onOptionSelected = { index ->
+                                    onAction(OnFilterSelected(filterOptions[index]))
+                                },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = AppDimensions.ScreenHorizontalPadding)
-                                    .padding(top = 4.dp, bottom = 12.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                items(locationFilters) { location ->
-                                    val displayOption = if (location.equals("All properties", ignoreCase = true)) stringResource(Res.string.filter_all_locations) else location
-                                    FilterChip(
-                                        selected = state.selectedLocation == location,
-                                        onClick = { onAction(PropertyListAction.OnLocationFilterSelected(location)) },
-                                        label = { Text(displayOption) },
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                        )
-                                    )
-                                }
-                            }
+                                    .padding(horizontal = 24.dp, vertical = 8.dp)
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
                         }
 
                         items(count = pagedProperties.itemCount) { index ->
@@ -246,9 +251,9 @@ fun PropertyListContent(
                             if (property != null) {
                                 PropertyRowItem(
                                     property = property,
-                                    onClick = { onAction(PropertyListAction.OnPropertyClicked(property.id)) }
+                                    onClick = { onAction(PropertyListAction.OnPropertyClicked(property.id)) },
+                                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
                                 )
-                                Spacer(modifier = Modifier.height(16.dp))
                             }
                         }
                         
@@ -274,118 +279,133 @@ fun PropertyListContent(
 @Composable
 private fun PropertyRowItem(
     property: PropertyDisplayModel,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Surface(
-        modifier = Modifier
+    AppCard(
+        modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(com.gaatho.rent.core.designsystem.Radius.Md),
-        color = Color.Transparent
+        shape = RoundedCornerShape(14.dp),
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shadowElevation = 0.dp // Set to 0 to avoid Material 3 surface tint; AppCard already applies figmaCardShadow
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 12.dp, horizontal = 20.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top // Figma: items-start
         ) {
-            // Thumbnail / Avatar (Image or Soft tinted square with initials)
             val imageUrl = property.imageUrl
-        var isImageRendered = false
-        
-        if (imageUrl != null && imageUrl.startsWith("base64:")) {
-            val base64String = imageUrl.removePrefix("base64:")
-            val bytes = try {
-                kotlin.io.encoding.Base64.Default.decode(base64String)
-            } catch (e: Exception) {
-                null
-            }
-            val bitmap = bytes?.toImageBitmap()
-            if (bitmap != null) {
-                isImageRendered = true
-                Image(
-                    bitmap = bitmap,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                )
-            }
-        }
-        
-        if (!isImageRendered) {
-            val initials = com.gaatho.rent.core.utils.TenantUtils.getInitials(property.name)
-            val avatarColors = com.gaatho.rent.core.utils.TenantUtils.getAvatarColors(property.name)
-            
+            var isImageRendered = false
+
             Box(
                 modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape)
-                    .background(Color(avatarColors.first)),
+                    .size(90.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = initials,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color(avatarColors.second),
-                    fontWeight = FontWeight.Bold
-                )
+                if (imageUrl != null) {
+                    if (imageUrl.startsWith("base64:")) {
+                        val base64String = imageUrl.removePrefix("base64:")
+                        val bytes = try {
+                            kotlin.io.encoding.Base64.Default.decode(base64String)
+                        } catch (e: Exception) {
+                            null
+                        }
+                        val bitmap = bytes?.toImageBitmap()
+                        if (bitmap != null) {
+                            isImageRendered = true
+                            Image(
+                                bitmap = bitmap,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                    } else if (imageUrl.startsWith("http")) {
+                        isImageRendered = true
+                        AsyncImage(
+                            model = imageUrl,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+
+                if (!isImageRendered) {
+                    Icon(
+                        imageVector = Icons.Default.Home,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
             }
-        }
 
-        // Content Column
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            // Title
-            Text(
-                text = property.name,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            // Address and Units
-            Text(
-                text = "${property.address} • ${stringResource(Res.string.units_label, property.totalUnits)}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            // Vacancy Status (Text only, no pill)
-            Text(
-                text = property.statusBadge,
-                style = MaterialTheme.typography.labelSmall,
-                color = if (property.isVacant) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
-        // Right side: Quick status
-        Column(
-            horizontalAlignment = Alignment.End,
-            verticalArrangement = Arrangement.Center
-        ) {
-            val isErrorState = property.isPending
-            Surface(
-                shape = RoundedCornerShape(AppDimensions.RadiusPill),
-                color = if (isErrorState) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer,
-                modifier = Modifier.padding(start = 8.dp)
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    text = property.pendingText,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isErrorState) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    text = property.name,
+                    style = MaterialTheme.typography.titleLarge, // 13sp Bold — Figma "Baluwatar House"
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Text(
+                    text = property.address,
+                    style = MaterialTheme.typography.bodySmall, // 10sp Regular — Figma "Baluwatar, Kathmandu"
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Row(
+                    modifier = Modifier.padding(top = 2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Units Badge
+                    AppStatusBadge(
+                        label = stringResource(Res.string.units_label, property.totalUnits),
+                        containerColor = AppColors.EmeraldAccentLight,
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        fontSize = 9.5.sp,
+                        verticalPadding = 4.dp
+                    )
+
+                    // Status
+                    val statusText = if (property.vacUnits > 0) 
+                        stringResource(Res.string.vacant_label, property.vacUnits)
+                    else 
+                        stringResource(Res.string.occupied_label, property.occUnits)
+                    
+                    val statusColor = if (property.vacUnits > 0) AppColors.Warning else MaterialTheme.colorScheme.primary
+
+                    Text(
+                        text = statusText,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontWeight = FontWeight.Medium, // 10sp Medium — Figma "4 Occupied"
+                            color = statusColor
+                        )
+                    )
+                }
+
+                Text(
+                    text = stringResource(Res.string.price_per_month, property.priceFormatted),
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontWeight = FontWeight.Medium, // 10sp Medium — Figma "NPR 1,25,000 / mo"
+                        color = MaterialTheme.colorScheme.onSurface
+                    ),
+                    modifier = Modifier.padding(top = 2.dp)
                 )
             }
-        }
         }
     }
 }
@@ -447,7 +467,7 @@ private fun PropertyListContentSuccessPreview() {
         PropertyListContent(
             state = PropertyListState(),
             onAction = {},
-            onNavigateToAddProperty = {}
+            onNavigateToAddProperty = {},
         )
     }
 }

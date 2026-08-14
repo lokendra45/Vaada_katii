@@ -22,6 +22,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -155,6 +156,8 @@ fun <T> AppDropdown(
     borderWidth: Dp = AppDimensions.TextFieldBorderWidth,
     menuMaxHeight: Dp = 320.dp,
     showDividers: Boolean = false,
+    labelStyle: TextStyle? = null,
+    fieldTextStyle: TextStyle? = null,
     colors: AppDropdownColors = AppDropdownDefaults.colors(),
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -242,6 +245,9 @@ fun <T> AppDropdown(
                 },
                 readOnly = true,
                 enabled = enabled,
+                labelStyle = labelStyle,
+                fieldTextStyle = fieldTextStyle,
+                shape = shape,
                 modifier = Modifier.fillMaxWidth()
             )
             

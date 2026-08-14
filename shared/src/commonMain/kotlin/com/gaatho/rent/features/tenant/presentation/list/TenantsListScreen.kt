@@ -1,71 +1,75 @@
 package com.gaatho.rent.features.tenant.presentation.list
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.outlined.Group
-import androidx.compose.material3.*
-import androidx.paging.compose.LazyPagingItems
-import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.itemContentType
-import androidx.paging.compose.itemKey
-import androidx.paging.LoadState
-import androidx.paging.PagingData
-import kotlinx.coroutines.flow.flowOf
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.launch
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
+import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemContentType
+import androidx.paging.compose.itemKey
+import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.AppDimensions
 import com.gaatho.rent.core.designsystem.RentManagerTheme
-import com.gaatho.rent.core.designsystem.ExtendedColorHex
-import com.gaatho.rent.core.designsystem.Spacing
-import com.gaatho.rent.core.designsystem.Radius
-import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.core.ui.components.AppSearchBar
-import com.gaatho.rent.features.tenant.domain.model.Tenant
+import com.gaatho.rent.core.utils.CurrencyUtil
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.flow.flowOf
 import org.koin.compose.viewmodel.koinViewModel
-import org.jetbrains.compose.resources.stringResource
-import rentmanagerapp.shared.generated.resources.Res
-import rentmanagerapp.shared.generated.resources.*
 import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gaatho.rent.core.ui.components.AppSegmentedControl
-// Removed AddTenant imports
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.empty_tenants
 
 @Composable
 fun TenantsListScreen(
     onNavigateToDetails: (String) -> Unit,
-    onNavigateToAddTenant: () -> Unit
+    onNavigateToAddTenant: () -> Unit,
+    onNavigateBack: (() -> Unit)? = null
 ) {
     val viewModel: TenantsListViewModel = koinViewModel()
     val state by viewModel.collectAsState()
-    // Collect the search query directly from the ViewModel's StateFlow.
-    // NiA pattern: search text never touches Orbit state.
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -86,6 +90,7 @@ fun TenantsListScreen(
         searchQuery = searchQuery,
         pagedTenants = pagedTenants,
         onNavigateToAddTenant = onNavigateToAddTenant,
+        onNavigateBack = onNavigateBack,
         onAction = viewModel::onAction,
         onSearchQueryChanged = viewModel::onSearchQueryChanged,
         snackbarHostState = snackbarHostState
@@ -100,6 +105,7 @@ fun TenantsListContent(
     pagedTenants: LazyPagingItems<TenantDisplayModel>,
     onNavigateToAddTenant: () -> Unit,
     onAction: (TenantsListAction) -> Unit,
+    onNavigateBack: (() -> Unit)? = null,
     onSearchQueryChanged: (String) -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
@@ -107,61 +113,64 @@ fun TenantsListContent(
     Scaffold(
         topBar = {
             com.gaatho.rent.core.ui.components.AppTopBar(
-                title = stringResource(Res.string.tenants_title),
-                subtitle = "${pagedTenants.itemCount} loaded",
-                actions = {
-                    com.gaatho.rent.core.ui.components.AppTopBarActionButton(
-                        text = stringResource(Res.string.add_tenant),
-                        onClick = onNavigateToAddTenant
-                    )
-                }
+                title = "Tenants",
+                onBackClick = onNavigateBack,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateToAddTenant,
+                shape = CircleShape,
+                containerColor = AppColors.EmeraldAccent,
+                contentColor = Color.White,
+                modifier = Modifier.size(56.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Tenant")
+            }
+        }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Main Content
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .widthIn(max = 800.dp)
                     .align(Alignment.CenterHorizontally)
             ) {
-                // 1. Search & Filter Section with clean layout
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Pixel-Perfect Material 3 Search Bar (with vertical Results & < Back arrow on focus)
                     val searchSuggestions = remember { emptyList<com.gaatho.rent.core.ui.components.SearchSuggestionItem>() }
 
                     AppSearchBar(
                         query = searchQuery,
                         onQueryChange = onSearchQueryChanged,
-                        placeholderText = stringResource(Res.string.search_tenants),
+                        placeholderText = "Search tenants...",
                         suggestions = searchSuggestions,
                         onSuggestionSelected = { item ->
                             onSearchQueryChanged(item.title)
                         },
+                        containerColor = MaterialTheme.colorScheme.surface,
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    // Extracted to prevent entire screen recomposition when dropdowns toggle
                     TenantsFilterStrip(
                         state = state,
+                        pagedTenants = pagedTenants,
                         onAction = onAction,
-                        modifier = Modifier.padding(horizontal = AppDimensions.ScreenHorizontalPadding, vertical = 8.dp)
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
 
-                // 2. List Section without outer card container (clean edge-to-edge native rows)
                 when (pagedTenants.loadState.refresh) {
                     is LoadState.Loading -> {
                         TenantSkeletonLoadingState()
@@ -170,9 +179,9 @@ fun TenantsListContent(
                     is LoadState.Error -> {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Text(stringResource(Res.string.tenant_failed_load), style = MaterialTheme.typography.titleMedium)
+                                Text("Failed to load tenants", style = MaterialTheme.typography.titleMedium)
                                 Button(onClick = { pagedTenants.retry() }) {
-                                    Text(stringResource(Res.string.retry))
+                                    Text("Retry")
                                 }
                             }
                         }
@@ -189,8 +198,8 @@ fun TenantsListContent(
                             ) {
                                 com.gaatho.rent.core.ui.components.AppIllustratedEmptyState(
                                     illustration = Res.drawable.empty_tenants,
-                                    title = stringResource(Res.string.no_tenants_found),
-                                    description = stringResource(Res.string.no_tenants_found_subtitle),
+                                    title = "No tenants found",
+                                    description = "Add your first tenant to start tracking rent",
                                     buttonText = "Add Tenant",
                                     onButtonClick = onNavigateToAddTenant
                                 )
@@ -199,12 +208,12 @@ fun TenantsListContent(
                             LazyColumn(
                                 modifier = Modifier.fillMaxSize(),
                                 contentPadding = PaddingValues(
-                                    start = Spacing.ScreenPadding,
-                                    end = Spacing.ScreenPadding,
-                                    top = Spacing.Scale8,
+                                    start = 16.dp,
+                                    end = 16.dp,
+                                    top = 8.dp,
                                     bottom = 100.dp
                                 ),
-                                verticalArrangement = Arrangement.spacedBy(Spacing.ItemGap)
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 items(
                                     count = pagedTenants.itemCount,
@@ -219,7 +228,7 @@ fun TenantsListContent(
                                         )
                                     }
                                 }
-                                
+
                                 if (pagedTenants.loadState.append is LoadState.Loading) {
                                     item {
                                         Box(
@@ -235,86 +244,45 @@ fun TenantsListContent(
                     }
                 }
             }
-
-        } // Column
-    } // Scaffold content
-} // TenantsListContent
+        }
+    }
+}
 
 @Composable
 private fun TenantsFilterStrip(
     state: TenantsListState,
+    pagedTenants: LazyPagingItems<TenantDisplayModel>,
     onAction: (TenantsListAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var propertyDropdownExpanded by remember { mutableStateOf(false) }
+    val tabs = listOf("All statuses" to "All", "Active" to "Active", "Inactive" to "Inactive", "Pending" to "Pending")
 
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Segmented Control for Status
-        val options = listOf("All statuses", "Active", "Inactive")
-        val displayOptions = listOf(stringResource(Res.string.filter_all), stringResource(Res.string.filter_active), stringResource(Res.string.filter_past))
-        val selectedIndex = options.indexOf(state.selectedStatus).coerceAtLeast(0)
+        tabs.forEach { (value, label) ->
+            val selected = state.selectedStatus == value
+            val displayLabel = if (value == "All statuses") {
+                "All (${pagedTenants.itemCount})"
+            } else label
 
-        AppSegmentedControl(
-            options = displayOptions,
-            selectedIndex = selectedIndex,
-            onOptionSelected = { index -> 
-                onAction(TenantsListAction.OnStatusFilterChanged(options[index])) 
-            },
-            modifier = Modifier.weight(1f)
-        )
-        
-        Spacer(modifier = Modifier.width(8.dp))
-
-        // Minimal Property Filter
-        Box {
-            val isPropertyFiltered = state.selectedProperty != "All properties"
-            Row(
+            Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
-                    .clickable { propertyDropdownExpanded = true }
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    .clip(RoundedCornerShape(100.dp))
+                    .background(
+                        if (selected) AppColors.EmeraldAccent else MaterialTheme.colorScheme.surface
+                    )
+                    .clickable { onAction(TenantsListAction.OnStatusFilterChanged(value)) }
+                    .padding(horizontal = 18.dp, vertical = 8.dp)
             ) {
                 Text(
-                    text = if (isPropertyFiltered) state.selectedProperty else stringResource(Res.string.properties_label),
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = if (isPropertyFiltered) FontWeight.Bold else FontWeight.Medium,
-                        color = if (isPropertyFiltered) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    ),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.widthIn(max = 100.dp)
-                )
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = "Select Property",
-                    tint = if (isPropertyFiltered) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-
-            val propertyOptions = remember(state.propertiesState) {
-                listOf("All properties") + ((state.propertiesState as? UiState.Success)?.data?.map { it.name } ?: emptyList())
-            }
-
-            DropdownMenu(
-                expanded = propertyDropdownExpanded,
-                onDismissRequest = { propertyDropdownExpanded = false }
-            ) {
-                propertyOptions.forEach { prop ->
-                    DropdownMenuItem(
-                        text = { Text(prop) },
-                        onClick = {
-                            onAction(TenantsListAction.OnPropertyFilterChanged(prop))
-                            propertyDropdownExpanded = false
-                        }
+                    text = displayLabel,
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                }
+                )
             }
         }
     }
@@ -327,17 +295,17 @@ private fun TenantRowItem(
 ) {
     Surface(
         onClick = onClick,
-        color = Color.Transparent, // Figma list style (transparent background, uses outer surface)
-        shape = RoundedCornerShape(Radius.Md),
-        modifier = Modifier.fillMaxWidth()
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 0.dp,
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Perfect Circle Avatar
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -354,20 +322,25 @@ private fun TenantRowItem(
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
-            // Main Details
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    text = tenant.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = tenant.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    StatusPill(status = tenant.status, isActive = tenant.isActive)
+                }
 
                 Text(
                     text = tenant.subtitle,
@@ -378,97 +351,91 @@ private fun TenantRowItem(
                 )
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(8.dp))
 
-            // Trailing Side
             Column(
                 horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                StatusBadge(status = tenant.status, isActive = tenant.isActive)
+                Text(
+                    text = CurrencyUtil.formatNprLabel(tenant.rentAmount),
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "/ month",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
 }
 
 @Composable
-private fun StatusBadge(status: String, isActive: Boolean) {
-    val bgColor = if (isActive) Color(ExtendedColorHex.ActiveBackground) else Color(ExtendedColorHex.InactiveBackground)
-    val textColor = if (isActive) Color(ExtendedColorHex.ActiveText) else Color(ExtendedColorHex.InactiveText)
+private fun StatusPill(status: String, isActive: Boolean) {
+    val (bg, text) = when {
+        status.equals("Pending", ignoreCase = true) ->
+            Color(0xFFFFF7E8) to Color(0xFFF59E0B)
+        isActive || status.equals("Active", ignoreCase = true) ->
+            AppColors.EmeraldAccentLight to AppColors.EmeraldAccent
+        else ->
+            Color(0xFFF3F4F6) to Color(0xFF64748B)
+    }
 
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(bgColor)
-            .padding(horizontal = 8.dp, vertical = 2.dp)
+            .clip(RoundedCornerShape(100.dp))
+            .background(bg)
+            .padding(horizontal = 8.dp, vertical = 3.dp)
     ) {
         Text(
             text = status,
             style = MaterialTheme.typography.labelSmall.copy(
-                color = textColor
+                fontWeight = FontWeight.SemiBold,
+                color = text
             )
         )
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Preview(showBackground = true)
 @Composable
 fun TenantsListScreenPreview() {
-    com.gaatho.rent.core.designsystem.RentManagerTheme {
-        val dummyTenants = kotlinx.collections.immutable.persistentListOf(
+    RentManagerTheme {
+        val dummyTenants = persistentListOf(
             TenantDisplayModel(
-                id = "1",
-                name = "Brooklyn Simmons",
-                initials = "BS",
-                subtitle = "Sunrise Residency • Room 4A",
-                status = "Active",
-                isActive = true,
-                avatarBgColorHex = 0xFFE3F2FD,
-                avatarTextColorHex = 0xFF1976D2,
-                propertyName = "Sunrise Residency",
-                roomNumber = "Room 4A",
-                email = null,
-                phone = null
+                id = "1", name = "Suman Maharjan", initials = "SM",
+                subtitle = "Sundar Niwas • Unit 2A", status = "Active", isActive = true,
+                avatarBgColorHex = 0xFFE2DFFF, avatarTextColorHex = 0xFF3323CC,
+                propertyName = "Sundar Niwas", roomNumber = "Unit 2A",
+                email = null, phone = null, rentAmount = 25000
             ),
             TenantDisplayModel(
-                id = "2",
-                name = "Darlene Robertson",
-                initials = "DR",
-                subtitle = "Ganga Nivas • Room 5",
-                status = "Inactive",
-                isActive = false,
-                avatarBgColorHex = 0xFFFBE9E7,
-                avatarTextColorHex = 0xFFD32F2F,
-                propertyName = "Ganga Nivas",
-                roomNumber = "Room 5",
-                email = null,
-                phone = null
+                id = "2", name = "Anita Shrestha", initials = "AS",
+                subtitle = "Krishna Bhawan • Unit 1B", status = "Active", isActive = true,
+                avatarBgColorHex = 0xFFF0FDF4, avatarTextColorHex = 0xFF15803D,
+                propertyName = "Krishna Bhawan", roomNumber = "Unit 1B",
+                email = null, phone = null, rentAmount = 18000
             ),
             TenantDisplayModel(
-                id = "3",
-                name = "Marvin McKinney",
-                initials = "MM",
-                subtitle = "Sunrise Residency • Room 1B",
-                status = "Active",
-                isActive = true,
-                avatarBgColorHex = 0xFFE8F5E9,
-                avatarTextColorHex = 0xFF388E3C,
-                propertyName = "Sunrise Residency",
-                roomNumber = "Room 1B",
-                email = null,
-                phone = null
+                id = "3", name = "Bikash Thapa", initials = "BT",
+                subtitle = "Baluwatar House • Unit 3C", status = "Pending", isActive = false,
+                avatarBgColorHex = 0xFFE0F2FE, avatarTextColorHex = 0xFF0369A1,
+                propertyName = "Baluwatar House", roomNumber = "Unit 3C",
+                email = null, phone = null, rentAmount = 30000
             )
         )
         val dummyState = TenantsListState(
             selectedStatus = "All statuses",
-            selectedProperty = "All properties"
+            selectedProperty = "All properties",
         )
         val pagedTenants = flowOf(PagingData.from(dummyTenants)).collectAsLazyPagingItems()
         TenantsListContent(
-            state = dummyState, 
-            pagedTenants = pagedTenants, 
+            state = dummyState,
+            pagedTenants = pagedTenants,
             onNavigateToAddTenant = {},
-            onAction = {}
+            onAction = {},
         )
     }
 }

@@ -34,6 +34,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import com.gaatho.rent.features.dashboard.presentation.MainDashboardScreen
 import com.gaatho.rent.features.payment.presentation.details.PaymentDetailsScreen
+import com.gaatho.rent.features.payment.presentation.edit.EditPaymentScreen
 import com.gaatho.rent.features.paywall.presentation.PaywallScreen
 import com.gaatho.rent.features.property.presentation.details.PropertyDetailsScreen
 import com.gaatho.rent.features.property.presentation.add.AddPropertyScreen
@@ -127,8 +128,8 @@ fun AppNavigation() {
                     onNavigateToEdit = { propertyId ->
                         backStack.add(EditPropertyRoute(propertyId))
                     },
-                    onNavigateToTenantDetails = { tenantId ->
-                        backStack.add(TenantDetailRoute(tenantId))
+                    onNavigateToAddTenant = {
+                        backStack.add(AddTenantRoute)
                     }
                 )
             }
@@ -175,7 +176,8 @@ fun AppNavigation() {
                     },
                     onNavigateToAddTenant = {
                         backStack.add(AddTenantRoute)
-                    }
+                    },
+                    onNavigateBack = { backStack.removeLastOrNull() }
                 )
             }
 
@@ -210,6 +212,16 @@ fun AppNavigation() {
 
             entry<PaymentDetailRoute> { route ->
                 PaymentDetailsScreen(
+                    paymentId = route.paymentId,
+                    onNavigateBack = { backStack.removeLastOrNull() },
+                    onNavigateToEdit = { paymentId ->
+                        backStack.add(EditPaymentRoute(paymentId))
+                    }
+                )
+            }
+
+            entry<EditPaymentRoute> { route ->
+                EditPaymentScreen(
                     paymentId = route.paymentId,
                     onNavigateBack = { backStack.removeLastOrNull() }
                 )

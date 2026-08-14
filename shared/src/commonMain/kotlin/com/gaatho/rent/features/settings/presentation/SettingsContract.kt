@@ -7,6 +7,7 @@ data class SettingsState(
     val notificationsEnabled: Boolean = true,
     val emailAlertsEnabled: Boolean = false,
     val biometricsEnabled: Boolean = true,
+    val pinLockEnabled: Boolean = false,
     val darkModeEnabled: Boolean = false,
     val languageCode: String? = null,
     val userEmail: String = "",
@@ -26,6 +27,7 @@ sealed interface SettingsAction {
     data class OnNotificationsToggled(val enabled: Boolean) : SettingsAction
     data class OnEmailAlertsToggled(val enabled: Boolean) : SettingsAction
     data class OnBiometricsToggled(val enabled: Boolean) : SettingsAction
+    data class OnPinLockToggled(val enabled: Boolean) : SettingsAction
     data class OnDarkModeToggled(val enabled: Boolean) : SettingsAction
     data class OnLanguageChanged(val code: String) : SettingsAction
     data object OnUpgradeClicked : SettingsAction
