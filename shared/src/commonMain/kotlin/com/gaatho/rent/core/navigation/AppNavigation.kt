@@ -8,7 +8,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Login
+import com.gaatho.rent.core.ui.components.AppConfirmDialog
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -25,6 +30,7 @@ import com.gaatho.rent.core.ui.animation.iosPushTransition
 import com.gaatho.rent.core.ui.animation.iosPopTransition
 import androidx.savedstate.serialization.SavedStateConfiguration
 import com.gaatho.rent.core.auth.SessionManager
+import com.gaatho.rent.core.auth.UserIdentityProvider
 import com.gaatho.rent.features.auth.presentation.LoginScreen
 import com.gaatho.rent.features.property.presentation.list.PropertyListScreen
 import com.gaatho.rent.features.splash.presentation.SplashScreen
@@ -57,9 +63,41 @@ private val navConfig = SavedStateConfiguration {
 @Composable
 fun AppNavigation() {
     val sessionManager: SessionManager = koinInject()
-    val isLoggedIn by sessionManager.isLoggedIn.collectAsState()
+    val userIdentityProvider: UserIdentityProvider = koinInject()
+    val currentUser by sessionManager.currentUser.collectAsState()
+    val isGuest = currentUser?.isAnonymous == true || userIdentityProvider.isGuest()
 
     val backStack = rememberNavBackStack(navConfig, SplashRoute)
+
+    var showGuestLoginDialog by remember { mutableStateOf(false) }
+
+    // Guests can only browse the empty app shell — they cannot create or edit any
+    // data. Any mutating navigation triggers a login prompt instead.
+    fun navigateRequiringAuth(navigate: () -> Unit) {
+        if (isGuest) {
+            showGuestLoginDialog = true
+        } else {
+            navigate()
+        }
+    }
+
+    if (showGuestLoginDialog) {
+        AppConfirmDialog(
+            icon = Icons.AutoMirrored.Outlined.Login,
+            title = "Sign in Required",
+            body = "You need to be signed in to perform this action. Would you like to sign in now?",
+            confirmText = "Sign In",
+            cancelText = "Not Now",
+            onConfirm = {
+                showGuestLoginDialog = false
+                backStack.clear()
+                backStack.add(LoginRoute)
+            },
+            onDismiss = {
+                showGuestLoginDialog = false
+            }
+        )
+    }
 
     NavDisplay(
         backStack = backStack,
@@ -73,7 +111,7 @@ fun AppNavigation() {
 
             entry<SplashRoute> {
                 SplashScreen(
-                    onNavigateToHome = {
+                    onNavigateToHome = { _ ->
                         backStack.clear()
                         backStack.add(MainDashboardRoute)
                     }
@@ -86,16 +124,16 @@ fun AppNavigation() {
                         backStack.add(PropertyDetailRoute(propertyId))
                     },
                     onNavigateToAddProperty = {
-                        backStack.add(AddPropertyRoute)
+                        navigateRequiringAuth { backStack.add(AddPropertyRoute) }
                     },
                     onNavigateToTenantDetails = { tenantId ->
                         backStack.add(TenantDetailRoute(tenantId))
                     },
                     onNavigateToAddTenant = {
-                        backStack.add(AddTenantRoute)
+                        navigateRequiringAuth { backStack.add(AddTenantRoute) }
                     },
                     onNavigateToAddPayment = {
-                        backStack.add(AddPaymentRoute)
+                        navigateRequiringAuth { backStack.add(AddPaymentRoute) }
                     },
                     onNavigateToPaymentDetails = { paymentId ->
                         backStack.add(PaymentDetailRoute(paymentId))
@@ -116,7 +154,7 @@ fun AppNavigation() {
                         backStack.add(PropertyDetailRoute(propertyId))
                     },
                     onNavigateToAddProperty = {
-                        backStack.add(AddPropertyRoute)
+                        navigateRequiringAuth { backStack.add(AddPropertyRoute) }
                     }
                 )
             }
@@ -126,10 +164,10 @@ fun AppNavigation() {
                     propertyId = route.propertyId,
                     onNavigateBack = { backStack.removeLastOrNull() },
                     onNavigateToEdit = { propertyId ->
-                        backStack.add(EditPropertyRoute(propertyId))
+                        navigateRequiringAuth { backStack.add(EditPropertyRoute(propertyId)) }
                     },
                     onNavigateToAddTenant = {
-                        backStack.add(AddTenantRoute)
+                        navigateRequiringAuth { backStack.add(AddTenantRoute) }
                     }
                 )
             }
@@ -175,7 +213,7 @@ fun AppNavigation() {
                         backStack.add(TenantDetailRoute(tenantId))
                     },
                     onNavigateToAddTenant = {
-                        backStack.add(AddTenantRoute)
+                        navigateRequiringAuth { backStack.add(AddTenantRoute) }
                     },
                     onNavigateBack = { backStack.removeLastOrNull() }
                 )
@@ -186,7 +224,7 @@ fun AppNavigation() {
                     tenantId = route.tenantId,
                     onNavigateBack = { backStack.removeLastOrNull() },
                     onNavigateToEdit = { tenantId ->
-                        backStack.add(EditTenantRoute(tenantId))
+                        navigateRequiringAuth { backStack.add(EditTenantRoute(tenantId)) }
                     }
                 )
             }
@@ -215,7 +253,7 @@ fun AppNavigation() {
                     paymentId = route.paymentId,
                     onNavigateBack = { backStack.removeLastOrNull() },
                     onNavigateToEdit = { paymentId ->
-                        backStack.add(EditPaymentRoute(paymentId))
+                        navigateRequiringAuth { backStack.add(EditPaymentRoute(paymentId)) }
                     }
                 )
             }

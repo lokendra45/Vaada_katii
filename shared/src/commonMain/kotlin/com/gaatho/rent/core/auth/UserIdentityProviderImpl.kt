@@ -2,7 +2,8 @@ package com.gaatho.rent.core.auth
 
 /**
  * Implementation of [UserIdentityProvider] that delegates to [SessionManager] for remote
- * Supabase accounts and falls back to [GuestSessionManager] for offline guest mode.
+ * Supabase accounts (including anonymous guest sessions) and falls back to [GuestSessionManager]
+ * for the guest-mode flag.
  */
 class UserIdentityProviderImpl(
     private val sessionManager: SessionManager,
@@ -14,10 +15,14 @@ class UserIdentityProviderImpl(
         if (remoteId != null) {
             return remoteId
         }
-        return guestSessionManager.getOrCreateGuestId()
+        return ""
     }
 
     override fun isGuest(): Boolean {
-        return !sessionManager.isLoggedIn.value
+        val user = sessionManager.currentUser.value
+        if (user != null) {
+            return user.isAnonymous
+        }
+        return guestSessionManager.hasActiveGuestSession()
     }
 }

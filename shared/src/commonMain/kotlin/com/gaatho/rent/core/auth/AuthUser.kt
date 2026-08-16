@@ -30,5 +30,6 @@ data class AuthUser(
     @SerialName("email") val email: String,
     @SerialName("display_name") val displayName: String? = null,
     @SerialName("avatar_url") val avatarUrl: String? = null,
-    @SerialName("role") val role: UserRole = UserRole.LANDLORD
+    @SerialName("role") val role: UserRole = UserRole.LANDLORD,
+    @SerialName("is_anonymous") val isAnonymous: Boolean = false
 )

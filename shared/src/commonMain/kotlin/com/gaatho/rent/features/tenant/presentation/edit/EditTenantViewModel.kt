@@ -1,12 +1,15 @@
 package com.gaatho.rent.features.tenant.presentation.edit
 
 import com.gaatho.rent.core.auth.UserIdentityProvider
+import com.gaatho.rent.core.logging.AppLogger
 import com.gaatho.rent.core.mvi.MviViewModel
+import com.gaatho.rent.core.ui.ErrorMessageExtractor
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
 import com.gaatho.rent.features.tenant.domain.usecase.DeleteTenantUseCase
 import com.gaatho.rent.features.tenant.domain.usecase.ObserveTenantUseCase
 import com.gaatho.rent.features.tenant.domain.usecase.SaveTenantUseCase
 import com.skydoves.sandwich.ApiResponse
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.firstOrNull
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 import androidx.compose.ui.text.input.TextFieldValue
@@ -29,35 +32,44 @@ class EditTenantViewModel(
     private fun loadTenant() = intent {
         reduce { state.copy(isLoading = true) }
 
-        val properties = propertyRepository.getProperties(ownerId).firstOrNull() ?: emptyList()
-        val propertyOptions = properties.map { PropertyOption(it.id, it.name) }
+        try {
+            val properties = propertyRepository.getProperties(ownerId).firstOrNull() ?: emptyList()
+            val propertyOptions = properties.map { PropertyOption(it.id, it.name) }
 
-        if (tenantId == "new") {
-            reduce {
-                state.copy(
-                    isLoading = false,
-                    propertyOptions = propertyOptions
-                )
-            }
-        } else {
-            val tenant = observeTenant(tenantId).firstOrNull()
-            if (tenant != null) {
+            if (tenantId == "new") {
                 reduce {
                     state.copy(
                         isLoading = false,
-                        name = TextFieldValue(tenant.name),
-                        phone = TextFieldValue(tenant.phone ?: ""),
-                        email = TextFieldValue(tenant.email ?: ""),
-                        rentAmount = TextFieldValue(tenant.rentAmount.toString()),
-                        propertyId = tenant.propertyId ?: "",
-                        unitNumber = TextFieldValue(tenant.roomNumber ?: ""),
-                        status = tenant.status,
                         propertyOptions = propertyOptions
                     )
                 }
             } else {
-                reduce { state.copy(isLoading = false, propertyOptions = propertyOptions) }
+                val tenant = observeTenant(tenantId).firstOrNull()
+                if (tenant != null) {
+                    reduce {
+                        state.copy(
+                            isLoading = false,
+                            name = TextFieldValue(tenant.name),
+                            phone = TextFieldValue(tenant.phone ?: ""),
+                            email = TextFieldValue(tenant.email ?: ""),
+                            rentAmount = TextFieldValue(tenant.rentAmount.toString()),
+                            propertyId = tenant.propertyId ?: "",
+                            unitNumber = TextFieldValue(tenant.roomNumber ?: ""),
+                            status = tenant.status,
+                            propertyOptions = propertyOptions
+                        )
+                    }
+                } else {
+                    reduce { state.copy(isLoading = false, propertyOptions = propertyOptions) }
+                    postSideEffect(EditTenantSideEffect.ShowSnackbar("Couldn't load tenant. Please try again."))
+                }
             }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            AppLogger.network.e(e) { "EditTenant load failed" }
+            reduce { state.copy(isLoading = false) }
+            postSideEffect(EditTenantSideEffect.ShowSnackbar("Couldn't load tenant. Please try again."))
         }
     }
 
@@ -120,9 +132,17 @@ class EditTenantViewModel(
                 reduce { state.copy(isSaving = false) }
                 postSideEffect(EditTenantSideEffect.NavigateBack)
             }
-            is ApiResponse.Failure.Error, is ApiResponse.Failure.Exception -> {
+            is ApiResponse.Failure.Error -> {
                 reduce { state.copy(isSaving = false) }
-                postSideEffect(EditTenantSideEffect.ShowSnackbar("Failed to remove tenant"))
+                postSideEffect(EditTenantSideEffect.ShowSnackbar(
+                    ErrorMessageExtractor.extract(response, "Couldn't remove tenant. Please try again.")
+                ))
+            }
+            is ApiResponse.Failure.Exception -> {
+                reduce { state.copy(isSaving = false) }
+                postSideEffect(EditTenantSideEffect.ShowSnackbar(
+                    ErrorMessageExtractor.extract(response, "Couldn't remove tenant. Please try again.")
+                ))
             }
         }
     }
@@ -170,9 +190,17 @@ class EditTenantViewModel(
             is ApiResponse.Success -> {
                 reduce { state.copy(isSaving = false, showSuccessDialog = true) }
             }
-            is ApiResponse.Failure.Error, is ApiResponse.Failure.Exception -> {
+            is ApiResponse.Failure.Error -> {
                 reduce { state.copy(isSaving = false) }
-                postSideEffect(EditTenantSideEffect.ShowSnackbar("Failed to save tenant"))
+                postSideEffect(EditTenantSideEffect.ShowSnackbar(
+                    ErrorMessageExtractor.extract(response, "Couldn't save tenant. Please try again.")
+                ))
+            }
+            is ApiResponse.Failure.Exception -> {
+                reduce { state.copy(isSaving = false) }
+                postSideEffect(EditTenantSideEffect.ShowSnackbar(
+                    ErrorMessageExtractor.extract(response, "Couldn't save tenant. Please try again.")
+                ))
             }
         }
     }

@@ -6,6 +6,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
 import com.gaatho.rent.core.auth.UserIdentityProvider
+import com.gaatho.rent.core.logging.AppLogger
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.utils.MoneyUtil
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
@@ -77,7 +78,8 @@ class PropertyListViewModel(
                     pagingData.map { property -> property.toDisplayModel() }
                 }.catch { e ->
                     _isSearching.value = false
-                    throw e
+                    AppLogger.network.e(e) { "Properties paging flow failed" }
+                    emit(PagingData.empty())
                 }
         }
         .cachedIn(viewModelScope)

@@ -270,7 +270,7 @@ fun PropertyListContent(
                         PropertySkeletonLoadingState()
                     } else if (refreshState is LoadState.Error) {
                         ErrorState(
-                            message = refreshState.error.message ?: "Failed to load",
+                            message = ErrorMessageExtractor.extract(refreshState.error, "Failed to load properties"),
                             onRetry = { pagedProperties.retry() },
                             modifier = Modifier.fillMaxSize()
                         )

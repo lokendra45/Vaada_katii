@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -94,6 +95,7 @@ fun SettingsScreen(
             currentLanguageCode = currentLanguageCode,
             onAction = viewModel::onAction,
             onLanguageChanged = languageViewModel::switchLanguage,
+            onNavigateToLogin = onNavigateToLogin,
             modifier = Modifier.padding(padding)
         )
     }
@@ -107,6 +109,7 @@ private fun SettingsContent(
     currentLanguageCode: String?,
     onAction: (SettingsAction) -> Unit,
     onLanguageChanged: (String) -> Unit,
+    onNavigateToLogin: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -244,13 +247,23 @@ private fun SettingsContent(
                 showDivider = true,
                 onClick = {}
             )
-            SettingsNavRow(
-                leading = { SettingsIcon(icon = Icons.AutoMirrored.Outlined.Logout, tint = AppColors.Error) },
-                title = stringResource(Res.string.log_out),
-                titleColor = AppColors.Error,
-                showDivider = false,
-                onClick = { onAction(SettingsAction.OnSignOutClicked) }
-            )
+            if (state.isGuest) {
+                SettingsNavRow(
+                    leading = { SettingsIcon(icon = Icons.AutoMirrored.Outlined.Login, tint = MaterialTheme.colorScheme.primary) },
+                    title = stringResource(Res.string.sign_in_action),
+                    titleColor = MaterialTheme.colorScheme.primary,
+                    showDivider = false,
+                    onClick = onNavigateToLogin
+                )
+            } else {
+                SettingsNavRow(
+                    leading = { SettingsIcon(icon = Icons.AutoMirrored.Outlined.Logout, tint = AppColors.Error) },
+                    title = stringResource(Res.string.log_out),
+                    titleColor = AppColors.Error,
+                    showDivider = false,
+                    onClick = { onAction(SettingsAction.OnSignOutClicked) }
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))

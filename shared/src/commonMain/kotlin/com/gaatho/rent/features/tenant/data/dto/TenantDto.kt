@@ -6,6 +6,9 @@ import kotlinx.serialization.Serializable
 
 /**
  * Data Transfer Object for Supabase Tenant records.
+ *
+ * [property] captures the embedded resource from `select(..., property(name))`
+ * joins so the tenant list can show the property name without an extra query.
  */
 @Serializable
 data class TenantDto(
@@ -15,11 +18,18 @@ data class TenantDto(
     @SerialName("email") val email: String? = null,
     @SerialName("phone") val phone: String? = null,
     @SerialName("property_id") val propertyId: String? = null,
+    @SerialName("property") val property: PropertyNameDto? = null,
     @SerialName("room_number") val roomNumber: String? = null,
     @SerialName("rent_amount") val rentAmount: Long = 0L,
     @SerialName("status") val status: String = "Active",
     @SerialName("created_at") val createdAt: String? = null,
     @SerialName("updated_at") val updatedAt: String? = null
+)
+
+/** Embedded `property` row returned by a `property(name)` join. */
+@Serializable
+data class PropertyNameDto(
+    @SerialName("name") val name: String? = null
 )
 
 /**
@@ -32,7 +42,7 @@ fun TenantDto.toDomain() = Tenant(
     email = email,
     phone = phone,
     propertyId = propertyId,
-    propertyName = null, // Resolved locally via Room Multi-Map Join or Supabase foreign view
+    propertyName = property?.name,
     roomNumber = roomNumber,
     rentAmount = rentAmount,
     status = status,

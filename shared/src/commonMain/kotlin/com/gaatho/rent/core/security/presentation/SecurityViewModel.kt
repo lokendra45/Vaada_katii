@@ -68,7 +68,8 @@ class SecurityViewModel(
                     _isNotEnrolled.value = true
                 }
                 is BiometricResult.Failure -> {
-                    _authError.emit(result.message)
+                    // result.message is never forwarded raw — use a fixed friendly message.
+                    _authError.emit("Authentication failed. Please try again.")
                 }
                 is BiometricResult.Cancelled -> {
                     // Do nothing

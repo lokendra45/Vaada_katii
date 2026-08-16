@@ -6,11 +6,22 @@ import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.realtime.Realtime
+import io.github.jan.supabase.serializer.KotlinXSerializer
 import io.github.jan.supabase.storage.Storage
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
+import kotlinx.serialization.json.Json
 import org.koin.dsl.module
+
+/**
+ * Lenient JSON config shared by all Supabase serialization. Unknown keys
+ * (e.g. embedded `property(name)` joins) are ignored instead of failing.
+ */
+internal val supabaseJson: Json = Json {
+    ignoreUnknownKeys = true
+    explicitNulls = false
+}
 
 /**
  * Creates a Koin module that provides a [SupabaseClient] configured with the
@@ -40,9 +51,12 @@ fun supabaseModule(config: SupabaseConfig) = module {
                 }
             }
             install(Auth)
-            install(Postgrest)
+            install(Postgrest) {
+                serializer = KotlinXSerializer(supabaseJson)
+            }
             install(Storage)
             install(Realtime)
         }
     }
+    single<Json> { supabaseJson }
 }

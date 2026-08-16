@@ -1,17 +1,15 @@
 package com.gaatho.rent.features.property.presentation.details
 
-import com.gaatho.rent.core.auth.UserIdentityProvider
 import com.gaatho.rent.core.mvi.MviViewModel
+import com.gaatho.rent.core.ui.ErrorMessageExtractor
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 
 class PropertyIdentityViewModel(
     private val propertyId: String,
     private val propertyRepository: PropertyRepository,
-    private val userIdentityProvider: UserIdentityProvider,
 ) : MviViewModel<PropertyIdentityState, PropertyIdentityEffect, PropertyIdentityAction>() {
 
     override val container = orbitContainer<PropertyIdentityState, PropertyIdentityEffect>(
@@ -21,13 +19,9 @@ class PropertyIdentityViewModel(
     }
 
     private fun observeData() = intent {
-        val ownerId = userIdentityProvider.currentUserId()
-        propertyRepository.getProperties(ownerId)
-            .map { properties ->
-                properties.firstOrNull { it.id == propertyId }
-            }
+        propertyRepository.getPropertyById(propertyId)
             .catch { e ->
-                reduce { state.copy(propertyState = UiState.Error(e.message ?: "Failed to load property")) }
+                reduce { state.copy(propertyState = UiState.Error(ErrorMessageExtractor.extract(e, "Failed to load property"))) }
             }
             .collect { property ->
                 reduce {

@@ -92,7 +92,10 @@ class AndroidBiometricAuthenticator : BiometricAuthenticator {
                     BiometricPrompt.ERROR_LOCKOUT_PERMANENT ->
                         deferred.complete(BiometricResult.Failure("Too many attempts. Biometric sensor is locked."))
                     else ->
-                        deferred.complete(BiometricResult.Failure(errString.toString()))
+                        // Never forward the raw OS error string (errString) — it can contain
+                        // vendor/system text not written for our users. Show a friendly generic
+                        // message instead; the specific cause is logged for diagnostics.
+                        deferred.complete(BiometricResult.Failure("Authentication failed. Please try again."))
                 }
             }
 

@@ -3,21 +3,16 @@ package com.gaatho.rent.features.dashboard.presentation.home
 import com.gaatho.rent.core.auth.UserIdentityProvider
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.utils.DateTimeUtil
-import com.gaatho.rent.features.property.data.repository.PropertyRepository
-import com.gaatho.rent.features.tenant.data.repository.TenantRepository
-import com.gaatho.rent.features.payment.domain.repository.PaymentRepository
+import com.gaatho.rent.features.dashboard.data.DashboardRepository
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 
 class HomeViewModel(
     private val userIdentityProvider: UserIdentityProvider,
-    private val tenantRepository: TenantRepository,
-    private val propertyRepository: PropertyRepository,
-    private val paymentRepository: PaymentRepository
+    private val dashboardRepository: DashboardRepository
 ) : MviViewModel<HomeState, HomeSideEffect, HomeAction>() {
 
     override val container = orbitContainer<HomeState, HomeSideEffect>(HomeState()) {
@@ -40,46 +35,33 @@ class HomeViewModel(
         val ownerId = userIdentityProvider.currentUserId()
         val userName = if (userIdentityProvider.isGuest()) "Guest" else "User"
 
-        val propertiesFlow = propertyRepository.getProperties(ownerId)
-        val tenantsFlow = tenantRepository.getTenants(ownerId)
-        val paymentsFlow = paymentRepository.getPaymentsByOwner(ownerId)
-
-        combine(propertiesFlow, tenantsFlow, paymentsFlow) { properties, tenants, payments ->
-            val activeTenants = tenants.filter { it.status == "Active" }
-            val totalRent = activeTenants.sumOf { it.rentAmount }
-
-            val collectedRent = payments.filter { it.status == "Paid" }.sumOf { it.amount }
-            val outstandingRent = maxOf(0L, totalRent - collectedRent)
-
-            val recentPayments = payments
-                .sortedByDescending { it.date }
-                .take(5)
+        dashboardRepository.getDashboardSummary(ownerId).collectLatest { summary ->
+            val recentPayments = summary.recentPayments
                 .map { payment ->
-                    val tenant = tenants.find { it.id == payment.tenantId }
                     RecentPaymentItem(
-                        tenantId = payment.tenantId,
-                        tenantName = tenant?.name ?: "Unknown Tenant",
-                        propertyName = tenant?.roomNumber ?: tenant?.propertyName ?: "Unknown Unit",
+                        tenantId = payment.tenantId.orEmpty(),
+                        tenantName = payment.tenantName ?: "Unknown Tenant",
+                        propertyName = payment.unitNumber ?: "Unknown Unit",
                         dateLabel = DateTimeUtil.formatReadableDate(payment.date),
                         amount = payment.amount,
-                        isPaid = payment.status == "Paid"
+                        isPaid = payment.isPaid
                     )
                 }.toImmutableList()
 
-            HomeState(
-                isLoading = false,
-                userName = userName,
-                greeting = greetingText,
-                collectedRent = collectedRent,
-                totalRent = totalRent,
-                outstandingRent = outstandingRent,
-                propertiesCount = properties.size,
-                tenantsCount = activeTenants.size,
-                overdueTenantsCount = tenants.count { it.status == "Overdue" },
-                recentPayments = recentPayments
-            )
-        }.collectLatest { newState ->
-            reduce { newState }
+            reduce {
+                state.copy(
+                    isLoading = false,
+                    userName = userName,
+                    greeting = greetingText,
+                    collectedRent = summary.collectedRent,
+                    totalRent = summary.totalRent,
+                    outstandingRent = summary.outstandingRent,
+                    propertiesCount = summary.propertiesCount.toInt(),
+                    tenantsCount = summary.tenantsCount.toInt(),
+                    overdueTenantsCount = summary.overdueTenantsCount.toInt(),
+                    recentPayments = recentPayments
+                )
+            }
         }
     }
 

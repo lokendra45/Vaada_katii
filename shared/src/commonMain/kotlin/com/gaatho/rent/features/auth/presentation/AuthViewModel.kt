@@ -9,6 +9,7 @@ import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.ui.ErrorMessageExtractor
 import com.gaatho.rent.core.ui.UiState
 import com.skydoves.sandwich.ApiResponse
+import kotlinx.coroutines.CancellationException
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 
 class AuthViewModel(
@@ -47,58 +48,82 @@ class AuthViewModel(
         if (!state.isSubmitEnabled) return@intent
         reduce { state.copy(authUiState = UiState.Loading) }
 
-        val email = state.emailInput.trim()
-        val password = state.passwordInput.trim()
+        try {
+            val email = state.emailInput.trim()
+            val password = state.passwordInput.trim()
 
-        val response = if (state.isLoginMode) {
-            authRepository.signInWithEmail(email, password)
-        } else {
-            authRepository.signUpWithEmail(email, password, state.selectedRole)
-        }
+            val response = if (state.isLoginMode) {
+                authRepository.signInWithEmail(email, password)
+            } else {
+                authRepository.signUpWithEmail(email, password, state.selectedRole)
+            }
 
-        when (response) {
-            is ApiResponse.Success -> {
-                reduce { state.copy(authUiState = UiState.Success(Unit)) }
-                postSideEffect(AuthSideEffect.NavigateToHome)
+            when (response) {
+                is ApiResponse.Success -> {
+                    reduce { state.copy(authUiState = UiState.Success(Unit)) }
+                    postSideEffect(AuthSideEffect.NavigateToHome)
+                }
+                is ApiResponse.Failure.Error -> {
+                    val errorMsg = ErrorMessageExtractor.extract(response, "Authentication failed.")
+                    reduce { state.copy(authUiState = UiState.Error(errorMsg)) }
+                    postSideEffect(AuthSideEffect.ShowError(errorMsg))
+                }
+                is ApiResponse.Failure.Exception -> {
+                    val errorMsg = ErrorMessageExtractor.extract(response.throwable, "Network error. Please try again.")
+                    reduce { state.copy(authUiState = UiState.Error(errorMsg)) }
+                    postSideEffect(AuthSideEffect.ShowError(errorMsg))
+                }
             }
-            is ApiResponse.Failure.Error -> {
-                val errorMsg = ErrorMessageExtractor.extract(response, "Authentication failed.")
-                reduce { state.copy(authUiState = UiState.Error(errorMsg)) }
-                postSideEffect(AuthSideEffect.ShowError(errorMsg))
-            }
-            is ApiResponse.Failure.Exception -> {
-                val errorMsg = ErrorMessageExtractor.extract(response.throwable, "Network error. Please try again.")
-                reduce { state.copy(authUiState = UiState.Error(errorMsg)) }
-                postSideEffect(AuthSideEffect.ShowError(errorMsg))
-            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            val errorMsg = ErrorMessageExtractor.extract(e, "Authentication failed.")
+            reduce { state.copy(authUiState = UiState.Error(errorMsg)) }
+            postSideEffect(AuthSideEffect.ShowError(errorMsg))
         }
     }
 
     private fun handleGoogleAuth() = intent {
         reduce { state.copy(authUiState = UiState.Loading) }
-        when (val response = authRepository.signInWithGoogle()) {
-            is ApiResponse.Success -> {
-                reduce { state.copy(authUiState = UiState.Success(Unit)) }
-                postSideEffect(AuthSideEffect.NavigateToHome)
+        try {
+            when (val response = authRepository.signInWithGoogle()) {
+                is ApiResponse.Success -> {
+                    reduce { state.copy(authUiState = UiState.Success(Unit)) }
+                    postSideEffect(AuthSideEffect.NavigateToHome)
+                }
+                is ApiResponse.Failure.Error -> {
+                    val errorMsg = ErrorMessageExtractor.extract(response, "Google sign-in failed.")
+                    reduce { state.copy(authUiState = UiState.Error(errorMsg)) }
+                    postSideEffect(AuthSideEffect.ShowError(errorMsg))
+                }
+                is ApiResponse.Failure.Exception -> {
+                    val errorMsg = ErrorMessageExtractor.extract(response.throwable, "Network error during Google sign-in.")
+                    reduce { state.copy(authUiState = UiState.Error(errorMsg)) }
+                    postSideEffect(AuthSideEffect.ShowError(errorMsg))
+                }
             }
-            is ApiResponse.Failure.Error -> {
-                val errorMsg = ErrorMessageExtractor.extract(response, "Google sign-in failed.")
-                reduce { state.copy(authUiState = UiState.Error(errorMsg)) }
-                postSideEffect(AuthSideEffect.ShowError(errorMsg))
-            }
-            is ApiResponse.Failure.Exception -> {
-                val errorMsg = ErrorMessageExtractor.extract(response.throwable, "Network error during Google sign-in.")
-                reduce { state.copy(authUiState = UiState.Error(errorMsg)) }
-                postSideEffect(AuthSideEffect.ShowError(errorMsg))
-            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            val errorMsg = ErrorMessageExtractor.extract(e, "Google sign-in failed.")
+            reduce { state.copy(authUiState = UiState.Error(errorMsg)) }
+            postSideEffect(AuthSideEffect.ShowError(errorMsg))
         }
     }
 
     private fun handleGuestAuth() = intent {
         reduce { state.copy(authUiState = UiState.Loading) }
-        val guestId = guestSessionManager.getOrCreateGuestId()
-        AppLogger.auth.i { "Continued as local Guest with ID: $guestId" }
-        reduce { state.copy(authUiState = UiState.Success(Unit)) }
-        postSideEffect(AuthSideEffect.NavigateToHome)
+        try {
+            val guestId = guestSessionManager.ensureGuestSession()
+            AppLogger.auth.i { "Continued as guest with ID: $guestId" }
+            reduce { state.copy(authUiState = UiState.Success(Unit)) }
+            postSideEffect(AuthSideEffect.NavigateToHome)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            val errorMsg = ErrorMessageExtractor.extract(e, "Couldn't start a guest session. Please try again.")
+            reduce { state.copy(authUiState = UiState.Error(errorMsg)) }
+            postSideEffect(AuthSideEffect.ShowError(errorMsg))
+        }
     }
 }

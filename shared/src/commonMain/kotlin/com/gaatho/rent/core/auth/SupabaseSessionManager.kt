@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.jsonPrimitive
@@ -28,6 +29,7 @@ class SupabaseSessionManager(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     override val currentUser: StateFlow<AuthUser?> = supabase.auth.sessionStatus
+        .catch { emit(SessionStatus.NotAuthenticated()) }
         .map { status ->
             when (status) {
                 is SessionStatus.Authenticated -> status.session.user?.toAuthUser()
@@ -69,7 +71,8 @@ class SupabaseSessionManager(
             email = email ?: "",
             displayName = displayName,
             avatarUrl = metadata?.get("avatar_url")?.jsonPrimitive?.content,
-            role = role
+            role = role,
+            isAnonymous = isAnonymous == true
         )
     }
 }

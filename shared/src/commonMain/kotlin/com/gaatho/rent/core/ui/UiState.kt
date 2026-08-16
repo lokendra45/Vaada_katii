@@ -13,8 +13,10 @@ import kotlinx.serialization.Serializable
  * `Throwable` is not serializable by kotlinx.serialization, and it makes no sense
  * to persist a JVM exception across process boundaries. Error state is represented
  * solely by a human-readable [Error.message].
- * For debugging purposes, catch the `Throwable` in the ViewModel and extract `message`
- * before calling `reduce { state.copy(propertiesState = UiState.Error(e.message ?: "...")) }`.
+ * For debugging purposes, catch the `Throwable` in the ViewModel and map it through
+ * [ErrorMessageExtractor.extract] before calling
+ * `reduce { state.copy(propertiesState = UiState.Error(ErrorMessageExtractor.extract(e, "..."))) }` —
+ * never pass `e.message` directly, it can contain raw system/backend text.
  *
  * ## `@SerialName` annotations
  * Explicit serial names protect against ProGuard/R8 class name obfuscation in release
@@ -52,8 +54,8 @@ sealed interface UiState<out T> {
     /**
      * The operation failed.
      *
-     * @property message A human-readable description of the error shown in the UI.
-     *   Pass `throwable.message ?: "Unknown error"` when constructing from a caught exception.
+     * @property message A human-readable, allow-listed message shown in the UI.
+     *   Build it via [ErrorMessageExtractor.extract]; never pass `throwable.message`.
      */
     @Serializable
     @SerialName("error")

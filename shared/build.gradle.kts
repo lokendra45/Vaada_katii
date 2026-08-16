@@ -7,7 +7,6 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.androidx.room3)
 }
 
 kotlin {
@@ -49,7 +48,6 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.androidx.biometric)
-            implementation(libs.androidx.work.runtime.ktx)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -80,12 +78,6 @@ kotlin {
             implementation(libs.supabase.storage)
             implementation(libs.supabase.compose.auth)
 
-            // Room & SQLite
-            implementation(libs.room3.runtime)
-            implementation(libs.room3.paging)
-            implementation(libs.androidx.sqlite.bundled)
-            implementation(libs.androidx.sqlite)
-            
             // Paging
             implementation(libs.androidx.paging.common)
             implementation(libs.androidx.paging.compose)
@@ -134,19 +126,6 @@ kotlin {
             implementation(libs.kotlin.test)
         }
     }
-}
-
-room3 {
-    schemaDirectory("$projectDir/schemas")
-}
-
-dependencies {
-    add("kspAndroid", libs.room3.compiler)
-    add("kspAndroid", libs.room3.paging)
-    add("kspIosSimulatorArm64", libs.room3.compiler)
-    add("kspIosSimulatorArm64", libs.room3.paging)
-    add("kspIosArm64", libs.room3.compiler)
-    add("kspIosArm64", libs.room3.paging)
 }
 
 dependencies {

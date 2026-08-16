@@ -1,5 +1,18 @@
 package com.gaatho.rent.features.splash.presentation
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.EaseOutCubic
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,97 +23,235 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.splash_app_name
+import rentmanagerapp.shared.generated.resources.splash_error_subtitle
+import rentmanagerapp.shared.generated.resources.splash_error_title
+import rentmanagerapp.shared.generated.resources.splash_retry
+import rentmanagerapp.shared.generated.resources.splash_tagline
+
+// ─── Stateful Container ───────────────────────────────────────────────────────
 
 /**
- * Stateful Container for the Splash screen.
- * Owns [SplashViewModel] instantiation, listens to navigation side effects, and delegates rendering to [SplashContent].
+ * Stateful Splash container. Owns the [SplashViewModel], collects state and side-effects,
+ * and delegates all rendering to the stateless [SplashContent].
+ *
+ * @param onNavigateToHome Called when the splash sequence completes (with or without error retry).
  */
 @Composable
 fun SplashScreen(
-    onNavigateToHome: () -> Unit
+    onNavigateToHome: (isFirstLaunch: Boolean) -> Unit,
 ) {
     val viewModel: SplashViewModel = koinViewModel()
+    val state by viewModel.collectAsState()
 
     viewModel.collectSideEffect { effect ->
         when (effect) {
-            is SplashSideEffect.NavigateToHome -> onNavigateToHome()
+            is SplashSideEffect.NavigateToHome -> onNavigateToHome(effect.isFirstLaunch)
         }
     }
 
-    SplashContent()
+    SplashContent(
+        phase = state.phase,
+        onRetry = { viewModel.onAction(SplashAction.Retry) },
+    )
 }
 
+// ─── Stateless UI ────────────────────────────────────────────────────────────
+
 /**
- * Stateless UI Content for the Splash screen.
- * Features a rich gradient background, a subtle pulsing animated logo card, and clear Nepali-themed branding.
+ * Stateless UI for the Splash screen.
+ *
+ * Features:
+ * - Animated logo entrance (fade + scale in on first composition)
+ * - Pulsing progress indicator while loading
+ * - Error + retry state with graceful [AnimatedContent] crossfade
+ * - All strings sourced from [Res.string.*] — zero hardcoded copy
  */
 @Composable
-fun SplashContent() {
+fun SplashContent(
+    phase: SplashState.Phase = SplashState.Phase.Loading,
+    onRetry: () -> Unit = {},
+) {
+    // Logo entrance animation — runs once on first composition
+    val logoAlpha = remember { Animatable(0f) }
+    val logoScale = remember { Animatable(0.85f) }
+
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.coroutineScope {
+            launch { logoAlpha.animateTo(1f, animationSpec = tween(600, easing = EaseOutCubic)) }
+            launch { logoScale.animateTo(1f, animationSpec = tween(600, easing = EaseOutCubic)) }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
-        // Center KOTHA text
-        Text(
-            text = "KOTHA",
-            style = MaterialTheme.typography.displayLarge.copy(
-                color = MaterialTheme.colorScheme.primary,
-                letterSpacing = 2.sp
-            )
-        )
 
-        // Bottom section
+        // ── Branding (center) ──────────────────────────────────────────────
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .alpha(logoAlpha.value)
+                .scale(logoScale.value),
+        ) {
+            Text(
+                text = stringResource(Res.string.splash_app_name),
+                style = MaterialTheme.typography.displayLarge.copy(
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 4.sp,
+                ),
+            )
+        }
+
+        // ── Bottom section: loading indicator ↔ error state ──────────────
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 48.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(bottom = 56.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            androidx.compose.material3.LinearProgressIndicator(
-                modifier = Modifier
-                    .width(120.dp)
-                    .height(2.dp)
-                    .clip(CircleShape),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.primaryContainer
-            )
+            AnimatedContent(
+                targetState = phase,
+                transitionSpec = {
+                    fadeIn(tween(300)) togetherWith fadeOut(tween(200))
+                },
+                label = "SplashPhase",
+            ) { currentPhase ->
+                when (currentPhase) {
+                    is SplashState.Phase.Loading -> LoadingIndicator()
+                    is SplashState.Phase.Error -> ErrorSection(onRetry = onRetry)
+                }
+            }
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.height(24.dp))
+// ─── Sub-composables ─────────────────────────────────────────────────────────
 
+@Composable
+private fun LoadingIndicator() {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        // Pulsing progress bar
+        val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+        val progressAlpha by infiniteTransition.animateFloat(
+            initialValue = 0.5f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(900, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+            label = "progressAlpha",
+        )
+
+        LinearProgressIndicator(
+            modifier = Modifier
+                .width(120.dp)
+                .height(2.dp)
+                .clip(CircleShape)
+                .alpha(progressAlpha),
+            color = MaterialTheme.colorScheme.primary,
+            trackColor = MaterialTheme.colorScheme.primaryContainer,
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = stringResource(Res.string.splash_tagline),
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                lineHeight = 24.sp,
+            ),
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
+private fun ErrorSection(onRetry: () -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(horizontal = 40.dp),
+    ) {
+        Text(
+            text = stringResource(Res.string.splash_error_title),
+            style = MaterialTheme.typography.titleMedium.copy(
+                color = MaterialTheme.colorScheme.error,
+                fontWeight = FontWeight.SemiBold,
+            ),
+            textAlign = TextAlign.Center,
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = stringResource(Res.string.splash_error_subtitle),
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                lineHeight = 20.sp,
+            ),
+            textAlign = TextAlign.Center,
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = onRetry,
+            shape = MaterialTheme.shapes.medium,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+            ),
+        ) {
             Text(
-                text = "Property management,\nsimplified.",
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 24.sp
-                ),
-                textAlign = TextAlign.Center
+                text = stringResource(Res.string.splash_retry),
+                style = MaterialTheme.typography.labelLarge,
             )
         }
     }
 }
 
-
-/* --- Compose Previews --- */
+// ─── Previews ────────────────────────────────────────────────────────────────
 
 @Preview
 @Composable
-private fun SplashContentDefaultPreview() {
+private fun SplashLoadingPreview() {
     com.gaatho.rent.core.designsystem.RentManagerTheme {
-        SplashContent()
+        SplashContent(phase = SplashState.Phase.Loading)
+    }
+}
+
+@Preview
+@Composable
+private fun SplashErrorPreview() {
+    com.gaatho.rent.core.designsystem.RentManagerTheme {
+        SplashContent(phase = SplashState.Phase.Error("Connection timeout"))
     }
 }

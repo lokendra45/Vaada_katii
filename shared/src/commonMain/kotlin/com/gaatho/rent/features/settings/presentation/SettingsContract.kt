@@ -15,6 +15,7 @@ data class SettingsState(
     val isLoading: Boolean = false,
     val showLogoutConfirm: Boolean = false,
     val showDeleteConfirm: Boolean = false,
+    val isGuest: Boolean = false,
 )
 
 sealed interface SettingsSideEffect {

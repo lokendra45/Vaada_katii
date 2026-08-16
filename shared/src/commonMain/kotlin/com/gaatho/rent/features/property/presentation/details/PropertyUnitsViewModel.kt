@@ -2,6 +2,7 @@ package com.gaatho.rent.features.property.presentation.details
 
 import com.gaatho.rent.core.auth.UserIdentityProvider
 import com.gaatho.rent.core.mvi.MviViewModel
+import com.gaatho.rent.core.ui.ErrorMessageExtractor
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.features.tenant.data.repository.TenantRepository
 import com.gaatho.rent.features.tenant.domain.model.Tenant
@@ -24,10 +25,9 @@ class PropertyUnitsViewModel(
 
     private fun observeData() = intent {
         val ownerId = userIdentityProvider.currentUserId()
-        tenantRepository.getTenants(ownerId)
-            .map { tenants -> tenants.filter { it.propertyId == propertyId } }
+        tenantRepository.getTenantsByProperty(ownerId, propertyId)
             .catch { e ->
-                reduce { state.copy(unitsState = UiState.Error(e.message ?: "Failed to load units")) }
+                reduce { state.copy(unitsState = UiState.Error(ErrorMessageExtractor.extract(e, "Failed to load units"))) }
             }
             .collect { tenants ->
                 val units = buildUnitList(tenants)

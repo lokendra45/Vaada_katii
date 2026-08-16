@@ -1,6 +1,5 @@
 package com.gaatho.rent.di
 
-import com.gaatho.rent.core.database.di.databaseModule
 import com.gaatho.rent.core.network.SupabaseConfig
 import com.gaatho.rent.core.network.supabaseModule
 
@@ -30,7 +29,6 @@ fun initKoin(supabaseConfig: SupabaseConfig, appDeclaration: KoinAppDeclaration 
         appDeclaration()
         modules(
             platformModule,
-            databaseModule,
 
             supabaseModule(supabaseConfig),
             splashModule,

@@ -1,32 +1,31 @@
 package com.gaatho.rent.core.auth
 
 /**
- * Manages a local guest session for unauthenticated users.
+ * Manages the guest (anonymous) session for users who explore the app without
+ * creating an account.
  *
- * A guest identity is a stable UUID persisted in the local SQLDelight database.
- * It requires zero network contact and is completely independent of Supabase Auth.
- *
- * ## Separation of Concerns
- * This is a `core` concern. It does NOT know about:
- * - Feature modules (property, paywall, etc.)
- * - Supabase or any remote service
- * - RevenueCat or subscription status
+ * With the Supabase-only architecture, a guest is an anonymous Supabase user
+ * (`auth.signInAnonymously()`). They get a real `auth.uid()` so that PostgREST
+ * row-level security (`owner_id = auth.uid()::text`) applies to guest data just
+ * like paid users. The guest-mode flag is persisted in DataStore.
  */
 interface GuestSessionManager {
-    /**
-     * Returns the existing guest UUID, or generates and persists a new one.
-     * Idempotent — always returns the same UUID for a given device installation.
-     */
-    fun getOrCreateGuestId(): String
 
     /**
-     * Clears the local guest UUID.
-     * Called when the guest creates a real account or signs out.
+     * Ensures an anonymous Supabase session exists for guest mode and returns the
+     * guest's Supabase uid. Idempotent — reuses an existing session when present.
+     * Marks guest mode as active in DataStore.
      */
-    fun clearGuestSession()
+    suspend fun ensureGuestSession(): String
 
     /**
-     * Returns true if there is currently no Supabase session and a local guest ID exists.
+     * Returns `true` if guest mode is active (an anonymous session was created).
      */
     fun hasActiveGuestSession(): Boolean
+
+    /**
+     * Clears the guest-mode flag. Does not sign out the underlying Supabase session —
+     * that is handled by [AuthRepository.signOut].
+     */
+    suspend fun clearGuestSession()
 }

@@ -1,5 +1,6 @@
 package com.gaatho.rent.features.paywall.data.repository
 
+import com.gaatho.rent.core.logging.AppLogger
 import com.revenuecat.purchases.kmp.Purchases
 import com.revenuecat.purchases.kmp.PurchasesDelegate
 import com.revenuecat.purchases.kmp.models.CustomerInfo
@@ -12,9 +13,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 private const val PREMIUM_ENTITLEMENT = "Rentmanager Pro"
+private const val OFFERINGS_ERROR = "Couldn't load subscription plans. Please try again."
+private const val PURCHASE_ERROR = "Couldn't complete the purchase. Please try again."
+private const val RESTORE_ERROR = "Couldn't restore purchases. Please try again."
 
 interface PaywallRepository {
     /**
@@ -81,7 +84,10 @@ class RevenueCatPaywallRepository : PaywallRepository {
         ApiResponse.suspendOf {
             suspendCancellableCoroutine { cont ->
                 Purchases.sharedInstance.getOfferings(
-                    onError = { error -> cont.resumeWithException(Exception(error.message)) },
+                    onError = { error ->
+                        AppLogger.network.e("getOfferings failed: code=${error.code}, message=${error.message}")
+                        cont.resumeWithException(Exception(OFFERINGS_ERROR))
+                    },
                     onSuccess = { offerings ->
                         val products = offerings.current?.availablePackages
                             ?.map { it.storeProduct }
@@ -97,7 +103,10 @@ class RevenueCatPaywallRepository : PaywallRepository {
             suspendCancellableCoroutine { cont ->
                 Purchases.sharedInstance.purchase(
                     storeProduct = product,
-                    onError = { error, _ -> cont.resumeWithException(Exception(error.message)) },
+                    onError = { error, _ ->
+                        AppLogger.network.e("purchase failed: code=${error.code}, message=${error.message}")
+                        cont.resumeWithException(Exception(PURCHASE_ERROR))
+                    },
                     onSuccess = { transaction, _ -> cont.resume(transaction) }
                 )
             }
@@ -107,7 +116,10 @@ class RevenueCatPaywallRepository : PaywallRepository {
         ApiResponse.suspendOf {
             suspendCancellableCoroutine { cont ->
                 Purchases.sharedInstance.restorePurchases(
-                    onError = { error -> cont.resumeWithException(Exception(error.message)) },
+                    onError = { error ->
+                        AppLogger.network.e("restorePurchases failed: code=${error.code}, message=${error.message}")
+                        cont.resumeWithException(Exception(RESTORE_ERROR))
+                    },
                     onSuccess = { customerInfo ->
                         _isPremium.value = customerInfo.entitlements.all[PREMIUM_ENTITLEMENT]?.isActive == true
                         cont.resume(customerInfo)

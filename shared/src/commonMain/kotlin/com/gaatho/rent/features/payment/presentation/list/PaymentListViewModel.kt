@@ -1,6 +1,7 @@
 package com.gaatho.rent.features.payment.presentation.list
 
 import com.gaatho.rent.core.auth.UserIdentityProvider
+import com.gaatho.rent.core.logging.AppLogger
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.utils.CurrencyUtil
 import com.gaatho.rent.core.utils.DateTimeUtil
@@ -10,6 +11,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -70,6 +72,10 @@ class PaymentListViewModel(
         ).map { pagingData ->
             _isSearching.value = false
             pagingData.map { payment -> mapToDisplayModel(payment) }
+        }.catch { e ->
+            _isSearching.value = false
+            AppLogger.network.e(e) { "Payments paging flow failed" }
+            emit(PagingData.empty())
         }
     }.cachedIn(viewModelScope)
 

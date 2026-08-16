@@ -282,4 +282,12 @@
     <string name="confirm_action">Confirm</string>
     <string name="done_action">Done</string>
 
+    <!-- Splash -->
+    <string name="splash_app_name">KOTHA</string>
+    <string name="splash_tagline">Property management, simplified.</string>
+    <string name="splash_initializing">Setting up your workspace…</string>
+    <string name="splash_error_title">Something went wrong</string>
+    <string name="splash_error_subtitle">We couldn\'t connect. Check your internet and try again.</string>
+    <string name="splash_retry">Try Again</string>
+
 </resources>

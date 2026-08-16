@@ -1,6 +1,7 @@
 package com.gaatho.rent
 
 import android.app.Application
+import android.util.Log
 import com.gaatho.rent.core.network.SupabaseConfig
 import com.gaatho.rent.di.initKoin
 import com.revenuecat.purchases.kmp.LogLevel
@@ -12,6 +13,8 @@ import org.koin.android.ext.koin.androidLogger
 class RentManagerApplication : Application() {
     override fun onCreate() {
         super.onCreate()
+
+        installGlobalCrashHandler()
 
         // Initialize RevenueCat — must be done before any Purchases API call
         Purchases.logLevel = LogLevel.DEBUG
@@ -27,6 +30,22 @@ class RentManagerApplication : Application() {
         ) {
             androidLogger()
             androidContext(this@RentManagerApplication)
+        }
+    }
+
+    /**
+     * Logs every uncaught thread crash instead of letting the OS show a raw
+     * "app keeps stopping" dialog with an unreadable stack trace. The default
+     * handler is still chained so platform crash reporting can run after us.
+     */
+    private fun installGlobalCrashHandler() {
+        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            try {
+                Log.e("RentManager-Crash", "Uncaught exception on thread ${thread.name}", throwable)
+            } finally {
+                defaultHandler?.uncaughtException(thread, throwable)
+            }
         }
     }
 }

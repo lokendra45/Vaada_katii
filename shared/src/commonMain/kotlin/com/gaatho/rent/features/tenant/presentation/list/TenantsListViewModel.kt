@@ -6,6 +6,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
 import com.gaatho.rent.core.auth.UserIdentityProvider
+import com.gaatho.rent.core.logging.AppLogger
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.core.utils.TenantUtils
@@ -86,9 +87,10 @@ class TenantsListViewModel(
             ).map { pagingData ->
                 _isSearching.value = false
                 pagingData.map { mapToDisplayModel(it) }
-            }.catch { 
-                _isSearching.value = false 
-                throw it 
+            }.catch { e ->
+                _isSearching.value = false
+                AppLogger.network.e(e) { "Tenants paging flow failed" }
+                emit(PagingData.empty())
             }
         }
         .cachedIn(viewModelScope)

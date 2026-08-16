@@ -11,6 +11,10 @@ import androidx.paging.PagingData
  */
 interface TenantRepository {
     fun getTenants(ownerId: String): Flow<List<Tenant>>
+
+    /** Returns only the tenants of a specific [propertyId] — filtered server-side. */
+    fun getTenantsByProperty(ownerId: String, propertyId: String): Flow<List<Tenant>>
+
     fun getPagedTenants(
         ownerId: String,
         searchQuery: String = "",

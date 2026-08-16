@@ -4,59 +4,94 @@ import com.gaatho.rent.core.auth.GuestSessionManager
 import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.core.logging.AppLogger
 import com.gaatho.rent.core.mvi.MviViewModel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.first
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.TimeSource
 
 /**
- * ViewModel for the Splash screen.
+ * Production-grade ViewModel for the Splash screen.
  *
- * ## Flow
- * 1. Record the start time.
- * 2. Do real work (check session / ensure a guest identity exists).
- * 3. Wait for the *remainder* of the minimum brand display window (1 200 ms),
- *    so we never artificially pad startup beyond what's already elapsed.
- * 4. Always emit [SplashSideEffect.NavigateToHome] — login is triggered
- *    later by an explicit user action (e.g. "Sign In" in Settings).
- *
- * ## No hardcoded `delay` for production padding
- * Using [TimeSource] ensures the splash exits as soon as real work finishes
- * *and* the minimum brand window has elapsed — whichever is longer.
+ * ## Responsibilities
+ * 1. **Await** the Supabase session to be non-null before proceeding — eliminates the
+ *    race condition where [SessionManager.currentUserId] returns "" on cold start.
+ * 2. **Provision guest** — if no real account is logged in, create/reuse an anonymous
+ *    Supabase session so that RLS (`owner_id = auth.uid()`) always has a valid UUID.
+ * 3. **Enforce brand window** — exit splash only after at least 1 400 ms of visible
+ *    branding, using elapsed-time math instead of a fixed delay.
+ * 4. **Retry on error** — expose [SplashState.Phase.Error] and allow the UI to retry.
  */
 class SplashViewModel(
     private val sessionManager: SessionManager,
-    private val guestSessionManager: GuestSessionManager
+    private val guestSessionManager: GuestSessionManager,
 ) : MviViewModel<SplashState, SplashSideEffect, SplashAction>() {
 
     override val container = orbitContainer<SplashState, SplashSideEffect>(SplashState()) {
-        initializeSession()
+        initialize()
     }
 
-    private fun initializeSession() = intent {
+    // ── Public API ────────────────────────────────────────────────────────────
+
+    override fun onAction(action: SplashAction) {
+        when (action) {
+            is SplashAction.Retry -> retry()
+        }
+    }
+
+    // ── Private helpers ───────────────────────────────────────────────────────
+
+    private fun initialize() = intent {
+        reduce { state.copy(phase = SplashState.Phase.Loading) }
         val mark = TimeSource.Monotonic.markNow()
 
-        // --- Real work (runs immediately, no artificial pause) ---
-        val isLoggedIn = sessionManager.isLoggedIn.value
-        AppLogger.auth.i { "Session check complete. isLoggedIn=$isLoggedIn" }
+        try {
+            val ownerId = resolveOwnerId()
+            AppLogger.auth.i { "Session resolved. ownerId=$ownerId" }
 
-        if (!isLoggedIn) {
-            // Guarantee a stable local identity so all features work offline/guest.
-            val guestId = guestSessionManager.getOrCreateGuestId()
-            AppLogger.auth.i { "Guest session ready. guestId=$guestId" }
+            // Brand window: wait only for remaining time (never blocks if work took longer)
+            val elapsed = mark.elapsedNow()
+            val minDisplay = 1_400.milliseconds
+            if (elapsed < minDisplay) {
+                kotlinx.coroutines.delay((minDisplay - elapsed).inWholeMilliseconds)
+            }
+
+            val isFirstLaunch = guestSessionManager.hasActiveGuestSession()
+            postSideEffect(SplashSideEffect.NavigateToHome(isFirstLaunch = isFirstLaunch))
+
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            AppLogger.auth.e(e) { "Splash initialization failed" }
+            reduce {
+                state.copy(phase = SplashState.Phase.Error(e.message ?: "Unknown error"))
+            }
         }
-
-        // --- Brand window: wait only for the *remaining* time ---
-        // This keeps the splash visually polished without a fixed blocking delay.
-        val minimumDisplayMs = 1_200.milliseconds
-        val elapsed = mark.elapsedNow()
-        if (elapsed < minimumDisplayMs) {
-            delay(minimumDisplayMs - elapsed)
-        }
-
-        postSideEffect(SplashSideEffect.NavigateToHome)
     }
 
-    override fun onAction(action: SplashAction) {}
-}
+    private fun retry() = intent {
+        initialize()
+    }
 
+    /**
+     * Waits (suspends) for the Supabase session to settle, then returns the user ID.
+     * If no real account exists, provisions an anonymous guest session and returns its ID.
+     *
+     * Using `.first { ... }` ensures we never read the ID synchronously during cold start
+     * before the local token cache has been restored by the Supabase SDK.
+     */
+    private suspend fun resolveOwnerId(): String {
+        val existingUser = sessionManager.currentUser
+            .first { it != null || !sessionManager.isLoggedIn.value }
+
+        if (existingUser != null) {
+            AppLogger.auth.i { "isLoggedIn=true uid=${existingUser.id}" }
+            return existingUser.id
+        }
+
+        AppLogger.auth.i { "No session found. Provisioning anonymous guest…" }
+        val guestId = guestSessionManager.ensureGuestSession()
+        AppLogger.auth.i { "Guest session ready. guestId=$guestId" }
+        return guestId
+    }
+}

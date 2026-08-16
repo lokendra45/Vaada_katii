@@ -6,11 +6,14 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.gaatho.rent.core.auth.AuthRepository
+import com.gaatho.rent.core.auth.GuestSessionManager
 import com.gaatho.rent.core.auth.SessionManager
+import com.gaatho.rent.core.logging.AppLogger
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.security.BiometricAuthenticator
 import com.gaatho.rent.core.security.BiometricResult
 import com.skydoves.sandwich.ApiResponse
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.orbitmvi.orbit.viewmodel.orbitContainer
@@ -18,6 +21,7 @@ import org.orbitmvi.orbit.viewmodel.orbitContainer
 class SettingsViewModel(
     private val authRepository: AuthRepository,
     private val sessionManager: SessionManager,
+    private val guestSessionManager: GuestSessionManager,
     private val dataStore: DataStore<Preferences>,
     private val authenticator: BiometricAuthenticator,
 ) : MviViewModel<SettingsState, SettingsSideEffect, SettingsAction>() {
@@ -42,10 +46,13 @@ class SettingsViewModel(
         val displayName = user?.displayName
             ?: email.substringBefore("@").replaceFirstChar { it.uppercaseChar() }
 
+        val isGuest = user?.isAnonymous == true || guestSessionManager.hasActiveGuestSession()
+
         reduce {
             state.copy(
                 userEmail = email,
                 userName = displayName,
+                isGuest = isGuest,
             )
         }
 
@@ -117,7 +124,7 @@ class SettingsViewModel(
                 dataStore.edit { it[KEY_BIOMETRICS] = true }
             }
             is BiometricResult.Failure -> {
-                postSideEffect(SettingsSideEffect.ShowSnackbar("Authentication failed: ${result.message}"))
+                postSideEffect(SettingsSideEffect.ShowSnackbar("Authentication failed. Please try again."))
             }
             is BiometricResult.Cancelled -> {
                 // Do nothing
@@ -138,13 +145,24 @@ class SettingsViewModel(
 
     private fun handleSignOut() = intent {
         reduce { state.copy(isLoading = true, showLogoutConfirm = false, showDeleteConfirm = false) }
-        when (authRepository.signOut()) {
-            is ApiResponse.Success ->
-                postSideEffect(SettingsSideEffect.NavigateToLogin)
-            is ApiResponse.Failure.Error, is ApiResponse.Failure.Exception -> {
-                reduce { state.copy(isLoading = false) }
-                postSideEffect(SettingsSideEffect.ShowSnackbar("Sign out failed. Please try again."))
+        try {
+            when (authRepository.signOut()) {
+                is ApiResponse.Success -> {
+                    // Clear the guest-mode flag so the next launch starts clean.
+                    guestSessionManager.clearGuestSession()
+                    postSideEffect(SettingsSideEffect.NavigateToLogin)
+                }
+                is ApiResponse.Failure.Error, is ApiResponse.Failure.Exception -> {
+                    reduce { state.copy(isLoading = false) }
+                    postSideEffect(SettingsSideEffect.ShowSnackbar("Sign out failed. Please try again."))
+                }
             }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            AppLogger.auth.e(e) { "Sign out threw unexpectedly" }
+            reduce { state.copy(isLoading = false) }
+            postSideEffect(SettingsSideEffect.ShowSnackbar("Sign out failed. Please try again."))
         }
     }
 }
