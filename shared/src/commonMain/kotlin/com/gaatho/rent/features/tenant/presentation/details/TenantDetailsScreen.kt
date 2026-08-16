@@ -46,6 +46,7 @@ import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.core.ui.components.AppActionPill
 import com.gaatho.rent.core.ui.components.AppStatusBadge
+import com.gaatho.rent.core.utils.TenantUtils
 import kotlinx.collections.immutable.ImmutableList
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -250,10 +251,7 @@ private fun ProfileCard(
             modifier = Modifier.padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val initials = profile.name.split(" ")
-                .mapNotNull { it.firstOrNull()?.toString() }
-                .take(2)
-                .joinToString("")
+            val initials = TenantUtils.getInitials(profile.name)
 
             Box(
                 modifier = Modifier

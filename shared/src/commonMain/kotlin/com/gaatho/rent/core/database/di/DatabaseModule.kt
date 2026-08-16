@@ -14,12 +14,6 @@ val databaseModule = module {
         val builder = get<RoomDatabase.Builder<AppDatabase>>()
         builder.setDriver(BundledSQLiteDriver())
             .setQueryCoroutineContext(Dispatchers.IO)
-            .addMigrations(
-                AppDatabase.MIGRATION_5_6, 
-                AppDatabase.MIGRATION_6_7, 
-                AppDatabase.MIGRATION_7_8,
-                AppDatabase.MIGRATION_8_9
-            )
             .addCallback(object : RoomDatabase.Callback() {
                 override suspend fun onOpen(connection: SQLiteConnection) {
                     super.onOpen(connection)

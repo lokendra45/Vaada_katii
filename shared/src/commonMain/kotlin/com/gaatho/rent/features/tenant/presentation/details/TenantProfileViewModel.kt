@@ -4,14 +4,16 @@ import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.ui.UiState
 import kotlinx.coroutines.flow.collectLatest
 import org.orbitmvi.orbit.viewmodel.orbitContainer
-import com.gaatho.rent.features.tenant.data.repository.TenantRepository
+import com.gaatho.rent.features.tenant.domain.usecase.DeleteTenantUseCase
+import com.gaatho.rent.features.tenant.domain.usecase.ObserveTenantUseCase
 import com.skydoves.sandwich.ApiResponse
 import com.gaatho.rent.core.ui.ErrorMessageExtractor
 import com.gaatho.rent.core.utils.DateTimeUtil
 
 class TenantProfileViewModel(
     private val tenantId: String,
-    private val tenantRepository: TenantRepository
+    private val observeTenant: ObserveTenantUseCase,
+    private val deleteTenant: DeleteTenantUseCase
 ) : MviViewModel<TenantProfileState, TenantProfileEffect, TenantProfileAction>() {
 
     override val container = orbitContainer<TenantProfileState, TenantProfileEffect>(
@@ -21,7 +23,7 @@ class TenantProfileViewModel(
     }
 
     private fun loadProfile() = intent(registerIdling = false) {
-        tenantRepository.getTenantById(tenantId).collectLatest { tenant ->
+        observeTenant(tenantId).collectLatest { tenant ->
             if (tenant == null) {
                 reduce { state.copy(profileState = UiState.Error("Tenant not found")) }
                 return@collectLatest
@@ -76,7 +78,7 @@ class TenantProfileViewModel(
 
     private fun handleDelete() = intent {
         reduce { state.copy(isDeleting = true, showDeleteConfirm = false) }
-        when (val result = tenantRepository.deleteTenant(tenantId)) {
+        when (val result = deleteTenant(tenantId)) {
             is ApiResponse.Success -> postSideEffect(TenantProfileEffect.NavigateBack)
             is ApiResponse.Failure.Error -> {
                 reduce { state.copy(isDeleting = false) }

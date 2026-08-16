@@ -1,10 +1,7 @@
 package com.gaatho.rent.core.ui.components
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,20 +28,16 @@ fun AppBadge(
         AppBadgeType.NEUTRAL -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
     }
 
-    Surface(
-        modifier = modifier,
-        color = containerColor,
+    AppStatusBadge(
+        label = text.uppercase(),
+        containerColor = containerColor,
         contentColor = contentColor,
-        shape = RoundedCornerShape(100) // Full pill shape
-    ) {
-        Text(
-            text = text.uppercase(),
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 0.5.sp,
-                fontSize = 9.sp
-            ),
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-        )
-    }
+        modifier = modifier,
+        shape = RoundedCornerShape(100),
+        fontSize = 9.sp,
+        fontWeight = FontWeight.ExtraBold,
+        letterSpacing = 0.5.sp,
+        horizontalPadding = 8.dp,
+        verticalPadding = 3.dp
+    )
 }

@@ -8,9 +8,10 @@ import androidx.paging.map
 import com.gaatho.rent.core.auth.UserIdentityProvider
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.ui.UiState
+import com.gaatho.rent.core.utils.TenantUtils
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
-import com.gaatho.rent.features.tenant.data.repository.TenantRepository
 import com.gaatho.rent.features.tenant.domain.model.Tenant
+import com.gaatho.rent.features.tenant.domain.usecase.GetPagedTenantsUseCase
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -26,7 +27,7 @@ import kotlinx.coroutines.flow.onEach
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 
 class TenantsListViewModel(
-    private val tenantRepository: TenantRepository,
+    private val getPagedTenants: GetPagedTenantsUseCase,
     private val propertyRepository: PropertyRepository,
     private val userIdentityProvider: UserIdentityProvider,
     savedStateHandle: SavedStateHandle
@@ -75,15 +76,13 @@ class TenantsListViewModel(
         .flatMapLatest { pair ->
             val search = pair.first
             val filters = pair.second
-            val statusFilter = if (filters.status == "All statuses") "" else filters.status
-            val propertyId = if (filters.propertyName == "All properties") ""
-            else filters.properties?.find { it.name == filters.propertyName }?.id ?: ""
 
-            tenantRepository.getPagedTenants(
+            getPagedTenants(
                 ownerId = ownerId,
                 searchQuery = search,
-                statusFilter = statusFilter,
-                propertyId = propertyId
+                statusFilter = filters.status,
+                propertyFilter = filters.propertyName,
+                properties = filters.properties
             ).map { pagingData ->
                 _isSearching.value = false
                 pagingData.map { mapToDisplayModel(it) }
@@ -132,17 +131,8 @@ class TenantsListViewModel(
 
     private fun mapToDisplayModel(tenant: Tenant): TenantDisplayModel {
         val isActive = tenant.status.equals("Active", ignoreCase = true)
-        val colors = com.gaatho.rent.core.designsystem.ExtendedColorHex.AvatarPairs
-        val index = kotlin.math.abs(tenant.name.hashCode()) % colors.size
-        val (bgColor, textColor) = colors[index]
-        val parts = tenant.name.trim().split(Regex("\\s+"))
-        val initials = if (parts.size >= 2) {
-            "${parts[0].firstOrNull()?.uppercaseChar() ?: ""}${
-                parts[1].firstOrNull()?.uppercaseChar() ?: ""
-            }"
-        } else {
-            tenant.name.take(2).uppercase()
-        }
+        val (bgColor, textColor) = TenantUtils.getAvatarColors(tenant.name)
+        val initials = TenantUtils.getInitials(tenant.name)
         val subtitle = buildString {
             append(tenant.propertyName ?: "Assigned Room")
             if (!tenant.roomNumber.isNullOrBlank()) append(" · ${tenant.roomNumber}")

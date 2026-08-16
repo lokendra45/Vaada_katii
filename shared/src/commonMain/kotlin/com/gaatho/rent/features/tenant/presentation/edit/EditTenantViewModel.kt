@@ -1,25 +1,24 @@
 package com.gaatho.rent.features.tenant.presentation.edit
 
+import com.gaatho.rent.core.auth.UserIdentityProvider
 import com.gaatho.rent.core.mvi.MviViewModel
+import com.gaatho.rent.features.property.data.repository.PropertyRepository
+import com.gaatho.rent.features.tenant.domain.usecase.DeleteTenantUseCase
+import com.gaatho.rent.features.tenant.domain.usecase.ObserveTenantUseCase
+import com.gaatho.rent.features.tenant.domain.usecase.SaveTenantUseCase
+import com.skydoves.sandwich.ApiResponse
+import kotlinx.coroutines.flow.firstOrNull
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 import androidx.compose.ui.text.input.TextFieldValue
 
-import com.gaatho.rent.features.tenant.data.repository.TenantRepository
-import com.gaatho.rent.features.property.data.repository.PropertyRepository
-import com.gaatho.rent.core.auth.UserIdentityProvider
-import com.gaatho.rent.features.tenant.domain.model.Tenant
-import com.gaatho.rent.core.utils.UuidUtil
-import com.gaatho.rent.core.utils.DateTimeUtil
-import com.skydoves.sandwich.ApiResponse
-import kotlinx.coroutines.flow.firstOrNull
-
 class EditTenantViewModel(
     private val tenantId: String,
-    private val tenantRepository: TenantRepository,
+    private val observeTenant: ObserveTenantUseCase,
+    private val saveTenant: SaveTenantUseCase,
+    private val deleteTenant: DeleteTenantUseCase,
     private val propertyRepository: PropertyRepository,
     private val userIdentityProvider: UserIdentityProvider
 ) : MviViewModel<EditTenantState, EditTenantSideEffect, EditTenantAction>() {
-
     private val ownerId: String
         get() = userIdentityProvider.currentUserId()
 
@@ -41,7 +40,7 @@ class EditTenantViewModel(
                 )
             }
         } else {
-            val tenant = tenantRepository.getTenantById(tenantId).firstOrNull()
+            val tenant = observeTenant(tenantId).firstOrNull()
             if (tenant != null) {
                 reduce {
                     state.copy(
@@ -116,7 +115,7 @@ class EditTenantViewModel(
 
     private fun deleteTenant() = intent {
         reduce { state.copy(showDeleteConfirm = false, isSaving = true) }
-        when (val response = tenantRepository.deleteTenant(tenantId)) {
+        when (val response = deleteTenant(tenantId)) {
             is ApiResponse.Success -> {
                 reduce { state.copy(isSaving = false) }
                 postSideEffect(EditTenantSideEffect.NavigateBack)
@@ -148,38 +147,31 @@ class EditTenantViewModel(
             return@intent
         }
 
-        reduce { state.copy(isSaving = true) }
+        val propertyName = currentState.propertyOptions
+            .find { it.id == currentState.propertyId }?.name ?: ""
 
-        val propertyName = currentState.propertyOptions.find { it.id == currentState.propertyId }?.name ?: ""
-
-        val tenantToSave = Tenant(
-            id = if (tenantId == "new") UuidUtil.generateV7String() else tenantId,
+        val params = SaveTenantUseCase.Params(
+            isNew = tenantId == "new",
+            existingId = tenantId,
             ownerId = ownerId,
             name = currentState.name.text,
-            email = currentState.email.text.takeIf { it.isNotBlank() },
-            phone = currentState.phone.text.takeIf { it.isNotBlank() },
-            propertyId = currentState.propertyId?.takeIf { it.isNotBlank() },
-            propertyName = propertyName.takeIf { it.isNotBlank() },
-            roomNumber = currentState.unitNumber.text.takeIf { it.isNotBlank() },
+            email = currentState.email.text,
+            phone = currentState.phone.text,
+            propertyId = currentState.propertyId ?: "",
+            propertyName = propertyName,
+            unitNumber = currentState.unitNumber.text,
             rentAmount = currentState.rentAmount.text.toLongOrNull() ?: 0L,
-            status = currentState.status,
-            createdAt = DateTimeUtil.nowIsoString(),
-            updatedAt = DateTimeUtil.nowIsoString()
+            status = currentState.status
         )
 
-        val response = if (tenantId == "new") {
-            tenantRepository.createTenant(tenantToSave)
-        } else {
-            tenantRepository.updateTenant(tenantToSave)
-        }
+        reduce { state.copy(isSaving = true) }
 
-        reduce { state.copy(isSaving = false) }
-
-        when (response) {
+        when (val response = saveTenant(params)) {
             is ApiResponse.Success -> {
-                reduce { state.copy(showSuccessDialog = true) }
+                reduce { state.copy(isSaving = false, showSuccessDialog = true) }
             }
             is ApiResponse.Failure.Error, is ApiResponse.Failure.Exception -> {
+                reduce { state.copy(isSaving = false) }
                 postSideEffect(EditTenantSideEffect.ShowSnackbar("Failed to save tenant"))
             }
         }

@@ -7,7 +7,6 @@ import androidx.paging.map
 import com.gaatho.rent.core.database.security.SecretString
 import com.gaatho.rent.core.logging.AppLogger
 import com.gaatho.rent.core.utils.DateTimeUtil
-import com.gaatho.rent.core.utils.DateTimeUtil
 import com.gaatho.rent.core.utils.IsoDateUtil
 import com.gaatho.rent.core.utils.StringUtil
 import com.gaatho.rent.database.AppDatabase

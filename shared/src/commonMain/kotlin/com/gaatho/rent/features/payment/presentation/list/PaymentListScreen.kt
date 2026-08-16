@@ -66,6 +66,7 @@ import com.gaatho.rent.core.ui.components.AppBadgeType
 import com.gaatho.rent.core.ui.components.AppListItemSurface
 import com.gaatho.rent.core.ui.components.AppSearchBar
 import com.gaatho.rent.core.utils.CurrencyUtil
+import com.gaatho.rent.core.utils.TenantUtils
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -411,10 +412,7 @@ private fun PaymentRowItem(
     onPaymentClicked: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val initials = payment.tenantName.split(" ")
-        .take(2)
-        .mapNotNull { it.firstOrNull()?.uppercase() }
-        .joinToString("")
+    val initials = TenantUtils.getInitials(payment.tenantName)
     val subtitle = buildString {
         append(payment.propertyName)
         if (payment.unit != null) append(" - Unit ${payment.unit}")

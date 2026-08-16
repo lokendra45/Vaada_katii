@@ -41,6 +41,7 @@ import com.gaatho.rent.core.designsystem.AppShadow.figmaButtonShadow
 import com.gaatho.rent.core.designsystem.AppShadow.figmaCardShadow
 import com.gaatho.rent.core.designsystem.AppShadow.figmaHeroShadow
 import com.gaatho.rent.core.ui.components.AppListItemSurface
+import com.gaatho.rent.core.utils.TenantUtils
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import rentmanagerapp.shared.generated.resources.Res
@@ -525,7 +526,7 @@ private fun DashboardActivityCard(
                     )
                 } else {
                     Text(
-                        text = initialsFor(item.title),
+                        text = TenantUtils.getInitials(item.title),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -598,13 +599,4 @@ private fun formatNpr(amount: Long): String {
         .reversed()
     val formatted = "$leading,$lastThree"
     return if (amount < 0) "-$formatted" else formatted
-}
-
-private fun initialsFor(name: String): String {
-    val words = name.trim().split(" ").filter { it.isNotBlank() }
-    return when {
-        words.size >= 2 -> "${words[0].first()}${words[1].first()}".uppercase()
-        words.size == 1 -> words[0].take(2).uppercase()
-        else -> "GB"
-    }
 }
