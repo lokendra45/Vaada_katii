@@ -15,12 +15,10 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import org.orbitmvi.orbit.viewmodel.orbitContainer
-import com.gaatho.rent.core.auth.UserIdentityProvider
 import com.gaatho.rent.core.utils.UuidUtil
 
 class AddPaymentViewModel(
     private val sessionManager: SessionManager,
-    private val userIdentityProvider: UserIdentityProvider,
     private val tenantRepository: TenantRepository,
     private val propertyRepository: PropertyRepository,
     private val paymentRepository: PaymentRepository
@@ -34,7 +32,7 @@ class AddPaymentViewModel(
         // Set default date to today
         reduce { state.copy(paymentDate = DateTimeUtil.nowIsoString().substring(0, 10)) }
 
-        val ownerId = userIdentityProvider.currentUserId()
+        val ownerId = (sessionManager.currentUserId() ?: "")
 
         val tenantsFlow = tenantRepository.getTenants(ownerId)
         val propertiesFlow = propertyRepository.getProperties(ownerId)
@@ -140,7 +138,7 @@ class AddPaymentViewModel(
                 reduce { state.copy(isSaving = true) }
 
                 val amountLong = state.amount.text.toLongOrNull() ?: 0L
-                val ownerId = userIdentityProvider.currentUserId()
+                val ownerId = (sessionManager.currentUserId() ?: "")
 
                 val payment = Payment(
                     id = UuidUtil.generateV7String(),

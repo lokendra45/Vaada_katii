@@ -6,7 +6,6 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.gaatho.rent.core.auth.AuthRepository
-import com.gaatho.rent.core.auth.GuestSessionManager
 import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.core.logging.AppLogger
 import com.gaatho.rent.core.mvi.MviViewModel
@@ -21,7 +20,6 @@ import org.orbitmvi.orbit.viewmodel.orbitContainer
 class SettingsViewModel(
     private val authRepository: AuthRepository,
     private val sessionManager: SessionManager,
-    private val guestSessionManager: GuestSessionManager,
     private val dataStore: DataStore<Preferences>,
     private val authenticator: BiometricAuthenticator,
 ) : MviViewModel<SettingsState, SettingsSideEffect, SettingsAction>() {
@@ -40,20 +38,30 @@ class SettingsViewModel(
     }
 
     private fun observePreferences() = intent {
-        // Collect user info
-        val user = sessionManager.currentUser.value
-        val email = user?.email ?: ""
-        val displayName = user?.displayName
-            ?: email.substringBefore("@").replaceFirstChar { it.uppercaseChar() }
+        // Reactively observe user info
+        intent {
+            sessionManager.authState.collectLatest { currentAuthState ->
+                val user = when (currentAuthState) {
+                    is com.gaatho.rent.core.auth.AuthState.Authenticated -> currentAuthState.user
+                    is com.gaatho.rent.core.auth.AuthState.Anonymous -> currentAuthState.user
+                    else -> null
+                }
+                
+                val email = user?.email ?: ""
+                val displayName = user?.displayName
+                    ?: email.substringBefore("@").replaceFirstChar { it.uppercaseChar() }
 
-        val isGuest = user?.isAnonymous == true || guestSessionManager.hasActiveGuestSession()
+                // Only consider as guest if the user is explicitly anonymous
+                val isGuest = currentAuthState is com.gaatho.rent.core.auth.AuthState.Anonymous
 
-        reduce {
-            state.copy(
-                userEmail = email,
-                userName = displayName,
-                isGuest = isGuest,
-            )
+                reduce {
+                    state.copy(
+                        userEmail = email,
+                        userName = displayName,
+                        isGuest = isGuest,
+                    )
+                }
+            }
         }
 
         // Reactively observe all preferences
@@ -148,8 +156,6 @@ class SettingsViewModel(
         try {
             when (authRepository.signOut()) {
                 is ApiResponse.Success -> {
-                    // Clear the guest-mode flag so the next launch starts clean.
-                    guestSessionManager.clearGuestSession()
                     postSideEffect(SettingsSideEffect.NavigateToLogin)
                 }
                 is ApiResponse.Failure.Error, is ApiResponse.Failure.Exception -> {

@@ -42,14 +42,18 @@ fun AppEnvironment(content: @Composable () -> Unit) {
     val darkModeValue by dataStore.data
         .map { it[darkModeKey] }
         .collectAsState(initial = null)
-        
-    val customAppThemeIsDark = darkModeValue
 
-    CompositionLocalProvider(
-        LocalAppLocale provides languageCode,
-        LocalAppTheme provides customAppThemeIsDark,
-    ) {
-        content()
-    }
+    AppEnvironmentPlatform(
+        languageCode = languageCode,
+        darkMode = darkModeValue,
+        content = content
+    )
 }
+
+@Composable
+expect fun AppEnvironmentPlatform(
+    languageCode: String?,
+    darkMode: Boolean?,
+    content: @Composable () -> Unit
+)
 

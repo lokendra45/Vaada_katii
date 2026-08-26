@@ -1,5 +1,6 @@
 package com.gaatho.rent.core.auth
 
+import com.gaatho.rent.core.logging.AppLogger
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
@@ -9,18 +10,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.jsonPrimitive
 
 /**
- * Implementation of [SessionManager] backed by Supabase Auth (`io.github.jan.supabase.auth`).
+ * Production implementation of [SessionManager] backed by Supabase Auth.
  *
- * Observes `supabase.auth.sessionStatus` to provide real-time updates when sessions are
- * restored from local storage, renewed, or terminated (e.g. via token expiration or sign out).
- *
- * @param supabase The configured [SupabaseClient] instance with Auth installed.
+ * Maps `supabase.auth.sessionStatus` → [AuthState] in real time.
+ * This is a singleton — it survives across ViewModel lifetimes.
  */
 class SupabaseSessionManager(
     private val supabase: SupabaseClient
@@ -28,32 +27,68 @@ class SupabaseSessionManager(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-    override val currentUser: StateFlow<AuthUser?> = supabase.auth.sessionStatus
-        .catch { emit(SessionStatus.NotAuthenticated()) }
+    override val authState: StateFlow<AuthState> = supabase.auth.sessionStatus
+        .onEach { status ->
+            AppLogger.auth.i { "SessionStatus → ${status::class.simpleName}" }
+        }
         .map { status ->
             when (status) {
-                is SessionStatus.Authenticated -> status.session.user?.toAuthUser()
-                else -> null
+                is SessionStatus.Initializing -> AuthState.Loading
+
+                is SessionStatus.RefreshFailure -> {
+                    // A transient refresh failure (e.g. a one-off network blip) should not
+                    // violently log the user out. Supabase retries the refresh automatically,
+                    // so if a valid session still exists we stay in Loading and let the retry
+                    // resolve to Authenticated. Only go to Unauthenticated when there is truly
+                    // no session left.
+                    AppLogger.auth.w { "Token refresh failed; waiting for retry" }
+                    if (supabase.auth.currentSessionOrNull() != null) AuthState.Loading
+                    else AuthState.Unauthenticated
+                }
+
+                is SessionStatus.Authenticated -> {
+                    val user = status.session.user
+                    if (user == null) {
+                        AppLogger.auth.w { "Authenticated status but user is null" }
+                        AuthState.Unauthenticated
+                    } else {
+                        val authUser = user.toAuthUser()
+                        // Avoid logging PII (email, identity providers) in production.
+                        AppLogger.auth.i {
+                            "Session established: id=${authUser.id}, isAnonymous=${authUser.isAnonymous}"
+                        }
+                        if (authUser.isAnonymous) AuthState.Anonymous(authUser)
+                        else AuthState.Authenticated(authUser)
+                    }
+                }
+
+                is SessionStatus.NotAuthenticated -> AuthState.Unauthenticated
             }
+        }
+        .onEach { state ->
+            AppLogger.auth.i { "AuthState → ${state::class.simpleName}" }
         }
         .stateIn(
             scope = scope,
             started = SharingStarted.Eagerly,
-            initialValue = supabase.auth.currentUserOrNull()?.toAuthUser()
+            initialValue = AuthState.Loading as AuthState
         )
 
-    override val isLoggedIn: StateFlow<Boolean> = currentUser
-        .map { it != null }
-        .stateIn(
-            scope = scope,
-            started = SharingStarted.Eagerly,
-            initialValue = supabase.auth.currentUserOrNull() != null
-        )
-
-    override fun currentUserId(): String? = currentUser.value?.id
+    override fun currentUserId(): String? {
+        return when (val state = authState.value) {
+            is AuthState.Authenticated -> state.user.id
+            is AuthState.Anonymous -> state.user.id
+            else -> null
+        }
+    }
 
     /**
-     * Maps Supabase [UserInfo] to our clean domain [AuthUser].
+     * Maps Supabase [UserInfo] to our domain [AuthUser].
+     *
+     * Anonymous detection: A user is truly anonymous only if `isAnonymous == true`
+     * AND they have no real (non-anonymous) identity provider attached.
+     * This handles the edge case where Supabase keeps `isAnonymous = true` after
+     * identity linking until the next token refresh.
      */
     private fun UserInfo.toAuthUser(): AuthUser {
         val metadata = userMetadata
@@ -66,13 +101,20 @@ class SupabaseSessionManager(
             else -> UserRole.LANDLORD
         }
 
+        // A user is only truly anonymous if:
+        // 1. Supabase says isAnonymous == true
+        // 2. They have no real identity (e.g. Google, email) attached
+        // 3. They have no email
+        val hasRealIdentity = identities?.any { it.provider != "anonymous" } == true
+        val trulyAnonymous = isAnonymous == true && email.isNullOrBlank() && !hasRealIdentity
+
         return AuthUser(
             id = id,
             email = email ?: "",
             displayName = displayName,
             avatarUrl = metadata?.get("avatar_url")?.jsonPrimitive?.content,
             role = role,
-            isAnonymous = isAnonymous == true
+            isAnonymous = trulyAnonymous
         )
     }
 }

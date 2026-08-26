@@ -4,6 +4,7 @@ import { logger } from "hono/logger";
 import { networkInterfaces } from "os";
 import sendOtpHandler from "./send-otp/index.ts";
 import verifyOtpHandler from "./verify-otp/index.ts";
+import sendReminderHandler from "./send-reminder/index.ts";
 import { getOtpProvider } from "./providers/ProviderFactory.ts";
 
 const app = new Hono();
@@ -19,8 +20,10 @@ app.use("*", cors({
 // Mount modular sub-routers
 app.route("/send-otp", sendOtpHandler);
 app.route("/verify-otp", verifyOtpHandler);
+app.route("/send-reminder", sendReminderHandler);
 
 const port = Number(process.env.PORT) || 8787;
+
 
 app.get("/", (c) => {
   const activeProvider = getOtpProvider();

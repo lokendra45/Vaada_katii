@@ -3,6 +3,9 @@ package com.gaatho.rent.core.network
 import com.gaatho.rent.core.logging.AppLogger
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.auth.FlowType
+import io.github.jan.supabase.compose.auth.ComposeAuth
+import io.github.jan.supabase.compose.auth.googleNativeLogin
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.realtime.Realtime
@@ -35,6 +38,7 @@ internal val supabaseJson: Json = Json {
  */
 @OptIn(io.github.jan.supabase.annotations.SupabaseInternal::class, io.github.jan.supabase.annotations.SupabaseExperimental::class)
 fun supabaseModule(config: SupabaseConfig) = module {
+    single { config }
     single<SupabaseClient> {
         createSupabaseClient(
             supabaseUrl = config.url,
@@ -50,12 +54,31 @@ fun supabaseModule(config: SupabaseConfig) = module {
                     level = LogLevel.ALL
                 }
             }
-            install(Auth)
+            install(Auth) {
+                // Must match the OAuth deep-link intent-filter in AndroidManifest.xml so that
+                // supabase.handleDeeplinks() accepts and imports the browser redirect.
+                // PKCE is used (more secure than IMPLICIT); the code verifier is persisted via the
+                // default SettingsCodeVerifierCache (backed by platform Settings/SharedPreferences),
+                // so a cold-start relaunch during OAuth still completes the code exchange.
+                flowType = FlowType.PKCE
+                scheme = "com.gaatho.rent"
+                host = "login-callback"
+            }
             install(Postgrest) {
                 serializer = KotlinXSerializer(supabaseJson)
             }
             install(Storage)
             install(Realtime)
+            install(io.github.jan.supabase.functions.Functions)
+
+            // ComposeAuth — handles native Google Sign-In via Credential Manager on Android.
+            // googleClientId is the *Web* OAuth client ID from Google Cloud Console.
+            // Ignored on iOS (empty string → fallback to browser OAuth).
+            if (config.googleClientId.isNotBlank()) {
+                install(ComposeAuth) {
+                    googleNativeLogin(serverClientId = config.googleClientId)
+                }
+            }
         }
     }
     single<Json> { supabaseJson }

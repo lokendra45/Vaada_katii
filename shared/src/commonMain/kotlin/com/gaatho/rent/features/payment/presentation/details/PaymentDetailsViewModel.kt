@@ -19,7 +19,7 @@ class PaymentDetailsViewModel(
     private val paymentRepository: PaymentRepository,
     private val tenantRepository: TenantRepository,
     private val propertyRepository: PropertyRepository,
-    private val userIdentityProvider: com.gaatho.rent.core.auth.UserIdentityProvider
+    private val sessionManager: com.gaatho.rent.core.auth.SessionManager
 ) : MviViewModel<PaymentDetailsState, PaymentDetailsSideEffect, PaymentDetailsAction>() {
 
     override val container = orbitContainer<PaymentDetailsState, PaymentDetailsSideEffect>(PaymentDetailsState()) {
@@ -69,7 +69,7 @@ class PaymentDetailsViewModel(
     private fun loadPaymentDetails() = intent {
         reduce { state.copy(paymentState = UiState.Loading) }
 
-        val ownerId = userIdentityProvider.currentUserId()
+        val ownerId = (sessionManager.currentUserId() ?: "")
 
         paymentRepository.getPaymentById(paymentId)
             .flatMapLatest { payment ->

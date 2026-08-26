@@ -2,7 +2,6 @@ package com.gaatho.rent.features.paywall.presentation
 
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.features.paywall.data.repository.PaywallRepository
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 
@@ -49,7 +48,7 @@ class PaywallViewModel(
                 postSideEffect(PaywallSideEffect.NavigateBack)
             }
             is PaywallAction.OnPaymentSucceeded -> intent {
-                viewModelScope.launch { paywallRepository.grantPremiumAccess() }
+                paywallRepository.grantPremiumAccess()
                 postSideEffect(PaywallSideEffect.NavigateBackWithSuccess)
             }
         }

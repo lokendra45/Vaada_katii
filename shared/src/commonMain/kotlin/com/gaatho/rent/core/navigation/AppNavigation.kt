@@ -30,7 +30,6 @@ import com.gaatho.rent.core.ui.animation.iosPushTransition
 import com.gaatho.rent.core.ui.animation.iosPopTransition
 import androidx.savedstate.serialization.SavedStateConfiguration
 import com.gaatho.rent.core.auth.SessionManager
-import com.gaatho.rent.core.auth.UserIdentityProvider
 import com.gaatho.rent.features.auth.presentation.LoginScreen
 import com.gaatho.rent.features.property.presentation.list.PropertyListScreen
 import com.gaatho.rent.features.splash.presentation.SplashScreen
@@ -63,9 +62,10 @@ private val navConfig = SavedStateConfiguration {
 @Composable
 fun AppNavigation() {
     val sessionManager: SessionManager = koinInject()
-    val userIdentityProvider: UserIdentityProvider = koinInject()
-    val currentUser by sessionManager.currentUser.collectAsState()
-    val isGuest = currentUser?.isAnonymous == true || userIdentityProvider.isGuest()
+    val authState by sessionManager.authState.collectAsState()
+    
+    // We only treat it as "guest" for the UI lock dialogs if it's explicitly an anonymous state
+    val isGuest = authState is com.gaatho.rent.core.auth.AuthState.Anonymous
 
     val backStack = rememberNavBackStack(navConfig, SplashRoute)
 
@@ -87,7 +87,7 @@ fun AppNavigation() {
             title = "Sign in Required",
             body = "You need to be signed in to perform this action. Would you like to sign in now?",
             confirmText = "Sign In",
-            cancelText = "Not Now",
+            dismissText = "Not Now",
             onConfirm = {
                 showGuestLoginDialog = false
                 backStack.clear()
@@ -111,9 +111,13 @@ fun AppNavigation() {
 
             entry<SplashRoute> {
                 SplashScreen(
-                    onNavigateToHome = { _ ->
+                    onNavigateToHome = {
                         backStack.clear()
                         backStack.add(MainDashboardRoute)
+                    },
+                    onNavigateToLogin = {
+                        backStack.clear()
+                        backStack.add(LoginRoute)
                     }
                 )
             }

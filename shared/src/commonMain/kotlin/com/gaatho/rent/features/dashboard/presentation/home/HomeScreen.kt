@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.designsystem.Spacing
+import com.gaatho.rent.core.ui.components.OfflineBanner
 import com.gaatho.rent.features.dashboard.presentation.components.DashboardActivityUi
 import com.gaatho.rent.features.dashboard.presentation.components.DashboardCollectionCard
 import com.gaatho.rent.features.dashboard.presentation.components.DashboardMetricsRow
@@ -63,11 +64,13 @@ fun HomeContent(
     state: HomeState,
     onAction: (HomeAction) -> Unit
 ) {
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(androidx.compose.material3.MaterialTheme.colorScheme.background)
     ) {
+        OfflineBanner()
+        
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(

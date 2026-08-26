@@ -10,9 +10,9 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val paymentModule = module {
-    single<PaymentRepository> { CloudPaymentRepository(get(), get()) }
+    single<PaymentRepository> { CloudPaymentRepository(get(), get(), get()) }
 
-    viewModel { AddPaymentViewModel(get(), get(), get(), get(), get()) }
+    viewModel { AddPaymentViewModel(get(), get(), get(), get()) }
     viewModel { PaymentListViewModel(get(), get()) }
     viewModel { parameters -> PaymentDetailsViewModel(parameters.get(), get(), get(), get(), get()) }
     viewModel { parameters -> EditPaymentViewModel(parameters.get(), get(), get(), get(), get()) }

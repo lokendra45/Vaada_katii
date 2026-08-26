@@ -492,6 +492,7 @@ private fun SettingsScreenPreview() {
             onAction = {},
             currentLanguageCode = "ne",
             onLanguageChanged = {},
+            onNavigateToLogin = {},
         )
     }
 }
@@ -509,6 +510,7 @@ private fun SettingsLogoutPreview() {
             onAction = {},
             currentLanguageCode = "ne",
             onLanguageChanged = {},
+            onNavigateToLogin = {},
         )
     }
 }

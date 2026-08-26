@@ -60,18 +60,21 @@ import rentmanagerapp.shared.generated.resources.splash_tagline
  * Stateful Splash container. Owns the [SplashViewModel], collects state and side-effects,
  * and delegates all rendering to the stateless [SplashContent].
  *
- * @param onNavigateToHome Called when the splash sequence completes (with or without error retry).
+ * @param onNavigateToHome Called when an existing session is found.
+ * @param onNavigateToLogin Called when no session exists.
  */
 @Composable
 fun SplashScreen(
-    onNavigateToHome: (isFirstLaunch: Boolean) -> Unit,
+    onNavigateToHome: () -> Unit,
+    onNavigateToLogin: () -> Unit,
 ) {
     val viewModel: SplashViewModel = koinViewModel()
     val state by viewModel.collectAsState()
 
     viewModel.collectSideEffect { effect ->
         when (effect) {
-            is SplashSideEffect.NavigateToHome -> onNavigateToHome(effect.isFirstLaunch)
+            is SplashSideEffect.NavigateToHome -> onNavigateToHome()
+            is SplashSideEffect.NavigateToLogin -> onNavigateToLogin()
         }
     }
 

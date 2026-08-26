@@ -1,6 +1,7 @@
 package com.gaatho.rent.core.environment
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ProvidedValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.InternalComposeUiApi
@@ -44,5 +45,19 @@ actual object LocalAppTheme {
         }
 
         return LocalSystemTheme.provides(new)
+    }
+}
+
+@Composable
+actual fun AppEnvironmentPlatform(
+    languageCode: String?,
+    darkMode: Boolean?,
+    content: @Composable () -> Unit
+) {
+    CompositionLocalProvider(
+        LocalAppLocale provides languageCode,
+        LocalAppTheme provides darkMode,
+    ) {
+        content()
     }
 }

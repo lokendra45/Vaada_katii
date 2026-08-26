@@ -16,7 +16,7 @@ val propertyModule = module {
             propertyId = params.get(),
             propertyRepository = get(),
             tenantRepository = get(),
-            userIdentityProvider = get()
+            sessionManager = get()
         )
     }
     viewModel { params ->
@@ -29,21 +29,21 @@ val propertyModule = module {
         com.gaatho.rent.features.property.presentation.details.PropertyStatsViewModel(
             propertyId = params.get(),
             tenantRepository = get(),
-            userIdentityProvider = get()
+            sessionManager = get()
         )
     }
     viewModel { params ->
         com.gaatho.rent.features.property.presentation.details.PropertyUnitsViewModel(
             propertyId = params.get(),
             tenantRepository = get(),
-            userIdentityProvider = get()
+            sessionManager = get()
         )
     }
     viewModel { params ->
         EditPropertyViewModel(
             propertyId = params.get(),
             propertyRepository = get(),
-            userIdentityProvider = get()
+            sessionManager = get()
         )
     }
 }

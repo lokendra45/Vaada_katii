@@ -41,6 +41,11 @@ android {
             "SUPABASE_KEY",
             "\"${localProps.getProperty("SUPABASE_KEY", "placeholder-anon-key")}\""
         )
+        buildConfigField(
+            "String",
+            "GOOGLE_CLIENT_ID",
+            "\"${localProps.getProperty("GOOGLE_CLIENT_ID", "")}\""
+        )
 
     }
 
@@ -81,6 +86,13 @@ dependencies {
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.koin.android)
+
+    // Required by supabase-kt's native Google sign-in (googleNativeLogin /
+    // rememberSignInWithGoogle). Without these, Credential Manager / One-Tap
+    // cannot run and the flow silently falls back to the browser OAuth tab.
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services)
+    implementation(libs.googleid)
 
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)

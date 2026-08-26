@@ -1,7 +1,7 @@
 package com.gaatho.rent.features.property.presentation.edit
 
 import androidx.compose.ui.text.input.TextFieldValue
-import com.gaatho.rent.core.auth.UserIdentityProvider
+import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.ui.ErrorMessageExtractor
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
@@ -13,7 +13,7 @@ import org.orbitmvi.orbit.viewmodel.orbitContainer
 class EditPropertyViewModel(
     private val propertyId: String,
     private val propertyRepository: PropertyRepository,
-    private val userIdentityProvider: UserIdentityProvider,
+    private val sessionManager: SessionManager,
 ) : MviViewModel<EditPropertyState, EditPropertySideEffect, EditPropertyAction>() {
 
     override val container = orbitContainer<EditPropertyState, EditPropertySideEffect>(
@@ -28,7 +28,7 @@ class EditPropertyViewModel(
             return@intent
         }
 
-        val ownerId = userIdentityProvider.currentUserId()
+        val ownerId = (sessionManager.currentUserId() ?: "")
         val property = propertyRepository
             .getProperties(ownerId)
             .firstOrNull()
@@ -154,7 +154,7 @@ class EditPropertyViewModel(
 
         val updated = Property(
             id = if (propertyId == "new") com.gaatho.rent.core.utils.UuidUtil.generateV7String() else propertyId,
-            ownerId = userIdentityProvider.currentUserId(),
+            ownerId = (sessionManager.currentUserId() ?: ""),
             name = s.name.text.trim(),
             address = "${s.streetAddress.text.trim()}, ${s.city.text.trim()}",
             propertyType = s.propertyType,

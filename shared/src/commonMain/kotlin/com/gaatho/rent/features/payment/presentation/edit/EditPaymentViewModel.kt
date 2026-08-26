@@ -1,7 +1,7 @@
 package com.gaatho.rent.features.payment.presentation.edit
 
 import androidx.compose.ui.text.input.TextFieldValue
-import com.gaatho.rent.core.auth.UserIdentityProvider
+import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.ui.ErrorMessageExtractor
 import com.gaatho.rent.core.ui.UiState
@@ -19,7 +19,7 @@ class EditPaymentViewModel(
     private val paymentRepository: PaymentRepository,
     private val tenantRepository: TenantRepository,
     private val propertyRepository: PropertyRepository,
-    private val userIdentityProvider: UserIdentityProvider
+    private val sessionManager: SessionManager
 ) : MviViewModel<EditPaymentState, EditPaymentSideEffect, EditPaymentAction>() {
 
     override val container = orbitContainer<EditPaymentState, EditPaymentSideEffect>(EditPaymentState()) {
@@ -29,7 +29,7 @@ class EditPaymentViewModel(
     private fun loadPayment() = intent {
         reduce { state.copy(loadState = UiState.Loading) }
 
-        val ownerId = userIdentityProvider.currentUserId()
+        val ownerId = (sessionManager.currentUserId() ?: "")
         val payment = paymentRepository.getPaymentById(paymentId).firstOrNull()
 
         if (payment == null) {

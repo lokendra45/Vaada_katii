@@ -11,14 +11,10 @@ import kotlinx.coroutines.flow.StateFlow
  */
 interface SessionManager {
     /**
-     * Cold or stateful stream emitting the currently authenticated [AuthUser], or `null` if unauthenticated.
+     * Cold or stateful stream emitting the current [AuthState].
+     * The application should reactively observe this state to update navigation and UI.
      */
-    val currentUser: StateFlow<AuthUser?>
-
-    /**
-     * Stream emitting `true` when a valid session exists, `false` otherwise.
-     */
-    val isLoggedIn: StateFlow<Boolean>
+    val authState: StateFlow<AuthState>
 
     /**
      * Synchronously returns the current user's ID (`auth.users.id`), or `null` if not logged in.

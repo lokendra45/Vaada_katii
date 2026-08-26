@@ -1,6 +1,6 @@
 package com.gaatho.rent.features.property.presentation.details
 
-import com.gaatho.rent.core.auth.UserIdentityProvider
+import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.ui.ErrorMessageExtractor
 import com.gaatho.rent.core.ui.UiState
@@ -15,7 +15,7 @@ import org.orbitmvi.orbit.viewmodel.orbitContainer
 class PropertyStatsViewModel(
     private val propertyId: String,
     private val tenantRepository: TenantRepository,
-    private val userIdentityProvider: UserIdentityProvider,
+    private val sessionManager: SessionManager,
 ) : MviViewModel<PropertyStatsState, PropertyStatsEffect, PropertyStatsAction>() {
 
     override val container = orbitContainer<PropertyStatsState, PropertyStatsEffect>(
@@ -25,7 +25,7 @@ class PropertyStatsViewModel(
     }
 
     private fun observeData() = intent {
-        val ownerId = userIdentityProvider.currentUserId()
+        val ownerId = (sessionManager.currentUserId() ?: "")
         tenantRepository.getTenantsByProperty(ownerId, propertyId)
             .catch { e ->
                 reduce { state.copy(financialState = UiState.Error(ErrorMessageExtractor.extract(e, "Failed to load stats"))) }

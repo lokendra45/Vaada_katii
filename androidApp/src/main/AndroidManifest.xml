@@ -19,12 +19,22 @@
         <activity
             android:exported="true"
             android:name=".MainActivity"
+            android:launchMode="singleTop"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            
+            <!-- Supabase OAuth Deep Link -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="com.gaatho.rent" android:host="login-callback" />
+            </intent-filter>
+
         </activity>
 
         <!-- Trigger Google Play services to install the backported photo picker module. -->

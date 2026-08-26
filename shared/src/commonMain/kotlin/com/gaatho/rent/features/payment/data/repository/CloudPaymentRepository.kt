@@ -22,13 +22,23 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 
+import com.gaatho.rent.core.cache.DataStoreCache
+import com.gaatho.rent.core.network.safeSupabaseReadWithCache
+
 class CloudPaymentRepository(
     private val supabase: SupabaseClient,
-    private val json: Json
+    private val json: Json,
+    private val cache: DataStoreCache
 ) : PaymentRepository {
 
     override fun getPaymentsByOwner(ownerId: String): Flow<List<Payment>> =
-        safeSupabaseRead(emptyList(), "CloudPaymentRepository.getPaymentsByOwner") {
+        safeSupabaseReadWithCache(
+            default = emptyList(),
+            tag = "CloudPaymentRepository.getPaymentsByOwner",
+            cache = cache,
+            cacheKey = "payments_owner_$ownerId",
+            serializer = kotlinx.serialization.builtins.ListSerializer(Payment.serializer())
+        ) {
             val dtos = supabase.postgrest[TABLE]
                 .select(Columns.raw("*, tenant(name, room_number), property(name)")) {
                     filter {

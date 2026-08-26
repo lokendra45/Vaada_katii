@@ -2,22 +2,24 @@ package com.gaatho.rent.core.environment
 
 import android.content.res.Configuration
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ProvidedValue
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLocale
 import java.util.Locale
 
 actual object LocalAppLocale {
     private var defaultLocale: Locale? = null
     actual val current: String
-        @Composable get() = Locale.getDefault().toString()
+        @Composable get() = LocalLocale.current.platformLocale.toString()
 
     @Composable
     actual infix fun provides(value: String?): ProvidedValue<*> {
         val configuration = LocalConfiguration.current
 
         if (defaultLocale == null) {
-            defaultLocale = Locale.getDefault()
+            defaultLocale = LocalLocale.current.platformLocale
         }
 
         val newLocale = if(value == null) {
@@ -52,5 +54,19 @@ actual object LocalAppTheme {
             }
         }
         return LocalConfiguration.provides(new)
+    }
+}
+
+@Composable
+actual fun AppEnvironmentPlatform(
+    languageCode: String?,
+    darkMode: Boolean?,
+    content: @Composable () -> Unit
+) {
+    CompositionLocalProvider(
+        LocalAppLocale provides languageCode,
+        LocalAppTheme provides darkMode,
+    ) {
+        content()
     }
 }

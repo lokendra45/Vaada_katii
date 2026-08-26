@@ -16,12 +16,28 @@ interface AuthRepository {
 
     /**
      * Registers a new account with email and password.
+     * Returns [ApiResponse.Success] with `true` if a session was created immediately
+     * (auto-confirm enabled) or `false` when email confirmation is required and the
+     * user must verify their inbox before a session exists.
      */
     suspend fun signUpWithEmail(
         email: String,
         password: String,
         role: UserRole = UserRole.LANDLORD
-    ): ApiResponse<Unit>
+    ): ApiResponse<Boolean>
+
+    /**
+     * Ensures the authenticated user's `role` (and `current_active_role`) metadata is set.
+     * Only writes when the metadata is currently absent, so a returning user's existing
+     * role is never overwritten. Used to stamp the role chosen on the login screen for
+     * new social sign-ins (Google) that cannot carry metadata at sign-in time.
+     */
+    suspend fun ensureUserRole(role: UserRole)
+
+    /**
+     * Signs in as an anonymous guest user.
+     */
+    suspend fun signInAnonymously(): ApiResponse<Unit>
 
     /**
      * Signs out the current user and clears local session storage.
@@ -30,6 +46,11 @@ interface AuthRepository {
 
     /**
      * Initiates Google OAuth Sign-In.
+     * If [idToken] is provided, it uses native sign-in.
      */
-    suspend fun signInWithGoogle(): ApiResponse<Unit>
+    suspend fun signInWithGoogle(
+        role: UserRole? = null,
+        idToken: String? = null,
+        nonce: String? = null
+    ): ApiResponse<Unit>
 }

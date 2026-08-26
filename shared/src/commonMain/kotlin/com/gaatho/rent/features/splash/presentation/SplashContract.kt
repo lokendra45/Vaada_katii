@@ -4,7 +4,7 @@ package com.gaatho.rent.features.splash.presentation
  * UI state for the Splash screen.
  *
  * The screen is always in exactly one of three phases:
- * - [Phase.Loading]  → initial session check / guest provisioning is in progress.
+ * - [Phase.Loading]  → initial session check is in progress.
  * - [Phase.Error]    → a non-recoverable network or auth error occurred.
  *   The user can tap "Try Again" to re-run [SplashViewModel.retry].
  * - (Navigating)     → [SplashSideEffect] fires; state stays Loading until nav completes.
@@ -24,8 +24,12 @@ data class SplashState(
 sealed interface SplashSideEffect {
     /**
      * Navigate to the main dashboard.
-     * [isFirstLaunch] is true when the seeder has never run for this user, allowing
-     * the Home screen to skip the empty-state flicker on the very first open.
      */
-    data class NavigateToHome(val isFirstLaunch: Boolean) : SplashSideEffect
+    data object NavigateToHome : SplashSideEffect
+
+    /**
+     * Navigate to the login screen.
+     * Emitted when no existing session (authenticated or anonymous) is found.
+     */
+    data object NavigateToLogin : SplashSideEffect
 }

@@ -16,5 +16,7 @@ package com.gaatho.rent.core.network
  */
 data class SupabaseConfig(
     val url: String,
-    val anonKey: String
+    val anonKey: String,
+    /** Web client ID from Google Cloud Console. Required for native Google Sign-In via ComposeAuth. */
+    val googleClientId: String = ""
 )

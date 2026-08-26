@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
-import com.gaatho.rent.core.auth.UserIdentityProvider
+import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.core.logging.AppLogger
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.utils.MoneyUtil
@@ -29,12 +29,12 @@ import kotlin.time.Duration.Companion.milliseconds
 @OptIn(ExperimentalCoroutinesApi::class, kotlinx.coroutines.FlowPreview::class)
 class PropertyListViewModel(
     private val repository: PropertyRepository,
-    private val userIdentityProvider: UserIdentityProvider,
+    private val sessionManager: SessionManager,
     savedStateHandle: SavedStateHandle
 ) : MviViewModel<PropertyListState, PropertyListSideEffect, PropertyListAction>() {
 
     private val ownerId: String
-        get() = userIdentityProvider.currentUserId()
+        get() = (sessionManager.currentUserId() ?: "")
 
     private val _searchText = MutableStateFlow("")
     val searchText = _searchText.asStateFlow()

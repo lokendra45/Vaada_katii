@@ -7,6 +7,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import com.gaatho.rent.core.cache.DataStoreCache
+import kotlinx.serialization.KSerializer
 
 /**
  * Runs a suspend Supabase read inside a cold [Flow] that NEVER throws to the
@@ -29,6 +31,33 @@ fun <T> safeSupabaseRead(
     AppLogger.network.e(e) { "$tag failed; emitting safe default" }
     emit(default)
 }
+
+/**
+ * Runs a suspend Supabase read. On success, writes the result to the cache.
+ * On failure, emits the cached value if available, else the default.
+ */
+fun <T> safeSupabaseReadWithCache(
+    default: T,
+    tag: String,
+    cache: DataStoreCache,
+    cacheKey: String,
+    serializer: KSerializer<T>,
+    block: suspend () -> T
+): Flow<T> = flow {
+    val result = block()
+    cache.put(cacheKey, result, serializer)
+    emit(result)
+}.catch { e ->
+    AppLogger.network.e(e) { "$tag failed; trying cache" }
+    val cached = cache.get(cacheKey, serializer)
+    if (cached != null) {
+        AppLogger.network.i { "$tag offline fallback to cached data" }
+        emit(cached)
+    } else {
+        emit(default)
+    }
+}
+
 
 /**
  * Runs a suspend Supabase write and wraps the result in a Sandwich [ApiResponse].

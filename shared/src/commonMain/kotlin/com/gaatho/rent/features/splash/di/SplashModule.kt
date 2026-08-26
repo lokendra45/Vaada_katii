@@ -8,5 +8,5 @@ import org.koin.dsl.module
  * Koin module for the Splash screen feature.
  */
 val splashModule = module {
-    viewModel { SplashViewModel(get(), get()) }
+    viewModel { SplashViewModel(get()) }
 }

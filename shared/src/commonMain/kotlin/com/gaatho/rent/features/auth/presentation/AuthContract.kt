@@ -35,5 +35,9 @@ sealed interface AuthAction {
     data object OnToggleAuthMode : AuthAction
     data object OnSubmitEmailAuthClicked : AuthAction
     data object OnGoogleAuthClicked : AuthAction
+    data object OnGoogleSignInSuccess : AuthAction
+    data object OnTrySeamlessSignIn : AuthAction
+    data class OnGoogleSignInError(val message: String) : AuthAction
     data object OnGuestAuthClicked : AuthAction
+    data object OnEnsureRole : AuthAction
 }

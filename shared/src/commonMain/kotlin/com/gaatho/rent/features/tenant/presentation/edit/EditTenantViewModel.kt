@@ -1,6 +1,6 @@
 package com.gaatho.rent.features.tenant.presentation.edit
 
-import com.gaatho.rent.core.auth.UserIdentityProvider
+import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.core.logging.AppLogger
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.ui.ErrorMessageExtractor
@@ -20,10 +20,10 @@ class EditTenantViewModel(
     private val saveTenant: SaveTenantUseCase,
     private val deleteTenant: DeleteTenantUseCase,
     private val propertyRepository: PropertyRepository,
-    private val userIdentityProvider: UserIdentityProvider
+    private val sessionManager: SessionManager
 ) : MviViewModel<EditTenantState, EditTenantSideEffect, EditTenantAction>() {
     private val ownerId: String
-        get() = userIdentityProvider.currentUserId()
+        get() = (sessionManager.currentUserId() ?: "")
 
     override val container = orbitContainer<EditTenantState, EditTenantSideEffect>(EditTenantState()) {
         loadTenant()

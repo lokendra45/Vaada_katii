@@ -1,35 +1,85 @@
 package com.gaatho.rent.features.auth.presentation
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material3.*
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.core.auth.UserRole
 import com.gaatho.rent.core.designsystem.components.RentManagerPrimaryButton
-import com.gaatho.rent.core.designsystem.components.RentManagerTextField
 import com.gaatho.rent.core.designsystem.components.RentManagerSegmentedControl
-import com.gaatho.rent.core.designsystem.components.RentManagerSocialButton
+import com.gaatho.rent.core.designsystem.components.RentManagerTextField
 import com.gaatho.rent.core.ui.UiState
-import org.koin.compose.viewmodel.koinViewModel
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.compose.auth.composable.NativeSignInResult
+import io.github.jan.supabase.compose.auth.composable.rememberSignInWithGoogle
+import io.github.jan.supabase.compose.auth.composeAuth
 import org.jetbrains.compose.resources.stringResource
-import rentmanagerapp.shared.generated.resources.Res
-import rentmanagerapp.shared.generated.resources.*
+import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import org.orbitmvi.orbit.compose.collectSideEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.already_have_account
+import rentmanagerapp.shared.generated.resources.continue_action
+import rentmanagerapp.shared.generated.resources.continue_with_email
+import rentmanagerapp.shared.generated.resources.continue_with_google
+import rentmanagerapp.shared.generated.resources.create_account_action
+import rentmanagerapp.shared.generated.resources.dont_have_account
+import rentmanagerapp.shared.generated.resources.email_address_label
+import rentmanagerapp.shared.generated.resources.email_placeholder
+import rentmanagerapp.shared.generated.resources.forgot_password_question
+import rentmanagerapp.shared.generated.resources.help_center
+import rentmanagerapp.shared.generated.resources.login_subtitle
+import rentmanagerapp.shared.generated.resources.login_title
+import rentmanagerapp.shared.generated.resources.or_divider
+import rentmanagerapp.shared.generated.resources.password_label
+import rentmanagerapp.shared.generated.resources.password_placeholder
+import rentmanagerapp.shared.generated.resources.privacy_policy
+import rentmanagerapp.shared.generated.resources.role_landlord
+import rentmanagerapp.shared.generated.resources.role_tenant
+import rentmanagerapp.shared.generated.resources.sign_in_action
+import rentmanagerapp.shared.generated.resources.sign_up_with_email
+import rentmanagerapp.shared.generated.resources.terms_of_service
+import com.gaatho.rent.core.auth.AuthState as CoreAuthState
 
 @Composable
 fun LoginScreen(
@@ -47,10 +97,41 @@ fun LoginScreen(
         }
     }
 
+    val supabase: SupabaseClient = koinInject()
+    val sessionManager: SessionManager = koinInject()
+    val authState by sessionManager.authState.collectAsStateWithLifecycle()
+
+    // Navigation is driven reactively by the authoritative authState (single source of truth)
+    // rather than by the synchronous return of an auth call. When the session becomes
+    // Authenticated (native Google / email) or Anonymous (guest), we go Home.
+    LaunchedEffect(authState) {
+        if (authState is CoreAuthState.Authenticated || authState is CoreAuthState.Anonymous) {
+            // Stamp the role chosen on the login screen for new social sign-ins
+            // (Google) that cannot carry metadata at sign-in time. Best-effort.
+            viewModel.onAction(AuthAction.OnEnsureRole)
+            onNavigateToHome()
+        }
+    }
+
+    val googleSignIn = supabase.composeAuth.rememberSignInWithGoogle(
+        onResult = { result ->
+            when (result) {
+                is NativeSignInResult.Success -> viewModel.onAction(AuthAction.OnGoogleSignInSuccess)
+                is NativeSignInResult.Error -> viewModel.onAction(AuthAction.OnGoogleSignInError(result.message))
+                is NativeSignInResult.ClosedByUser -> {} // Ignore
+                is NativeSignInResult.NetworkError -> viewModel.onAction(AuthAction.OnGoogleSignInError("Network error. Please try again."))
+            }
+        },
+        fallback = {
+            viewModel.onAction(AuthAction.OnGoogleAuthClicked) // Fallback to browser
+        }
+    )
+
     LoginContent(
         state = state,
         snackbarHostState = snackbarHostState,
-        onAction = viewModel::onAction
+        onAction = viewModel::onAction,
+        onGoogleSignInClick = { googleSignIn.startFlow() }
     )
 }
 
@@ -58,7 +139,8 @@ fun LoginScreen(
 fun LoginContent(
     state: AuthState,
     snackbarHostState: SnackbarHostState,
-    onAction: (AuthAction) -> Unit
+    onAction: (AuthAction) -> Unit,
+    onGoogleSignInClick: () -> Unit
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize().imePadding(),
@@ -158,19 +240,45 @@ fun LoginContent(
                         modifier = Modifier.padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // Google Button
-                        RentManagerSocialButton(
-                            text = stringResource(Res.string.continue_with_google),
-                            onClick = { onAction(AuthAction.OnGoogleAuthClicked) },
-                            icon = {
+                        // High-Fidelity Google Branded Button
+                        OutlinedButton(
+                            onClick = onGoogleSignInClick,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp),
+                            enabled = state.authUiState !is UiState.Loading,
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(26.dp), // Pill shaped as per modern Google UI
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = Color.White,
+                                contentColor = Color(0xFF1F1F1F) // Google's standard dark grey text
+                            ),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF747775)) // Google's standard border color
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                // Google "G" Logo
+                                Box(
+                                    modifier = Modifier.size(20.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "G",
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif
+                                        ),
+                                        color = Color(0xFF4285F4) // Google Blue
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
                                 Text(
-                                    text = stringResource(Res.string.google_g),
-                                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium),
-                                    color = androidx.compose.ui.graphics.Color(0xFF4285F4), // Keep Google logo colored
-                                    modifier = Modifier.padding(end = 12.dp)
+                                    text = stringResource(Res.string.continue_with_google),
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
                                 )
                             }
-                        )
+                        }
 
                         Spacer(modifier = Modifier.height(24.dp))
 
@@ -313,7 +421,8 @@ fun LoginScreenPreview() {
         LoginContent(
             state = AuthState(),
             snackbarHostState = SnackbarHostState(),
-            onAction = {}
+            onAction = {},
+            onGoogleSignInClick = {}
         )
     }
 }

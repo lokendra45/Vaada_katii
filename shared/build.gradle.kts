@@ -42,6 +42,9 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.androidx.biometric)
+            implementation(libs.androidx.credentials)
+            implementation(libs.androidx.credentials.play.services)
+            implementation(libs.googleid)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -66,11 +69,13 @@ kotlin {
             implementation(libs.koin.compose.viewmodel)
 
             // Supabase
-            implementation(libs.supabase.postgrest)
-            implementation(libs.supabase.auth)
+            api(libs.supabase.postgrest)
+            api(libs.supabase.auth)
             implementation(libs.supabase.realtime)
             implementation(libs.supabase.storage)
-            implementation(libs.supabase.compose.auth)
+            implementation(libs.supabase.compose.auth)    // ComposeAuth plugin — Google native login
+            implementation(libs.supabase.compose.auth.ui) // Pre-built auth UI components
+            implementation(libs.supabase.functions)       // Edge functions
 
             // Paging
             implementation(libs.androidx.paging.common)

@@ -16,7 +16,8 @@ class RentManagerApplication : Application() {
         initKoin(
             supabaseConfig = SupabaseConfig(
                 url = BuildConfig.SUPABASE_URL,
-                anonKey = BuildConfig.SUPABASE_KEY
+                anonKey = BuildConfig.SUPABASE_KEY,
+                googleClientId = BuildConfig.GOOGLE_CLIENT_ID
             )
         ) {
             androidLogger()

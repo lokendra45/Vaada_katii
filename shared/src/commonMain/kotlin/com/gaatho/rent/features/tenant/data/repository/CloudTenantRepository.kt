@@ -23,13 +23,23 @@ import kotlinx.serialization.json.Json
  * Supabase-backed [TenantRepository]. All reads go straight to PostgREST; the
  * local Room layer no longer backs tenant data.
  */
+import com.gaatho.rent.core.cache.DataStoreCache
+import com.gaatho.rent.core.network.safeSupabaseReadWithCache
+
 class CloudTenantRepository(
     private val supabase: SupabaseClient,
-    private val json: Json
+    private val json: Json,
+    private val cache: DataStoreCache
 ) : TenantRepository {
 
     override fun getTenants(ownerId: String): Flow<List<Tenant>> =
-        safeSupabaseRead(emptyList(), "CloudTenantRepository.getTenants") {
+        safeSupabaseReadWithCache(
+            default = emptyList(),
+            tag = "CloudTenantRepository.getTenants",
+            cache = cache,
+            cacheKey = "tenants_$ownerId",
+            serializer = kotlinx.serialization.builtins.ListSerializer(Tenant.serializer())
+        ) {
             val dtos = supabase.postgrest["tenant"]
                 .select(Columns.raw("*, property(name)")) {
                     filter {

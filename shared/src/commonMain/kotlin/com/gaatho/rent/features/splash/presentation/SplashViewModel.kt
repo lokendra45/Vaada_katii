@@ -1,37 +1,38 @@
 package com.gaatho.rent.features.splash.presentation
 
-import com.gaatho.rent.core.auth.GuestSessionManager
+import com.gaatho.rent.core.auth.AuthState
+import com.gaatho.rent.core.auth.AuthDeepLinkFlags
 import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.core.logging.AppLogger
 import com.gaatho.rent.core.mvi.MviViewModel
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.TimeSource
 
+private const val SPLASH_SETTLE_TIMEOUT_MS = 10_000L
+private const val DEEPLINK_GRACE_MS = 2_500L
+
 /**
- * Production-grade ViewModel for the Splash screen.
+ * Splash screen ViewModel.
  *
- * ## Responsibilities
- * 1. **Await** the Supabase session to be non-null before proceeding — eliminates the
- *    race condition where [SessionManager.currentUserId] returns "" on cold start.
- * 2. **Provision guest** — if no real account is logged in, create/reuse an anonymous
- *    Supabase session so that RLS (`owner_id = auth.uid()`) always has a valid UUID.
- * 3. **Enforce brand window** — exit splash only after at least 1 400 ms of visible
- *    branding, using elapsed-time math instead of a fixed delay.
- * 4. **Retry on error** — expose [SplashState.Phase.Error] and allow the UI to retry.
+ * Waits for Supabase Auth to settle, then routes:
+ * - Authenticated / Anonymous → Home
+ * - Unauthenticated → Login
+ *
+ * Does NOT auto-provision anonymous sessions. That is the Login screen's
+ * responsibility via "Continue as Guest". This eliminates the race condition
+ * where OAuth deep-link processing hasn't completed yet and the splash
+ * would wrongly provision a new anonymous session.
  */
 class SplashViewModel(
     private val sessionManager: SessionManager,
-    private val guestSessionManager: GuestSessionManager,
 ) : MviViewModel<SplashState, SplashSideEffect, SplashAction>() {
 
     override val container = orbitContainer<SplashState, SplashSideEffect>(SplashState()) {
         initialize()
     }
-
-    // ── Public API ────────────────────────────────────────────────────────────
 
     override fun onAction(action: SplashAction) {
         when (action) {
@@ -39,27 +40,61 @@ class SplashViewModel(
         }
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
-
     private fun initialize() = intent {
         reduce { state.copy(phase = SplashState.Phase.Loading) }
         val mark = TimeSource.Monotonic.markNow()
 
         try {
-            val ownerId = resolveOwnerId()
-            AppLogger.auth.i { "Session resolved. ownerId=$ownerId" }
+            AppLogger.auth.i { "Splash: waiting for AuthState to settle..." }
 
-            // Brand window: wait only for remaining time (never blocks if work took longer)
+            // Guard against a session status that never leaves Loading (e.g. a stuck
+            // storage read) so the splash can never hang forever.
+            val settled = withTimeoutOrNull(SPLASH_SETTLE_TIMEOUT_MS) {
+                sessionManager.authState.first { it !is AuthState.Loading }
+            }
+            var finalState = settled ?: AuthState.Unauthenticated
+
+            // If the app was launched via the OAuth redirect deep link, a PKCE code
+            // exchange may still be in flight. Wait a bounded amount for it to complete
+            // before defaulting to Login — but ONLY in that case, to avoid slowing down
+            // ordinary cold starts.
+            if (finalState is AuthState.Unauthenticated && AuthDeepLinkFlags.pendingOAuth) {
+                AppLogger.auth.i { "Splash: pending OAuth deep link — waiting for exchange" }
+                finalState = withTimeoutOrNull(DEEPLINK_GRACE_MS) {
+                    sessionManager.authState.first {
+                        it is AuthState.Authenticated || it is AuthState.Anonymous
+                    }
+                } ?: finalState
+            }
+            AuthDeepLinkFlags.pendingOAuth = false
+
+            AppLogger.auth.i { "Splash: settled on ${finalState::class.simpleName}" }
+
+            // Enforce minimum brand display time
             val elapsed = mark.elapsedNow()
             val minDisplay = 1_400.milliseconds
             if (elapsed < minDisplay) {
                 kotlinx.coroutines.delay((minDisplay - elapsed).inWholeMilliseconds)
             }
 
-            val isFirstLaunch = guestSessionManager.hasActiveGuestSession()
-            postSideEffect(SplashSideEffect.NavigateToHome(isFirstLaunch = isFirstLaunch))
-
-        } catch (e: CancellationException) {
+            when (finalState) {
+                is AuthState.Authenticated -> {
+                    AppLogger.auth.i { "Splash → Home (authenticated: ${finalState.user.email})" }
+                    postSideEffect(SplashSideEffect.NavigateToHome)
+                }
+                is AuthState.Anonymous -> {
+                    AppLogger.auth.i { "Splash → Home (anonymous guest: ${finalState.user.id})" }
+                    postSideEffect(SplashSideEffect.NavigateToHome)
+                }
+                is AuthState.Unauthenticated -> {
+                    AppLogger.auth.i { "Splash → Login (no session)" }
+                    postSideEffect(SplashSideEffect.NavigateToLogin)
+                }
+                is AuthState.Loading -> {
+                    // Unreachable due to .first filter
+                }
+            }
+        } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {
             AppLogger.auth.e(e) { "Splash initialization failed" }
@@ -71,27 +106,5 @@ class SplashViewModel(
 
     private fun retry() = intent {
         initialize()
-    }
-
-    /**
-     * Waits (suspends) for the Supabase session to settle, then returns the user ID.
-     * If no real account exists, provisions an anonymous guest session and returns its ID.
-     *
-     * Using `.first { ... }` ensures we never read the ID synchronously during cold start
-     * before the local token cache has been restored by the Supabase SDK.
-     */
-    private suspend fun resolveOwnerId(): String {
-        val existingUser = sessionManager.currentUser
-            .first { it != null || !sessionManager.isLoggedIn.value }
-
-        if (existingUser != null) {
-            AppLogger.auth.i { "isLoggedIn=true uid=${existingUser.id}" }
-            return existingUser.id
-        }
-
-        AppLogger.auth.i { "No session found. Provisioning anonymous guest…" }
-        val guestId = guestSessionManager.ensureGuestSession()
-        AppLogger.auth.i { "Guest session ready. guestId=$guestId" }
-        return guestId
     }
 }

@@ -1,6 +1,6 @@
 package com.gaatho.rent.features.payment.presentation.list
 
-import com.gaatho.rent.core.auth.UserIdentityProvider
+import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.core.logging.AppLogger
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.utils.CurrencyUtil
@@ -28,11 +28,11 @@ import com.gaatho.rent.features.payment.domain.model.Payment
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class PaymentListViewModel(
     private val paymentRepository: PaymentRepository,
-    private val userIdentityProvider: UserIdentityProvider
+    private val sessionManager: SessionManager
 ) : MviViewModel<PaymentListState, PaymentListSideEffect, PaymentListAction>() {
 
     private val ownerId: String
-        get() = userIdentityProvider.currentUserId()
+        get() = (sessionManager.currentUserId() ?: "")
 
     private val _searchText = MutableStateFlow("")
     val searchText = _searchText.asStateFlow()

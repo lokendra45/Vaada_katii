@@ -1,6 +1,6 @@
 package com.gaatho.rent.features.property.presentation.details
 
-import com.gaatho.rent.core.auth.UserIdentityProvider
+import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.ui.ErrorMessageExtractor
 import com.gaatho.rent.core.ui.UiState
@@ -19,7 +19,7 @@ class PropertyDetailsViewModel(
     private val propertyId: String,
     private val propertyRepository: PropertyRepository,
     private val tenantRepository: TenantRepository,
-    private val userIdentityProvider: UserIdentityProvider,
+    private val sessionManager: SessionManager,
 ) : MviViewModel<PropertyDetailsState, PropertyDetailsSideEffect, PropertyDetailsAction>() {
 
     override val container = orbitContainer<PropertyDetailsState, PropertyDetailsSideEffect>(

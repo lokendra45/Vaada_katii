@@ -2,20 +2,14 @@ package com.gaatho.rent.features.auth.di
 
 import com.gaatho.rent.core.auth.AuthRepository
 import com.gaatho.rent.core.auth.AuthRepositoryImpl
-import com.gaatho.rent.core.auth.GuestSessionManager
 import com.gaatho.rent.core.auth.SessionManager
-import com.gaatho.rent.core.auth.SupabaseGuestSessionManager
 import com.gaatho.rent.core.auth.SupabaseSessionManager
-import com.gaatho.rent.core.auth.UserIdentityProvider
-import com.gaatho.rent.core.auth.UserIdentityProviderImpl
 import com.gaatho.rent.features.auth.presentation.AuthViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val authModule = module {
     single<SessionManager> { SupabaseSessionManager(get()) }
-    single<GuestSessionManager> { SupabaseGuestSessionManager(get(), get()) }
-    single<UserIdentityProvider> { UserIdentityProviderImpl(get(), get()) }
     single<AuthRepository> { AuthRepositoryImpl(get()) }
-    viewModel { AuthViewModel(get(), get(), get()) }
+    viewModel { AuthViewModel(get(), get()) }
 }

@@ -16,7 +16,7 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val tenantModule = module {
-    single<TenantRepository> { CloudTenantRepository(get(), get()) }
+    single<TenantRepository> { CloudTenantRepository(get(), get(), get()) }
 
     factory { ObserveTenantUseCase(get()) }
     factory { GetPagedTenantsUseCase(get()) }

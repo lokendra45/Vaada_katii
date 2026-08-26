@@ -10,6 +10,7 @@ import com.gaatho.rent.features.property.di.propertyModule
 import com.gaatho.rent.features.settings.di.settingsModule
 import com.gaatho.rent.features.splash.di.splashModule
 import com.gaatho.rent.features.tenant.di.tenantModule
+import com.gaatho.rent.core.di.coreModule
 import com.gaatho.rent.core.security.di.securityModule
 import org.koin.core.context.startKoin
 import org.koin.dsl.KoinAppDeclaration
@@ -29,7 +30,7 @@ fun initKoin(supabaseConfig: SupabaseConfig, appDeclaration: KoinAppDeclaration 
         appDeclaration()
         modules(
             platformModule,
-
+            coreModule,
             supabaseModule(supabaseConfig),
             splashModule,
             authModule,
