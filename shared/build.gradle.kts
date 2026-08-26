@@ -20,12 +20,6 @@ kotlin {
         }
     }
 
-    // Required for RevenueCat KMP SDK
-    sourceSets.named { it.lowercase().startsWith("ios") }.configureEach {
-        languageSettings {
-            optIn("kotlinx.cinterop.ExperimentalForeignApi")
-        }
-    }
 
     android {
        namespace = "com.gaatho.rent.shared"
@@ -102,11 +96,6 @@ kotlin {
             implementation(libs.coil.network)
 
 
-
-            // RevenueCat
-            api(libs.purchases.core)
-            implementation(libs.purchases.result)
-            implementation(libs.purchases.ui)
 
             // Orbit MVI
             implementation(libs.orbit.core)

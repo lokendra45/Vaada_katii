@@ -41,11 +41,7 @@ android {
             "SUPABASE_KEY",
             "\"${localProps.getProperty("SUPABASE_KEY", "placeholder-anon-key")}\""
         )
-        buildConfigField(
-            "String",
-            "REVENUECAT_API_KEY",
-            "\"${localProps.getProperty("REVENUECAT_API_KEY", "")}\""
-        )
+
     }
 
     buildFeatures {
@@ -82,7 +78,6 @@ android {
 
 dependencies {
     implementation(projects.shared)
-    implementation(libs.purchases.core)
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.koin.android)

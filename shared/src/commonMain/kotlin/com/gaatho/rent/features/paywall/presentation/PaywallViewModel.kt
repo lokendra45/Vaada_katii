@@ -2,6 +2,7 @@ package com.gaatho.rent.features.paywall.presentation
 
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.features.paywall.data.repository.PaywallRepository
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 
@@ -16,12 +17,18 @@ data class PaywallState(
 
 sealed interface PaywallAction {
     data object OnDismiss : PaywallAction
+    /**
+     * Dispatch this after a successful WebView payment callback and
+     * server-side verification to unlock the premium entitlement.
+     */
+    data object OnPaymentSucceeded : PaywallAction
 }
 
 // ─── Side Effects ─────────────────────────────────────────────────────────────
 
 sealed interface PaywallSideEffect {
     data object NavigateBack : PaywallSideEffect
+    data object NavigateBackWithSuccess : PaywallSideEffect
 }
 
 // ─── ViewModel ────────────────────────────────────────────────────────────────
@@ -40,6 +47,10 @@ class PaywallViewModel(
         when (action) {
             is PaywallAction.OnDismiss -> intent {
                 postSideEffect(PaywallSideEffect.NavigateBack)
+            }
+            is PaywallAction.OnPaymentSucceeded -> intent {
+                viewModelScope.launch { paywallRepository.grantPremiumAccess() }
+                postSideEffect(PaywallSideEffect.NavigateBackWithSuccess)
             }
         }
     }
