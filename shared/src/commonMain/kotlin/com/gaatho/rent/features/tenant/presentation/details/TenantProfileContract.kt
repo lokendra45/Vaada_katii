@@ -26,6 +26,7 @@ sealed interface TenantProfileAction {
 sealed interface TenantProfileEffect {
     data class NavigateToEdit(val tenantId: String) : TenantProfileEffect
     data class OpenPhoneApp(val phone: String) : TenantProfileEffect
+    data class OpenSmsApp(val phone: String) : TenantProfileEffect
     data class OpenEmailApp(val email: String) : TenantProfileEffect
     data class ShowToast(val message: String) : TenantProfileEffect
     data class ShowError(val message: String) : TenantProfileEffect

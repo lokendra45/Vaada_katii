@@ -1,9 +1,14 @@
 package com.gaatho.rent.features.tenant.presentation.edit
 
+import androidx.compose.ui.text.input.TextFieldValue
 import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.core.logging.AppLogger
 import com.gaatho.rent.core.mvi.MviViewModel
+import com.gaatho.rent.core.network.StorageRepository
 import com.gaatho.rent.core.ui.ErrorMessageExtractor
+import com.gaatho.rent.core.utils.UuidUtil
+import com.gaatho.rent.core.utils.ValidationUtil
+import com.gaatho.rent.core.utils.compressImage
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
 import com.gaatho.rent.features.tenant.domain.usecase.DeleteTenantUseCase
 import com.gaatho.rent.features.tenant.domain.usecase.ObserveTenantUseCase
@@ -12,7 +17,6 @@ import com.skydoves.sandwich.ApiResponse
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.firstOrNull
 import org.orbitmvi.orbit.viewmodel.orbitContainer
-import androidx.compose.ui.text.input.TextFieldValue
 
 class EditTenantViewModel(
     private val tenantId: String,
@@ -20,7 +24,8 @@ class EditTenantViewModel(
     private val saveTenant: SaveTenantUseCase,
     private val deleteTenant: DeleteTenantUseCase,
     private val propertyRepository: PropertyRepository,
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val storageRepository: StorageRepository
 ) : MviViewModel<EditTenantState, EditTenantSideEffect, EditTenantAction>() {
     private val ownerId: String
         get() = (sessionManager.currentUserId() ?: "")
@@ -34,9 +39,31 @@ class EditTenantViewModel(
 
         try {
             val properties = propertyRepository.getProperties(ownerId).firstOrNull() ?: emptyList()
-            val propertyOptions = properties.map { PropertyOption(it.id, it.name) }
+            val propertyOptions = properties.map { prop ->
+                PropertyOption(
+                    id = prop.id,
+                    name = prop.name,
+                    monthlyRent = prop.monthlyRent,
+                    wifiCharge = prop.wifiCharge,
+                    waterCharge = prop.waterCharge,
+                    electricityCharge = prop.electricityCharge,
+                    wasteCharge = prop.wasteCharge,
+                    units = prop.units.map { unit ->
+                        PropertyUnitOption(
+                            id = unit.id,
+                            name = unit.name,
+                            monthlyRent = unit.monthlyRent
+                        )
+                    }
+                )
+            }
 
             if (tenantId == "new") {
+                if (propertyOptions.isEmpty()) {
+                    postSideEffect(EditTenantSideEffect.ShowSnackbar("Please add at least one property before adding a tenant."))
+                    postSideEffect(EditTenantSideEffect.NavigateBack)
+                    return@intent
+                }
                 reduce {
                     state.copy(
                         isLoading = false,
@@ -56,7 +83,18 @@ class EditTenantViewModel(
                             propertyId = tenant.propertyId ?: "",
                             unitNumber = TextFieldValue(tenant.roomNumber ?: ""),
                             status = tenant.status,
-                            propertyOptions = propertyOptions
+                            propertyOptions = propertyOptions,
+                            profileImageUrl = tenant.profileImageUrl,
+                            documentType = tenant.documentType ?: "Citizenship",
+                            documentUrl = tenant.documentUrl,
+                            hasWifi = tenant.hasWifi,
+                            hasWater = tenant.hasWater,
+                            hasElectricity = tenant.hasElectricity,
+                            hasWaste = tenant.hasWaste,
+                            paymentDueDate = tenant.paymentDueDate ?: "",
+                            securityDeposit = TextFieldValue(tenant.securityDeposit.toString()),
+                            uploadedDocumentName = tenant.documentUrl?.substringAfterLast("/"),
+                            originalCreatedAt = tenant.createdAt
                         )
                     }
                 } else {
@@ -79,10 +117,10 @@ class EditTenantViewModel(
                 reduce { state.copy(name = action.value, nameError = null) }
             }
             is EditTenantAction.OnPhoneChanged -> intent {
-                reduce { state.copy(phone = action.value) }
+                reduce { state.copy(phone = action.value, phoneError = null) }
             }
             is EditTenantAction.OnEmailChanged -> intent {
-                reduce { state.copy(email = action.value) }
+                reduce { state.copy(email = action.value, emailError = null) }
             }
             is EditTenantAction.OnRentChanged -> intent {
                 val digits = action.value.text.filter { it.isDigit() }
@@ -90,6 +128,17 @@ class EditTenantViewModel(
             }
             is EditTenantAction.OnUnitNumberChanged -> intent {
                 reduce { state.copy(unitNumber = action.value) }
+            }
+            is EditTenantAction.OnUnitSelected -> intent {
+                val property = state.propertyOptions.find { it.id == state.propertyId }
+                val unit = property?.units?.find { it.name == action.unitName }
+                
+                reduce { 
+                    state.copy(
+                        unitNumber = TextFieldValue(action.unitName),
+                        rentAmount = if (unit != null) TextFieldValue(unit.monthlyRent.toString()) else state.rentAmount
+                    )
+                }
             }
             is EditTenantAction.OnMoveInDateChanged -> intent {
                 reduce { state.copy(moveInDate = action.date) }
@@ -102,10 +151,49 @@ class EditTenantViewModel(
                 reduce { state.copy(securityDeposit = action.value.copy(text = digits)) }
             }
             is EditTenantAction.OnPropertySelected -> intent {
-                reduce { state.copy(propertyId = action.propertyId) }
+                val property = state.propertyOptions.find { it.id == action.propertyId }
+                val firstUnit = property?.units?.firstOrNull()
+                reduce { 
+                    state.copy(
+                        propertyId = action.propertyId,
+                        unitNumber = TextFieldValue(firstUnit?.name ?: ""),
+                        rentAmount = TextFieldValue((firstUnit?.monthlyRent ?: property?.monthlyRent ?: 0L).toString())
+                    ) 
+                }
             }
             is EditTenantAction.OnStatusSelected -> intent {
                 reduce { state.copy(status = action.status) }
+            }
+            is EditTenantAction.OnProfileImagePicked -> intent {
+                // Store bytes locally — upload on Save
+                val compressedBytes = compressImage(action.bytes, action.name)
+                reduce {
+                    state.copy(
+                        pendingProfileBytes = compressedBytes,
+                        pendingProfileName = action.name
+                    )
+                }
+            }
+            is EditTenantAction.OnDocumentTypeSelected -> intent {
+                reduce { state.copy(documentType = action.type) }
+            }
+            is EditTenantAction.OnPaymentDueDateChanged -> intent {
+                reduce { state.copy(paymentDueDate = action.date) }
+            }
+            is EditTenantAction.OnWifiToggled -> handleUtilityToggle(action.enabled, "wifi")
+            is EditTenantAction.OnWaterToggled -> handleUtilityToggle(action.enabled, "water")
+            is EditTenantAction.OnElectricityToggled -> handleUtilityToggle(action.enabled, "electricity")
+            is EditTenantAction.OnWasteToggled -> handleUtilityToggle(action.enabled, "waste")
+            is EditTenantAction.OnDocumentPicked -> intent {
+                // Store bytes locally — upload on Save
+                val compressedBytes = compressImage(action.bytes, action.name)
+                reduce {
+                    state.copy(
+                        uploadedDocumentName = action.name,
+                        pendingDocBytes = compressedBytes,
+                        pendingDocName = action.name
+                    )
+                }
             }
             is EditTenantAction.OnSaveClicked -> saveTenant()
             is EditTenantAction.OnSuccessDialogDismissed -> intent {
@@ -149,12 +237,29 @@ class EditTenantViewModel(
 
     private fun saveTenant() = intent {
         val currentState = state
+        if (currentState.isSaving) return@intent
+        
         var hasError = false
         var nameErr: String? = null
+        var phoneErr: String? = null
+        var emailErr: String? = null
         var rentErr: String? = null
 
         if (currentState.name.text.isBlank()) {
             nameErr = "Name cannot be empty"
+            hasError = true
+        }
+        val phone = currentState.phone.text.trim()
+        if (phone.isBlank()) {
+            phoneErr = "Phone number is required"
+            hasError = true
+        } else if (!ValidationUtil.isValidNepaliPhone(phone)) {
+            phoneErr = "Enter a valid 10-digit Nepali phone number"
+            hasError = true
+        }
+        val email = currentState.email.text.trim()
+        if (email.isNotBlank() && !ValidationUtil.isValidEmail(email)) {
+            emailErr = "Enter a valid email address"
             hasError = true
         }
         if (currentState.rentAmount.text.isBlank()) {
@@ -163,12 +268,50 @@ class EditTenantViewModel(
         }
 
         if (hasError) {
-            reduce { state.copy(nameError = nameErr, rentError = rentErr) }
+            reduce { state.copy(nameError = nameErr, phoneError = phoneErr, emailError = emailErr, rentError = rentErr) }
             return@intent
         }
 
         val propertyName = currentState.propertyOptions
             .find { it.id == currentState.propertyId }?.name ?: ""
+
+        reduce { state.copy(isSaving = true) }
+
+        // Upload profile image if staged
+        val finalProfileUrl: String = if (currentState.pendingProfileBytes != null) {
+            val path = "${UuidUtil.generateV7String()}_${currentState.pendingProfileName ?: "profile.jpg"}"
+            when (val r = storageRepository.uploadFile("avatars", path, currentState.pendingProfileBytes)) {
+                is ApiResponse.Success -> r.data
+                is ApiResponse.Failure.Error -> {
+                    reduce { state.copy(isSaving = false) }
+                    postSideEffect(EditTenantSideEffect.ShowSnackbar("Failed to upload profile image"))
+                    return@intent
+                }
+                is ApiResponse.Failure.Exception -> {
+                    reduce { state.copy(isSaving = false) }
+                    postSideEffect(EditTenantSideEffect.ShowSnackbar("Failed to upload profile image"))
+                    return@intent
+                }
+            }
+        } else currentState.profileImageUrl ?: ""
+
+        // Upload document if staged
+        val finalDocUrl: String = if (currentState.pendingDocBytes != null) {
+            val path = "${UuidUtil.generateV7String()}_${currentState.pendingDocName ?: "doc.jpg"}"
+            when (val r = storageRepository.uploadFile("documents", path, currentState.pendingDocBytes)) {
+                is ApiResponse.Success -> r.data
+                is ApiResponse.Failure.Error -> {
+                    reduce { state.copy(isSaving = false) }
+                    postSideEffect(EditTenantSideEffect.ShowSnackbar("Failed to upload document"))
+                    return@intent
+                }
+                is ApiResponse.Failure.Exception -> {
+                    reduce { state.copy(isSaving = false) }
+                    postSideEffect(EditTenantSideEffect.ShowSnackbar("Failed to upload document"))
+                    return@intent
+                }
+            }
+        } else currentState.documentUrl ?: ""
 
         val params = SaveTenantUseCase.Params(
             isNew = tenantId == "new",
@@ -179,12 +322,22 @@ class EditTenantViewModel(
             phone = currentState.phone.text,
             propertyId = currentState.propertyId ?: "",
             propertyName = propertyName,
-            unitNumber = currentState.unitNumber.text,
+            unitNumber = currentState.unitNumber.text.trim(),
             rentAmount = currentState.rentAmount.text.toLongOrNull() ?: 0L,
-            status = currentState.status
+            profileImageUrl = finalProfileUrl,
+            documentType = currentState.documentType,
+            documentUrl = finalDocUrl,
+            hasWifi = currentState.hasWifi,
+            hasWater = currentState.hasWater,
+            hasElectricity = currentState.hasElectricity,
+            hasWaste = currentState.hasWaste,
+            leaseDuration = currentState.leaseDuration,
+            moveInDate = currentState.moveInDate,
+            paymentDueDate = currentState.paymentDueDate,
+            securityDeposit = currentState.securityDeposit.text.toLongOrNull() ?: 0L,
+            status = currentState.status,
+            originalCreatedAt = currentState.originalCreatedAt
         )
-
-        reduce { state.copy(isSaving = true) }
 
         when (val response = saveTenant(params)) {
             is ApiResponse.Success -> {
@@ -201,6 +354,32 @@ class EditTenantViewModel(
                 postSideEffect(EditTenantSideEffect.ShowSnackbar(
                     ErrorMessageExtractor.extract(response, "Couldn't save tenant. Please try again.")
                 ))
+            }
+        }
+    }
+
+    private fun handleUtilityToggle(enabled: Boolean, utilityType: String) = intent {
+        val property = state.propertyOptions.find { it.id == state.propertyId } ?: return@intent
+        val charge = when (utilityType) {
+            "wifi" -> property.wifiCharge
+            "water" -> property.waterCharge
+            "electricity" -> property.electricityCharge
+            "waste" -> property.wasteCharge
+            else -> 0L
+        }
+        if (charge > 0) {
+            val currentRent = state.rentAmount.text.toLongOrNull() ?: 0L
+            val newRent = if (enabled) currentRent + charge else (currentRent - charge).coerceAtLeast(0L)
+            reduce { state.copy(rentAmount = state.rentAmount.copy(text = newRent.toString())) }
+        }
+        
+        reduce { 
+            when (utilityType) {
+                "wifi" -> state.copy(hasWifi = enabled)
+                "water" -> state.copy(hasWater = enabled)
+                "electricity" -> state.copy(hasElectricity = enabled)
+                "waste" -> state.copy(hasWaste = enabled)
+                else -> state
             }
         }
     }

@@ -23,6 +23,7 @@ data class PaymentDto(
     @SerialName("payment_method") val paymentMethod: String? = null,
     @SerialName("notes") val notes: String? = null,
     @SerialName("idempotency_key") val idempotencyKey: String? = null,
+    @SerialName("receipt_number") val receiptNumber: String? = null,
     @SerialName("tenant") val tenant: PaymentTenantDto? = null,
     @SerialName("property") val property: PaymentPropertyDto? = null,
     @SerialName("created_at") val createdAt: String? = null,
@@ -57,6 +58,7 @@ fun PaymentDto.toDomain() = Payment(
     propertyName = property?.name,
     roomNumber = tenant?.roomNumber,
     idempotencyKey = idempotencyKey,
+    receiptNumber = receiptNumber,
     createdAt = createdAt,
     updatedAt = updatedAt
 )
@@ -73,6 +75,7 @@ fun Payment.toDto() = PaymentDto(
     paymentMethod = paymentMethod,
     notes = notes,
     idempotencyKey = idempotencyKey,
+    receiptNumber = receiptNumber,
     createdAt = createdAt,
     updatedAt = updatedAt
 )

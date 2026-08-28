@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -68,14 +69,20 @@ fun AppTextField(
     onClick: (() -> Unit)? = null
 ) {
     var textFieldValueState by remember { mutableStateOf(TextFieldValue(text = value)) }
-    val textFieldValue = textFieldValueState.copy(text = value)
+    
+    // Synchronize internal state with external value if it changes
+    LaunchedEffect(value) {
+        if (value != textFieldValueState.text) {
+            textFieldValueState = textFieldValueState.copy(text = value)
+        }
+    }
 
     AppTextField(
-        value = textFieldValue,
-        onValueChange = {
-            textFieldValueState = it
-            if (value != it.text) {
-                onValueChange(it.text)
+        value = textFieldValueState,
+        onValueChange = { newValue ->
+            textFieldValueState = newValue
+            if (value != newValue.text) {
+                onValueChange(newValue.text)
             }
         },
         modifier = modifier,

@@ -18,9 +18,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.animateContentSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -39,9 +42,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.ui.UiState
+import com.gaatho.rent.core.ui.components.AppDateField
 import com.gaatho.rent.core.ui.components.AppDatePickerDialog
 import com.gaatho.rent.core.ui.components.AppDropdown
 import com.gaatho.rent.core.ui.components.AppSnackbarHost
@@ -50,10 +55,11 @@ import com.gaatho.rent.core.ui.components.AppTextField
 import com.gaatho.rent.core.ui.components.AppTopBar
 import com.gaatho.rent.core.ui.components.rememberAppSnackbarState
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.datetime.LocalDate
+import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.assign_property_label
 import rentmanagerapp.shared.generated.resources.payment_add_title
 import rentmanagerapp.shared.generated.resources.payment_amount_label
 import rentmanagerapp.shared.generated.resources.payment_amount_placeholder
@@ -65,14 +71,13 @@ import rentmanagerapp.shared.generated.resources.payment_method_bank
 import rentmanagerapp.shared.generated.resources.payment_method_cash
 import rentmanagerapp.shared.generated.resources.payment_method_esewa
 import rentmanagerapp.shared.generated.resources.payment_method_khalti
-import rentmanagerapp.shared.generated.resources.payment_property_unit_label
 import rentmanagerapp.shared.generated.resources.payment_property_unit_placeholder
 import rentmanagerapp.shared.generated.resources.payment_record_button
 import rentmanagerapp.shared.generated.resources.payment_remarks_label
 import rentmanagerapp.shared.generated.resources.payment_remarks_placeholder
 import rentmanagerapp.shared.generated.resources.payment_tenant_label
 import rentmanagerapp.shared.generated.resources.payment_tenant_placeholder
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import rentmanagerapp.shared.generated.resources.unit_number_label
 
 @Composable
 fun AddPaymentScreen(
@@ -117,25 +122,7 @@ fun AddPaymentContent(
     onAction: (AddPaymentAction) -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    val propertyItems = (state.propertiesState as? UiState.Success)?.data ?: persistentListOf()
-    val tenantItems = (state.tenantsState as? UiState.Success)?.data ?: persistentListOf()
-
-    val labelStyle = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium)
-    val fieldStyle = MaterialTheme.typography.bodyLarge.copy(
-        fontWeight = FontWeight.Normal,
-        fontSize = 13.sp
-    )
     val fieldShape = RoundedCornerShape(10.dp)
-
-    val selectedTenant = tenantItems.find { it.id == state.selectedTenantId }
-    val propertyName = propertyItems.find { it.id == state.selectedPropertyId }?.name
-    val propertyUnitLabel = when {
-        selectedTenant != null && propertyName != null ->
-            if (selectedTenant.roomNumber != null) "$propertyName - Unit ${selectedTenant.roomNumber}" else propertyName
-
-        else -> ""
-    }
-    val dateDisplay = formatDisplayDate(state.paymentDate)
 
     if (state.showDatePicker) {
         AppDatePickerDialog(
@@ -162,38 +149,67 @@ fun AddPaymentContent(
             )
         }
     ) { innerPadding ->
+        // Guard: need at least one active tenant to record a payment
+        val dataLoaded = state.tenantsState is UiState.Success
+        if (dataLoaded && state.allTenants.isEmpty()) {
+            NoTenantsEmptyState(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(32.dp)
+            )
+            return@Scaffold
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp)
+                .animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
         ) {
             Spacer(Modifier.height(16.dp))
 
             // Select Tenant
             AppDropdown(
-                options = tenantItems,
-                selectedItem = tenantItems.find { it.id == state.selectedTenantId },
+                options = state.allTenants,
+                selectedItem = state.selectedTenant,
                 itemLabel = { it.name },
                 onItemSelected = { onAction(AddPaymentAction.OnTenantSelected(it.id)) },
                 label = stringResource(Res.string.payment_tenant_label),
                 placeholder = stringResource(Res.string.payment_tenant_placeholder),
-                labelStyle = labelStyle,
-                fieldTextStyle = fieldStyle,
                 shape = fieldShape,
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(Modifier.height(16.dp))
 
-            // Property & Unit (derived from tenant, disabled)
-            DisabledField(
-                text = propertyUnitLabel,
+            // Property (required)
+            AppDropdown(
+                options = state.propertyItems,
+                selectedItem = state.selectedProperty,
+                itemLabel = { it.name },
+                onItemSelected = { onAction(AddPaymentAction.OnPropertySelected(it.id)) },
+                label = stringResource(Res.string.assign_property_label),
                 placeholder = stringResource(Res.string.payment_property_unit_placeholder),
-                label = stringResource(Res.string.payment_property_unit_label),
-                labelStyle = labelStyle,
+                shape = fieldShape,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            // Unit (required once a property is selected)
+            AppDropdown(
+                options = state.unitOptions,
+                selectedItem = state.selectedUnit,
+                itemLabel = { it },
+                onItemSelected = { onAction(AddPaymentAction.OnUnitSelected(it)) },
+                label = stringResource(Res.string.unit_number_label),
+                placeholder = if (state.selectedProperty == null)
+                    "Select a property first" else "Select unit",
+                shape = fieldShape,
+                enabled = state.selectedProperty != null,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -207,8 +223,6 @@ fun AddPaymentContent(
                 placeholder = stringResource(Res.string.payment_amount_placeholder),
                 prefix = stringResource(Res.string.payment_currency).trimEnd(),
                 prefixColor = AppColors.EmeraldAccent,
-                labelStyle = labelStyle,
-                fieldTextStyle = fieldStyle.copy(fontWeight = FontWeight.Medium),
                 shape = fieldShape,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
@@ -220,7 +234,7 @@ fun AddPaymentContent(
             Column {
                 Text(
                     text = stringResource(Res.string.payment_method),
-                    style = labelStyle,
+                    style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -233,24 +247,12 @@ fun AddPaymentContent(
             Spacer(Modifier.height(16.dp))
 
             // Received Date
-            AppTextField(
-                value = dateDisplay,
-                onValueChange = {},
-                readOnly = true,
+            AppDateField(
+                value = state.paymentDate,
+                onClick = { onAction(AddPaymentAction.OnDateFieldClicked) },
                 label = stringResource(Res.string.payment_date_label),
                 placeholder = stringResource(Res.string.payment_date_placeholder),
-                labelStyle = labelStyle,
-                fieldTextStyle = fieldStyle,
                 shape = fieldShape,
-                trailingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.CalendarToday,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                        modifier = Modifier.size(20.dp)
-                    )
-                },
-                onClick = { onAction(AddPaymentAction.OnDateFieldClicked) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -262,8 +264,6 @@ fun AddPaymentContent(
                 onValueChange = { onAction(AddPaymentAction.OnRemarksChanged(it)) },
                 label = stringResource(Res.string.payment_remarks_label),
                 placeholder = stringResource(Res.string.payment_remarks_placeholder),
-                labelStyle = labelStyle,
-                fieldTextStyle = fieldStyle,
                 shape = fieldShape,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -284,7 +284,7 @@ private fun DisabledField(
     Column(modifier = modifier) {
         Text(
             text = label,
-            style = labelStyle,
+            style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -304,10 +304,7 @@ private fun DisabledField(
             ) {
                 Text(
                     text = if (text.isEmpty()) placeholder else text,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 13.sp
-                    ),
+                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -355,7 +352,7 @@ private fun PaymentMethodChips(
                 Box(contentAlignment = Alignment.Center) {
                     Text(
                         text = label,
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
+                        style = MaterialTheme.typography.labelLarge,
                         color = if (isSelected) AppColors.EmeraldAccent
                         else MaterialTheme.colorScheme.onSurface
                     )
@@ -402,7 +399,7 @@ private fun RecordPaymentBottomBar(
                 } else {
                     Text(
                         text = stringResource(Res.string.payment_record_button),
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
+                        style = MaterialTheme.typography.titleLarge
                     )
                 }
             }
@@ -410,23 +407,37 @@ private fun RecordPaymentBottomBar(
     }
 }
 
-/** Formats "2023-10-18" as "Oct 18, 2023". */
-private fun formatDisplayDate(iso: String): String {
-    if (iso.isBlank()) return ""
-    return try {
-        val date = LocalDate.parse(iso.substring(0, 10))
-        val months = arrayOf(
-            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+@Composable
+private fun NoTenantsEmptyState(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.PersonAdd,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(64.dp)
         )
-        val month = months.getOrNull(date.month.ordinal) ?: "?"
-        "$month ${date.day}, ${date.year}"
-    } catch (e: Exception) {
-        iso
+        Spacer(Modifier.height(24.dp))
+        Text(
+            text = "No Active Tenants",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = "You need at least one active tenant to record a payment. Go to the Tenants tab and add your first tenant.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
     }
 }
 
 @androidx.compose.ui.tooling.preview.Preview
+
 @Composable
 private fun AddPaymentScreenPreview() {
     RentManagerTheme {

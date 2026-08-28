@@ -46,6 +46,21 @@ android {
             "GOOGLE_CLIENT_ID",
             "\"${localProps.getProperty("GOOGLE_CLIENT_ID", "")}\""
         )
+        buildConfigField(
+            "String",
+            "SUPABASE_S3_SECRET_KEY",
+            "\"${localProps.getProperty("SUPABASE_S3_SECRET_KEY", "")}\""
+        )
+        buildConfigField(
+            "String",
+            "SUPABASE_S3_ACCESS_KEY_ID",
+            "\"${localProps.getProperty("SUPABASE_S3_ACCESS_KEY_ID", "")}\""
+        )
+        buildConfigField(
+            "String",
+            "SUPABASE_S3_ENDPOINT",
+            "\"${localProps.getProperty("SUPABASE_S3_ENDPOINT", "")}\""
+        )
 
     }
 

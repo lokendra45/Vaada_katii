@@ -29,8 +29,19 @@ class SaveTenantUseCase(
             propertyName = params.propertyName.takeIf { it.isNotBlank() },
             roomNumber = params.unitNumber.takeIf { it.isNotBlank() },
             rentAmount = params.rentAmount,
+            profileImageUrl = params.profileImageUrl.takeIf { it.isNotBlank() },
+            documentType = params.documentType.takeIf { it.isNotBlank() },
+            documentUrl = params.documentUrl.takeIf { it.isNotBlank() },
+            hasWifi = params.hasWifi,
+            hasWater = params.hasWater,
+            hasElectricity = params.hasElectricity,
+            hasWaste = params.hasWaste,
+            leaseDuration = params.leaseDuration.takeIf { it.isNotBlank() },
+            moveInDate = params.moveInDate.takeIf { it.isNotBlank() },
+            paymentDueDate = params.paymentDueDate.takeIf { it.isNotBlank() },
+            securityDeposit = params.securityDeposit,
             status = params.status,
-            createdAt = DateTimeUtil.nowIsoString(),
+            createdAt = params.originalCreatedAt ?: DateTimeUtil.nowIsoString(),
             updatedAt = DateTimeUtil.nowIsoString()
         )
 
@@ -52,6 +63,18 @@ class SaveTenantUseCase(
         val propertyName: String,
         val unitNumber: String,
         val rentAmount: Long,
-        val status: String
+        val profileImageUrl: String,
+        val documentType: String,
+        val documentUrl: String,
+        val hasWifi: Boolean,
+        val hasWater: Boolean,
+        val hasElectricity: Boolean,
+        val hasWaste: Boolean,
+        val leaseDuration: String,
+        val moveInDate: String,
+        val paymentDueDate: String,
+        val securityDeposit: Long,
+        val status: String,
+        val originalCreatedAt: String? = null
     )
 }

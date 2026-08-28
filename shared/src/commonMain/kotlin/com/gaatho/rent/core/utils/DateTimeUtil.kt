@@ -1,6 +1,6 @@
 package com.gaatho.rent.core.utils
 
-import kotlin.time.Instant
+import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
@@ -19,6 +19,11 @@ object DateTimeUtil {
      * Use this for database `created_at` and `updated_at` columns.
      */
     fun nowIsoString(): String = kotlin.time.Clock.System.now().toString()
+
+    /**
+     * Returns the current system time as an [Instant].
+     */
+    fun nowInstant(): kotlin.time.Instant = kotlin.time.Clock.System.now()
 
     /**
      * Returns the current system time in milliseconds since the UNIX epoch.

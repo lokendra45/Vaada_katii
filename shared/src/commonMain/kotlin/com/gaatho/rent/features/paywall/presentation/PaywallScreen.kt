@@ -61,9 +61,7 @@ fun PaywallScreen(
 
             Text(
                 text = "Upgrade to Premium",
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold
-                ),
+                style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center
             )
 
@@ -71,9 +69,7 @@ fun PaywallScreen(
 
             Text(
                 text = "Unlock unlimited properties, tenants, and payment records.\n\neSewa / Khalti payment coming soon.",
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                ),
+                style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center
             )
 

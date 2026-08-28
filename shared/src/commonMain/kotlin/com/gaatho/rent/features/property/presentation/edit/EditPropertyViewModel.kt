@@ -3,9 +3,14 @@ package com.gaatho.rent.features.property.presentation.edit
 import androidx.compose.ui.text.input.TextFieldValue
 import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.core.mvi.MviViewModel
+import com.gaatho.rent.core.network.StorageRepository
 import com.gaatho.rent.core.ui.ErrorMessageExtractor
+import com.gaatho.rent.core.utils.UuidUtil
+import com.gaatho.rent.core.utils.compressImage
+import com.gaatho.rent.core.utils.DateTimeUtil
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
 import com.gaatho.rent.features.property.domain.model.Property
+import com.gaatho.rent.features.property.domain.model.PropertyUnit
 import com.skydoves.sandwich.ApiResponse
 import kotlinx.coroutines.flow.firstOrNull
 import org.orbitmvi.orbit.viewmodel.orbitContainer
@@ -14,10 +19,11 @@ class EditPropertyViewModel(
     private val propertyId: String,
     private val propertyRepository: PropertyRepository,
     private val sessionManager: SessionManager,
+    private val storageRepository: StorageRepository
 ) : MviViewModel<EditPropertyState, EditPropertySideEffect, EditPropertyAction>() {
 
     override val container = orbitContainer<EditPropertyState, EditPropertySideEffect>(
-        initialState = EditPropertyState()
+        initialState = EditPropertyState(isLoading = propertyId != "new")
     ) {
         loadProperty()
     }
@@ -35,6 +41,18 @@ class EditPropertyViewModel(
             ?.firstOrNull { it.id == propertyId }
 
         if (property != null) {
+            val unitStates = property.units.map { unit ->
+                PropertyUnitState(
+                    id = unit.id,
+                    name = TextFieldValue(unit.name),
+                    monthlyRent = TextFieldValue(unit.monthlyRent.toString())
+                )
+            }.ifEmpty { 
+                List(property.totalUnits) { i -> 
+                    PropertyUnitState(name = TextFieldValue("Unit ${i + 1}"), monthlyRent = TextFieldValue(property.monthlyRent.toString())) 
+                } 
+            }
+
             reduce {
                 state.copy(
                     isLoading = false,
@@ -43,12 +61,18 @@ class EditPropertyViewModel(
                     city = TextFieldValue(property.address.split(",").drop(1).joinToString(",").trim()),
                     propertyType = property.propertyType,
                     totalUnits = TextFieldValue(property.totalUnits.toString()),
-                    monthlyRent = TextFieldValue(
-                        property.monthlyRent.takeIf { it > 0L }?.toString() ?: ""
-                    ),
+                    units = unitStates,
+                    // monthlyRent removed
+                    wifiCharge = TextFieldValue(property.wifiCharge.toString()),
+                    waterCharge = TextFieldValue(property.waterCharge.toString()),
+                    electricityCharge = TextFieldValue(property.electricityCharge.toString()),
+                    wasteCharge = TextFieldValue(property.wasteCharge.toString()),
+                    imageUrl = property.imageUrl,
+                    uploadedImageName = property.imageUrl?.substringAfterLast("/"),
                     description = TextFieldValue(property.description),
-                    billingCycle = "1st of the month",
-                    selectedAmenities = setOf("Water", "Electricity")
+                    billingCycle = property.billingCycle,
+                    selectedAmenities = property.amenities,
+                    originalCreatedAt = property.createdAt
                 )
             }
         } else {
@@ -73,11 +97,60 @@ class EditPropertyViewModel(
             }
             is EditPropertyAction.OnTotalUnitsChanged -> intent {
                 val digits = action.value.text.filter { it.isDigit() }
-                reduce { state.copy(totalUnits = action.value.copy(text = digits)) }
+                val count = digits.toIntOrNull() ?: 1
+                
+                val newUnits = List(count) { i -> 
+                    state.units.getOrNull(i) ?: PropertyUnitState(
+                        id = UuidUtil.generateV7String(),
+                        name = TextFieldValue("Unit ${i + 1}"),
+                        monthlyRent = TextFieldValue("")
+                    )
+                }
+                reduce { state.copy(totalUnits = action.value.copy(text = digits), units = newUnits) }
             }
-            is EditPropertyAction.OnMonthlyRentChanged -> intent {
+            is EditPropertyAction.OnUnitNameChanged -> intent {
+                val newUnits = state.units.toMutableList()
+                if (action.index in newUnits.indices) {
+                    newUnits[action.index] = newUnits[action.index].copy(name = action.name)
+                    reduce { state.copy(units = newUnits) }
+                }
+            }
+            is EditPropertyAction.OnUnitRentChanged -> intent {
+                val newUnits = state.units.toMutableList()
+                if (action.index in newUnits.indices) {
+                    val digits = action.rent.text.filter { it.isDigit() }
+                    newUnits[action.index] = newUnits[action.index].copy(monthlyRent = action.rent.copy(text = digits))
+                    reduce { state.copy(units = newUnits) }
+                }
+            }
+            is EditPropertyAction.OnWifiChargeChanged -> intent {
                 val digits = action.value.text.filter { it.isDigit() }
-                reduce { state.copy(monthlyRent = action.value.copy(text = digits)) }
+                reduce { state.copy(wifiCharge = action.value.copy(text = digits)) }
+            }
+            is EditPropertyAction.OnWaterChargeChanged -> intent {
+                val digits = action.value.text.filter { it.isDigit() }
+                reduce { state.copy(waterCharge = action.value.copy(text = digits)) }
+            }
+            is EditPropertyAction.OnElectricityChargeChanged -> intent {
+                val digits = action.value.text.filter { it.isDigit() }
+                reduce { state.copy(electricityCharge = action.value.copy(text = digits)) }
+            }
+            is EditPropertyAction.OnWasteChargeChanged -> intent {
+                val digits = action.value.text.filter { it.isDigit() }
+                reduce { state.copy(wasteCharge = action.value.copy(text = digits)) }
+            }
+            is EditPropertyAction.OnImagePicked -> intent {
+                reduce { state.copy(isCompressingImage = true) }
+                // Just store the bytes locally – we upload when the user hits Save
+                val compressedBytes = compressImage(action.bytes, action.name)
+                reduce {
+                    state.copy(
+                        isCompressingImage = false,
+                        pendingImageBytes = compressedBytes,
+                        pendingImageName = action.name,
+                        uploadedImageName = action.name   // show filename in UI immediately
+                    )
+                }
             }
             is EditPropertyAction.OnDescriptionChanged -> intent {
                 reduce { state.copy(description = action.value) }
@@ -89,6 +162,13 @@ class EditPropertyViewModel(
                 if (action.amenity in amenities) amenities.remove(action.amenity)
                 else amenities.add(action.amenity)
                 reduce { state.copy(selectedAmenities = amenities) }
+            }
+            is EditPropertyAction.OnAddCustomAmenity -> intent {
+                if (action.amenity.isNotBlank()) {
+                    val amenities = state.selectedAmenities.toMutableSet()
+                    amenities.add(action.amenity.trim())
+                    reduce { state.copy(selectedAmenities = amenities) }
+                }
             }
             is EditPropertyAction.OnSaveClicked -> handleSave()
             is EditPropertyAction.OnSuccessDialogDismissed -> intent {
@@ -132,6 +212,8 @@ class EditPropertyViewModel(
 
     private fun handleSave() = intent {
         val s = state
+        if (s.isSaving) return@intent
+        
         var hasError = false
         var nameErr: String? = null
         var addressErr: String? = null
@@ -152,17 +234,52 @@ class EditPropertyViewModel(
 
         reduce { state.copy(isSaving = true) }
 
+        // Upload image now if one was staged
+        val pendingBytes = s.pendingImageBytes
+        val finalImageUrl: String? = if (pendingBytes != null) {
+            val path = "${UuidUtil.generateV7String()}_${s.pendingImageName ?: "image.jpg"}"
+            when (val r = storageRepository.uploadFile("properties", path, pendingBytes)) {
+                is ApiResponse.Success -> r.data
+                is ApiResponse.Failure.Error -> {
+                    reduce { state.copy(isSaving = false) }
+                    postSideEffect(EditPropertySideEffect.ShowSnackbar("Failed to upload image"))
+                    return@intent
+                }
+                is ApiResponse.Failure.Exception -> {
+                    reduce { state.copy(isSaving = false) }
+                    postSideEffect(EditPropertySideEffect.ShowSnackbar("Failed to upload image"))
+                    return@intent
+                }
+            }
+        } else s.imageUrl
+
+        val domainUnits = s.units.map { u ->
+            PropertyUnit(
+                id = u.id.ifBlank { UuidUtil.generateV7String() },
+                name = u.name.text,
+                monthlyRent = u.monthlyRent.text.toLongOrNull() ?: 0L
+            )
+        }
+
         val updated = Property(
-            id = if (propertyId == "new") com.gaatho.rent.core.utils.UuidUtil.generateV7String() else propertyId,
+            id = if (propertyId == "new") UuidUtil.generateV7String() else propertyId,
             ownerId = (sessionManager.currentUserId() ?: ""),
             name = s.name.text.trim(),
             address = "${s.streetAddress.text.trim()}, ${s.city.text.trim()}",
             propertyType = s.propertyType,
             totalUnits = s.totalUnits.text.toIntOrNull() ?: 1,
-            monthlyRent = s.monthlyRent.text.toLongOrNull() ?: 0L,
+            units = domainUnits,
+            imageUrl = finalImageUrl,
+            monthlyRent = domainUnits.firstOrNull()?.monthlyRent ?: 0L, // Use first unit's rent or 0 as a fallback
+            wifiCharge = s.wifiCharge.text.toLongOrNull() ?: 0L,
+            waterCharge = s.waterCharge.text.toLongOrNull() ?: 0L,
+            electricityCharge = s.electricityCharge.text.toLongOrNull() ?: 0L,
+            wasteCharge = s.wasteCharge.text.toLongOrNull() ?: 0L,
             description = s.description.text.trim(),
-            createdAt = com.gaatho.rent.core.utils.DateTimeUtil.nowIsoString(),
-            updatedAt = com.gaatho.rent.core.utils.DateTimeUtil.nowIsoString()
+            billingCycle = s.billingCycle,
+            amenities = s.selectedAmenities,
+            createdAt = if (propertyId == "new") DateTimeUtil.nowIsoString() else s.originalCreatedAt,
+            updatedAt = DateTimeUtil.nowIsoString()
         )
 
         val result = if (propertyId == "new") {

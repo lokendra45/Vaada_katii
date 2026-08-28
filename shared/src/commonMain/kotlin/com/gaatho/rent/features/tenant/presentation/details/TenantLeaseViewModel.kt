@@ -31,7 +31,11 @@ class TenantLeaseViewModel(
                 status = tenant.status,
                 isActive = tenant.status == "Active",
                 startDate = DateTimeUtil.formatReadableDate(tenant.createdAt),
-                endDate = "Ongoing"
+                endDate = "Ongoing",
+                leaseTerm = tenant.leaseDuration ?: "12 Months",
+                securityDeposit = CurrencyUtil.formatNprLabel(tenant.securityDeposit),
+                paymentDueDate = tenant.paymentDueDate,
+                roomNumber = tenant.roomNumber
             )
             
             reduce { state.copy(leaseState = UiState.Success(lease)) }

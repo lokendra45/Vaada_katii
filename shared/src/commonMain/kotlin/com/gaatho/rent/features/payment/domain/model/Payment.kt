@@ -32,6 +32,7 @@ data class Payment(
     val propertyName: String? = null,
     val roomNumber: String? = null,
     val idempotencyKey: String? = null,
+    val receiptNumber: String? = null,
     val createdAt: String? = null,
     val updatedAt: String? = null
 )

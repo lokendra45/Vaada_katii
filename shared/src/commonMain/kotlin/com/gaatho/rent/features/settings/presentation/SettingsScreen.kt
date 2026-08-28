@@ -6,7 +6,17 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,9 +25,35 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.automirrored.outlined.Logout
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.CurrencyRupee
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.DeleteForever
+import androidx.compose.material.icons.outlined.Fingerprint
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Mail
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,28 +61,49 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
-import com.gaatho.rent.core.designsystem.RentManagerTheme
-import com.gaatho.rent.core.designsystem.AppColors
-import com.gaatho.rent.core.ui.components.AppConfirmDialog
-import org.koin.compose.koinInject
-import org.orbitmvi.orbit.compose.collectSideEffect
-
-import org.koin.compose.viewmodel.koinViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gaatho.rent.core.designsystem.AppColors
+import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.environment.LanguageViewModel
-
+import com.gaatho.rent.core.ui.components.AppConfirmDialog
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
+import org.orbitmvi.orbit.compose.collectSideEffect
 import rentmanagerapp.shared.generated.resources.Res
-import rentmanagerapp.shared.generated.resources.*
+import rentmanagerapp.shared.generated.resources.about_gharbhada
+import rentmanagerapp.shared.generated.resources.account_section
+import rentmanagerapp.shared.generated.resources.biometric_lock
+import rentmanagerapp.shared.generated.resources.change_password
+import rentmanagerapp.shared.generated.resources.contact_us
+import rentmanagerapp.shared.generated.resources.currency
+import rentmanagerapp.shared.generated.resources.dark_mode
+import rentmanagerapp.shared.generated.resources.delete_account_desc
+import rentmanagerapp.shared.generated.resources.delete_account_title
+import rentmanagerapp.shared.generated.resources.delete_forever_action
+import rentmanagerapp.shared.generated.resources.edit_profile
+import rentmanagerapp.shared.generated.resources.guest
+import rentmanagerapp.shared.generated.resources.help_center
+import rentmanagerapp.shared.generated.resources.language
+import rentmanagerapp.shared.generated.resources.language_english
+import rentmanagerapp.shared.generated.resources.language_nepali
+import rentmanagerapp.shared.generated.resources.log_out
+import rentmanagerapp.shared.generated.resources.logout_action
+import rentmanagerapp.shared.generated.resources.logout_desc
+import rentmanagerapp.shared.generated.resources.logout_title
+import rentmanagerapp.shared.generated.resources.not_signed_in
+import rentmanagerapp.shared.generated.resources.notifications_label
+import rentmanagerapp.shared.generated.resources.pin_lock
+import rentmanagerapp.shared.generated.resources.preferences_section
+import rentmanagerapp.shared.generated.resources.security_section
+import rentmanagerapp.shared.generated.resources.sign_in_action
+import rentmanagerapp.shared.generated.resources.support_section
 
 @Composable
 fun SettingsScreen(
     onNavigateToLogin: () -> Unit = {},
-    viewModel: SettingsViewModel = koinInject()
+    viewModel: SettingsViewModel = koinViewModel()
 ) {
     val languageViewModel = koinViewModel<LanguageViewModel>()
     val currentLanguageCode by languageViewModel.languageCode.collectAsStateWithLifecycle()
@@ -279,7 +336,7 @@ private fun SettingsGroup(
 ) {
     Text(
         text = title,
-        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+        style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(start = 4.dp, top = 24.dp, bottom = 10.dp)
     )
@@ -457,7 +514,7 @@ private fun ProfileAvatar(
         contentAlignment = Alignment.Center
     ) {
         if (!imageUrl.isNullOrEmpty()) {
-            AsyncImage(
+            com.gaatho.rent.core.ui.components.AppAsyncImage(
                 model = imageUrl,
                 contentDescription = "Avatar",
                 contentScale = ContentScale.Crop,

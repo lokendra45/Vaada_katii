@@ -21,10 +21,12 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.stringResource
 import rentmanagerapp.shared.generated.resources.Res
 import rentmanagerapp.shared.generated.resources.*
@@ -34,10 +36,12 @@ fun AppDocumentPicker(
     title: String,
     file: Any?,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /** Raw bytes of a locally-selected image — shown as a live preview before upload */
+    previewBytes: ByteArray? = null
 ) {
     val shape = RoundedCornerShape(12.dp)
-    val hasFile = file != null
+    val hasFile = file != null || previewBytes != null
 
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
@@ -51,7 +55,7 @@ fun AppDocumentPicker(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(104.dp)
+                .height(if (previewBytes != null || (file != null && file !is String)) 180.dp else 104.dp)
                 .clip(shape)
                 .background(
                     if (hasFile) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
@@ -77,53 +81,108 @@ fun AppDocumentPicker(
                 .clickable { onClick() },
             contentAlignment = Alignment.Center
         ) {
-            if (hasFile) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.CheckCircle,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
+            when {
+                // Show live preview of locally-selected bytes
+                previewBytes != null -> {
+                    AsyncImage(
+                        model = previewBytes,
+                        contentDescription = "Image Preview",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
                     )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(Res.string.document_picker_attached),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    // "Tap to change" hint at the bottom
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.BottomCenter)
+                            .background(Color.Black.copy(alpha = 0.35f))
+                            .padding(vertical = 4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Tap to change",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White
+                        )
+                    }
                 }
-            } else {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(20.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.CloudUpload,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
+
+                // Show uploaded image URL (already saved)
+                file is String && file.startsWith("http") -> {
+                    AsyncImage(
+                        model = file,
+                        contentDescription = "Uploaded Image",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
                     )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(Res.string.document_picker_upload_hint),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = stringResource(Res.string.document_picker_max_size),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.BottomCenter)
+                            .background(Color.Black.copy(alpha = 0.35f))
+                            .padding(vertical = 4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Tap to change",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White
+                        )
+                    }
+                }
+
+                // File name only (legacy / non-image files)
+                hasFile -> {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.CheckCircle,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(Res.string.document_picker_attached),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+
+                // Empty — upload prompt
+                else -> {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(20.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CloudUpload,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(Res.string.document_picker_upload_hint),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(Res.string.document_picker_max_size),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }
@@ -152,3 +211,4 @@ private fun Modifier.dashedBorder(
         style = stroke
     )
 }
+

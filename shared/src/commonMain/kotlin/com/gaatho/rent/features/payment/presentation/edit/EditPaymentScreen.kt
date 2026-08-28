@@ -1,8 +1,16 @@
 package com.gaatho.rent.features.payment.presentation.edit
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -10,18 +18,27 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.animateContentSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import org.jetbrains.compose.resources.stringResource
-import rentmanagerapp.shared.generated.resources.Res
-import rentmanagerapp.shared.generated.resources.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.designsystem.components.RentManagerOutlinedButton
@@ -36,10 +53,15 @@ import com.gaatho.rent.core.ui.components.AppTopBar
 import com.gaatho.rent.core.utils.DateTimeUtil
 import com.gaatho.rent.features.payment.presentation.add.PaymentMethod
 import kotlinx.collections.immutable.persistentListOf
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import org.orbitmvi.orbit.compose.collectSideEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.cancel_action
+import rentmanagerapp.shared.generated.resources.delete_action
+import rentmanagerapp.shared.generated.resources.delete_payment_desc
+import rentmanagerapp.shared.generated.resources.delete_payment_title
 
 @Composable
 fun EditPaymentScreen(
@@ -64,11 +86,7 @@ fun EditPaymentScreen(
                 title = "Edit Payment Details",
                 onBackClick = { viewModel.onAction(EditPaymentAction.OnBackClicked) },
                 containerColor = MaterialTheme.colorScheme.background,
-                titleStyle = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                titleStyle = MaterialTheme.typography.titleMedium
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -111,16 +129,6 @@ fun EditPaymentContent(
     }
 
     val scrollState = rememberScrollState()
-
-    val labelStyle = MaterialTheme.typography.bodyMedium.copy(
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 11.sp,
-        color = MaterialTheme.colorScheme.onSurface
-    )
-    val fieldStyle = MaterialTheme.typography.bodyMedium.copy(
-        fontWeight = FontWeight.Normal,
-        fontSize = 13.sp
-    )
     val fieldShape = RoundedCornerShape(12.dp)
 
     Column(
@@ -142,10 +150,10 @@ fun EditPaymentContent(
             is UiState.Success -> {
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
+                        .fillMaxSize()
                         .verticalScroll(scrollState)
                         .padding(horizontal = 24.dp)
+                        .animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
                 ) {
                     Spacer(Modifier.height(16.dp))
 
@@ -158,8 +166,6 @@ fun EditPaymentContent(
                         onValueChange = { onAction(EditPaymentAction.OnAmountChanged(it)) },
                         label = "Payment Amount (NPR)",
                         placeholder = "e.g. 25,000",
-                        labelStyle = labelStyle,
-                        fieldTextStyle = fieldStyle,
                         shape = fieldShape,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -172,8 +178,6 @@ fun EditPaymentContent(
                         readOnly = true,
                         label = "Payment Date",
                         placeholder = "Select date",
-                        labelStyle = labelStyle,
-                        fieldTextStyle = fieldStyle,
                         shape = fieldShape,
                         trailingIcon = {
                             Icon(
@@ -189,18 +193,13 @@ fun EditPaymentContent(
 
                     Spacer(Modifier.height(16.dp))
 
-                    val methods = persistentListOf(
-                        PaymentMethod.CASH, PaymentMethod.ESEWA, PaymentMethod.KHALTI, PaymentMethod.BANK_TRANSFER
-                    )
                     AppDropdown(
-                        options = methods,
+                        options = state.availableMethods,
                         selectedItem = state.selectedMethod,
                         onItemSelected = { onAction(EditPaymentAction.OnMethodSelected(it)) },
                         itemLabel = { it.displayName },
                         label = "Payment Method",
                         placeholder = "Select method",
-                        labelStyle = labelStyle,
-                        fieldTextStyle = fieldStyle,
                         shape = fieldShape,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -212,8 +211,6 @@ fun EditPaymentContent(
                         onValueChange = { onAction(EditPaymentAction.OnReceiptNumberChanged(it)) },
                         label = "Receipt Number",
                         placeholder = "e.g. TXN-98231089201",
-                        labelStyle = labelStyle,
-                        fieldTextStyle = fieldStyle,
                         shape = fieldShape,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -227,8 +224,6 @@ fun EditPaymentContent(
                         placeholder = "e.g. October rent paid completely.",
                         singleLine = false,
                         minLines = 3,
-                        labelStyle = labelStyle,
-                        fieldTextStyle = fieldStyle,
                         shape = fieldShape,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -296,19 +291,11 @@ private fun ReadOnlySection(data: EditPaymentData) {
             ) {
                 Text(
                     text = "Tenant",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
                     text = data.tenantName,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
+                    style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1
                 )
             }
@@ -323,19 +310,11 @@ private fun ReadOnlySection(data: EditPaymentData) {
             ) {
                 Text(
                     text = "Property / Unit",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
                     text = data.propertyUnit,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
+                    style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1
                 )
             }

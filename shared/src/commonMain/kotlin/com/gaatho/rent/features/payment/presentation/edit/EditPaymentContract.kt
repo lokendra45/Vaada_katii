@@ -21,6 +21,10 @@ data class EditPaymentState(
 ) {
     val canSubmit: Boolean
         get() = amount.text.isNotBlank() && paymentDate.isNotBlank() && selectedMethod != null && !isSaving
+        
+    val availableMethods: List<PaymentMethod> get() = listOf(
+        PaymentMethod.CASH, PaymentMethod.ESEWA, PaymentMethod.KHALTI, PaymentMethod.BANK_TRANSFER
+    )
 }
 
 data class EditPaymentData(

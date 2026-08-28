@@ -1,6 +1,10 @@
 package com.gaatho.rent.features.tenant.presentation.list
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,42 +20,36 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.foundation.border
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -65,19 +63,18 @@ import androidx.paging.compose.itemKey
 import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.AppDimensions
 import com.gaatho.rent.core.designsystem.RentManagerTheme
-import com.gaatho.rent.core.ui.components.AppListItemSurface
-import com.gaatho.rent.core.ui.components.AppCard
-import com.gaatho.rent.core.ui.components.AppSearchBar
 import com.gaatho.rent.core.ui.components.AppBadge
 import com.gaatho.rent.core.ui.components.AppBadgeType
+import com.gaatho.rent.core.ui.components.AppCard
+import com.gaatho.rent.core.ui.components.AppSearchBar
 import com.gaatho.rent.core.utils.CurrencyUtil
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.orbitmvi.orbit.compose.collectSideEffect
 import rentmanagerapp.shared.generated.resources.Res
-import rentmanagerapp.shared.generated.resources.empty_tenants
 import rentmanagerapp.shared.generated.resources.retry
 import rentmanagerapp.shared.generated.resources.tenant_failed_load
 
@@ -93,6 +90,11 @@ fun TenantsListScreen(
     val isSearching by viewModel.isSearching.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val pagedTenants = viewModel.pagedTenantsFlow.collectAsLazyPagingItems()
+    val coroutineScope = rememberCoroutineScope()
+    var archivedPromptData by remember { mutableStateOf<TenantsListSideEffect.ShowArchivedPrompt?>(null) }
+    var isSavingBackup by remember { mutableStateOf(false) }
+
     viewModel.collectSideEffect { sideEffect ->
         when (sideEffect) {
             is TenantsListSideEffect.NavigateToTenantDetails ->
@@ -101,9 +103,59 @@ fun TenantsListScreen(
                 snackbarHostState.showSnackbar(sideEffect.message)
             is TenantsListSideEffect.ShowMessage ->
                 snackbarHostState.showSnackbar(sideEffect.message)
+            is TenantsListSideEffect.ShowArchivedPrompt ->
+                archivedPromptData = sideEffect
         }
     }
-    val pagedTenants = viewModel.pagedTenantsFlow.collectAsLazyPagingItems()
+
+    // Refresh pager each time this screen is composed (e.g. after navigating back)
+    LaunchedEffect(Unit) {
+        pagedTenants.refresh()
+    }
+
+    if (archivedPromptData != null) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { /* Force action */ },
+            title = { Text("Archived Tenant Backup") },
+            text = { Text("Tenant ${archivedPromptData!!.tenantName} has been inactive for more than 30 days. Please backup their details as a PDF before they are automatically deleted.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val promptData = archivedPromptData!!
+                        isSavingBackup = true
+                        coroutineScope.launch {
+                            val bytes = com.gaatho.rent.core.utils.generateTenantPdf(
+                                tenantName = promptData.tenantName,
+                                profileInfo = promptData.profileInfo,
+                                rentInfo = promptData.rentInfo
+                            )
+                            val success = com.gaatho.rent.core.utils.savePdfFile(bytes, "${promptData.tenantName.replace(" ", "_")}_Backup.pdf")
+                            isSavingBackup = false
+                            if (success) {
+                                snackbarHostState.showSnackbar("Backup saved to Downloads/Documents.")
+                                viewModel.onAction(TenantsListAction.OnArchivedTenantBackupCompleted(promptData.tenantId))
+                                archivedPromptData = null
+                            } else {
+                                snackbarHostState.showSnackbar("Failed to save backup.")
+                            }
+                        }
+                    },
+                    enabled = !isSavingBackup
+                ) {
+                    if (isSavingBackup) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    } else {
+                        Text("Backup & Delete")
+                    }
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { archivedPromptData = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     TenantsListContent(
         state = state,
@@ -342,10 +394,7 @@ private fun TenantsFilterStrip(
             ) {
                 Text(
                     text = displayLabel,
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    style = MaterialTheme.typography.labelMedium
                 )
             }
         }
@@ -384,10 +433,7 @@ private fun TenantRowItem(
                 ) {
                     Text(
                         text = tenant.initials,
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            color = Color(tenant.avatarTextColorHex),
-                            fontWeight = FontWeight.Bold
-                        )
+                        style = MaterialTheme.typography.titleMedium
                     )
                 }
 
@@ -397,7 +443,7 @@ private fun TenantRowItem(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = tenant.name,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -448,7 +494,7 @@ private fun TenantRowItem(
                     ) {
                         Text(
                             text = "Property Details",
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
+                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         if (tenant.propertyName.isNullOrBlank()) {
@@ -472,7 +518,7 @@ private fun TenantRowItem(
                                     )
                                     Text(
                                         text = "Assign",
-                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                        style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
@@ -480,7 +526,7 @@ private fun TenantRowItem(
                         } else {
                             Text(
                                 text = tenant.propertyName,
-                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                                style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -517,12 +563,12 @@ private fun TenantRowItem(
                     ) {
                         Text(
                             text = "Rent",
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
+                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = CurrencyUtil.formatNprLabel(tenant.rentAmount),
-                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(

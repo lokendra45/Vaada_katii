@@ -4,18 +4,16 @@ import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.core.utils.DateTimeUtil
+import com.gaatho.rent.core.utils.UuidUtil
 import com.gaatho.rent.features.payment.domain.model.Payment
 import com.gaatho.rent.features.payment.domain.repository.PaymentRepository
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
 import com.gaatho.rent.features.tenant.data.repository.TenantRepository
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import org.orbitmvi.orbit.viewmodel.orbitContainer
-import com.gaatho.rent.core.utils.UuidUtil
 
 class AddPaymentViewModel(
     private val sessionManager: SessionManager,
@@ -38,7 +36,7 @@ class AddPaymentViewModel(
         val propertiesFlow = propertyRepository.getProperties(ownerId)
 
         combine(tenantsFlow, propertiesFlow) { tenants, properties ->
-            val tenantModels = tenants.filter { it.status == "Active" }.map { t ->
+            val tenantModels = tenants.filter { it.status.equals("Active", ignoreCase = true) }.map { t ->
                 TenantSelectionModel(
                     id = t.id,
                     name = t.name,
@@ -49,17 +47,17 @@ class AddPaymentViewModel(
             }.toImmutableList()
 
             val propertyModels = properties.map { p ->
-                PropertySelectionModel(p.id, p.name)
+                PropertySelectionModel(p.id, p.name, p.totalUnits)
             }.toImmutableList()
 
             tenantModels to propertyModels
         }.collectLatest { (tenantModels, propertyModels) ->
+            val currentPropertyId = state.selectedPropertyId
+                ?: if (propertyModels.size == 1) propertyModels.first().id else null
+
+            val filteredTenants = filterTenants(tenantModels, currentPropertyId)
+
             reduce {
-                val currentPropertyId = state.selectedPropertyId
-                    ?: if (propertyModels.size == 1) propertyModels.first().id else null
-                
-                val filteredTenants = filterTenants(tenantModels, currentPropertyId)
-                
                 state.copy(
                     allTenants = tenantModels,
                     tenantsState = UiState.Success(filteredTenants),
@@ -68,6 +66,11 @@ class AddPaymentViewModel(
                     selectedTenantId = state.selectedTenantId
                         ?: if (filteredTenants.size == 1) filteredTenants.first().id else null
                 )
+            }
+
+            if (tenantModels.isEmpty()) {
+                postSideEffect(AddPaymentEffect.ShowSnackbar("Please add at least one active tenant before recording a payment.", isError = true))
+                postSideEffect(AddPaymentEffect.NavigateBack)
             }
         }
     }
@@ -83,12 +86,17 @@ class AddPaymentViewModel(
                 reduce {
                     state.copy(
                         selectedPropertyId = action.id,
+                        selectedUnit = null,
                         // Reset tenant if their property doesn't match new selection
                         selectedTenantId = if (state.allTenants.find { it.id == state.selectedTenantId }?.propertyId == action.id)
                             state.selectedTenantId else null,
                         tenantsState = UiState.Success(filtered)
                     )
                 }
+            }
+
+            is AddPaymentAction.OnUnitSelected -> intent {
+                reduce { state.copy(selectedUnit = action.unit) }
             }
 
             is AddPaymentAction.OnTenantSelected -> intent {
@@ -98,6 +106,8 @@ class AddPaymentViewModel(
                         selectedTenantId = action.id,
                         // Auto-select property from tenant's assignment if not already set
                         selectedPropertyId = state.selectedPropertyId ?: tenant?.propertyId,
+                        // Auto-select unit from tenant
+                        selectedUnit = state.selectedUnit ?: tenant?.roomNumber,
                         // Auto-fill amount only if user hasn't typed one yet
                         amount = if (state.amount.text.isBlank() || state.amount.text == "0")
                             state.amount.copy(text = (tenant?.rentAmount ?: 0L).toString())
@@ -149,6 +159,7 @@ class AddPaymentViewModel(
                     date = state.paymentDate,
                     status = "Paid",
                     paymentMethod = state.selectedPaymentMethod?.name,
+                    roomNumber = state.selectedUnit,
                     notes = state.remarks.text.ifBlank { null },
                     createdAt = DateTimeUtil.nowIsoString(),
                     updatedAt = DateTimeUtil.nowIsoString()

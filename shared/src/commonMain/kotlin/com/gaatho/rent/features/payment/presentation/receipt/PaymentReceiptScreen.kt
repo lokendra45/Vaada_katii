@@ -108,7 +108,7 @@ private fun ReceiptCard(
 
             Text(
                 text = "PAYMENT SUCCESSFUL",
-                style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.2.sp),
+                style = MaterialTheme.typography.labelSmall,
                 color = Color(0xFF22C55E),
                 fontWeight = FontWeight.SemiBold
             )
@@ -117,11 +117,7 @@ private fun ReceiptCard(
 
             Text(
                 text = "NPR $amount",
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.SemiBold,
-                    letterSpacing = (-0.3).sp
-                ),
+                style = MaterialTheme.typography.titleLarge,
                 color = InkColor
             )
 
@@ -148,10 +144,7 @@ private fun ReceiptCard(
 
             Text(
                 text = "THANK YOU FOR USING kotha",
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontFamily = FontFamily.Monospace,
-                    letterSpacing = 1.2.sp
-                ),
+                style = MaterialTheme.typography.labelSmall,
                 color = FadedInk,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
@@ -169,16 +162,12 @@ private fun ReceiptRow(label: String, value: String, isMono: Boolean = false) {
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = FontWeight.Medium,
-                letterSpacing = 0.6.sp,
-                fontSize = 10.sp
-            ),
+            style = MaterialTheme.typography.labelSmall,
             color = FadedInk
         )
         Text(
             text = value,
-            style = (if (isMono) MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace) else MaterialTheme.typography.bodyMedium)
+            style = (if (isMono) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium)
                 .copy(fontWeight = FontWeight.Normal),
             color = InkColor,
             textAlign = TextAlign.End,
@@ -283,7 +272,7 @@ private fun ReceiptActions(onDone: () -> Unit) {
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text(stringResource(Res.string.done_action), style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+            Text(stringResource(Res.string.done_action), style = MaterialTheme.typography.titleMedium)
         }
     }
 }

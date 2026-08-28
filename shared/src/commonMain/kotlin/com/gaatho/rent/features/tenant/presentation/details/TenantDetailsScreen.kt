@@ -1,6 +1,7 @@
 package com.gaatho.rent.features.tenant.presentation.details
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.Call
@@ -31,14 +33,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.rememberViewModelStoreOwner
 import com.gaatho.rent.core.designsystem.AppColors
@@ -59,7 +67,7 @@ fun TenantDetailsScreen(
     tenantId: String,
     onNavigateBack: () -> Unit,
     onNavigateToEdit: (String) -> Unit = {},
-    viewModel: TenantDetailsViewModel = koinInject(parameters = { parametersOf(tenantId) })
+    viewModel: TenantDetailsViewModel = koinViewModel(parameters = { parametersOf(tenantId) })
 ) {
     LaunchedEffect(viewModel.container.sideEffectFlow) {
         viewModel.container.sideEffectFlow.collect { effect ->
@@ -147,13 +155,22 @@ private fun ProfileSection(
     )
     val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
 
+    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+
     LaunchedEffect(viewModel.container.sideEffectFlow) {
         viewModel.container.sideEffectFlow.collect { effect ->
             when (effect) {
                 is TenantProfileEffect.NavigateToEdit -> onNavigateToEdit(effect.tenantId)
                 is TenantProfileEffect.NavigateBack -> {} // Handle back if deleted
-                is TenantProfileEffect.OpenEmailApp -> {}
-                is TenantProfileEffect.OpenPhoneApp -> {}
+                is TenantProfileEffect.OpenEmailApp -> {
+                    try { uriHandler.openUri("mailto:${effect.email}") } catch (e: Exception) {}
+                }
+                is TenantProfileEffect.OpenPhoneApp -> {
+                    try { uriHandler.openUri("tel:${effect.phone}") } catch (e: Exception) {}
+                }
+                is TenantProfileEffect.OpenSmsApp -> {
+                    try { uriHandler.openUri("sms:${effect.phone}") } catch (e: Exception) {}
+                }
                 is TenantProfileEffect.ShowToast -> {}
                 is TenantProfileEffect.ShowError -> {}
             }
@@ -253,19 +270,30 @@ private fun ProfileCard(
         ) {
             val initials = TenantUtils.getInitials(profile.name)
 
-            Box(
-                modifier = Modifier
-                    .size(72.dp)
-                    .clip(CircleShape)
-                    .background(AppColors.EmeraldAccentLight),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = initials,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = AppColors.EmeraldAccent
+            if (profile.avatarUrl != null) {
+                com.gaatho.rent.core.ui.components.AppAsyncImage(
+                    model = profile.avatarUrl,
+                    contentDescription = "Profile Photo",
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(CircleShape)
                 )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(CircleShape)
+                        .background(AppColors.EmeraldAccentLight),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = initials,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.EmeraldAccent
+                    )
+                }
             }
 
             Spacer(Modifier.height(12.dp))
@@ -293,6 +321,15 @@ private fun ProfileCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
+            if (profile.roomNumber != null) {
+                Spacer(Modifier.height(4.dp))
+                com.gaatho.rent.core.ui.components.AppStatusBadge(
+                    label = profile.roomNumber,
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+
             Spacer(Modifier.height(16.dp))
 
             Row(
@@ -312,6 +349,50 @@ private fun ProfileCard(
                     modifier = Modifier.weight(1f)
                 )
             }
+            
+            if (profile.documentUrl != null) {
+                Spacer(Modifier.height(20.dp))
+                HorizontalDivider(color = AppColors.CardBorder)
+                Spacer(Modifier.height(16.dp))
+                
+                var showFullScreenDoc by remember { mutableStateOf(false) }
+                
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = "ID Proof: ${profile.documentType ?: "Document"}",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    
+                    Surface(
+                        onClick = { showFullScreenDoc = true },
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp)
+                    ) {
+                        com.gaatho.rent.core.ui.components.AppAsyncImage(
+                            model = profile.documentUrl,
+                            contentDescription = "ID Proof",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+                
+                if (showFullScreenDoc) {
+                    FullScreenImageViewer(
+                        imageUrl = profile.documentUrl,
+                        onDismiss = { showFullScreenDoc = false }
+                    )
+                }
+            }
         }
     }
 }
@@ -325,7 +406,7 @@ private fun RentDetailsSection(lease: TenantLeaseDisplayModel) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Rent Details",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 12.dp)
         )
@@ -342,6 +423,20 @@ private fun RentDetailsSection(lease: TenantLeaseDisplayModel) {
                     value = lease.monthlyRent,
                     valueColor = MaterialTheme.colorScheme.onSurface
                 )
+                HorizontalDivider(color = AppColors.CardBorder)
+                RentInfoRow(
+                    label = "Lease Duration",
+                    value = lease.leaseTerm,
+                    valueColor = MaterialTheme.colorScheme.onSurface
+                )
+                if (lease.roomNumber != null) {
+                    HorizontalDivider(color = AppColors.CardBorder)
+                    RentInfoRow(
+                        label = "Unit / Room",
+                        value = lease.roomNumber,
+                        valueColor = MaterialTheme.colorScheme.onSurface
+                    )
+                }
                 HorizontalDivider(color = AppColors.CardBorder)
                 RentInfoRow(
                     label = "Security Deposit",
@@ -380,7 +475,7 @@ private fun RentInfoRow(
         )
         Text(
             text = value,
-            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+            style = MaterialTheme.typography.titleSmall,
             fontSize = 13.sp,
             color = valueColor
         )
@@ -397,7 +492,7 @@ private fun PaymentHistorySection(
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Payment History",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 12.dp)
         )
@@ -431,7 +526,7 @@ private fun HistoryRow(tx: TenantTransactionDisplayModel, onClick: () -> Unit) {
             Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Text(
                     text = tx.date,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
@@ -497,5 +592,44 @@ private fun TenantDetailsSkeleton() {
         com.gaatho.rent.core.ui.components.AppShimmerBox(
             modifier = Modifier.width(100.dp).height(16.dp).clip(RoundedCornerShape(4.dp))
         )
+    }
+}
+
+@Composable
+fun FullScreenImageViewer(
+    imageUrl: String,
+    onDismiss: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnBackPress = true, dismissOnClickOutside = true)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.9f))
+                .clickable { onDismiss() }
+        ) {
+            com.gaatho.rent.core.ui.components.AppAsyncImage(
+                model = imageUrl,
+                contentDescription = "Full Screen Image",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize()
+            )
+            
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = Color.White
+                )
+            }
+        }
     }
 }

@@ -12,8 +12,10 @@ import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.core.utils.TenantUtils
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
 import com.gaatho.rent.features.tenant.domain.model.Tenant
+import com.gaatho.rent.features.tenant.domain.usecase.GetArchivedTenantsUseCase
 import com.gaatho.rent.features.tenant.domain.usecase.GetPagedTenantsUseCase
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,6 +33,8 @@ class TenantsListViewModel(
     private val getPagedTenants: GetPagedTenantsUseCase,
     private val propertyRepository: PropertyRepository,
     private val sessionManager: SessionManager,
+    private val getArchivedTenants: GetArchivedTenantsUseCase,
+    private val deleteTenant: com.gaatho.rent.features.tenant.domain.usecase.DeleteTenantUseCase,
     savedStateHandle: SavedStateHandle
 ) : MviViewModel<TenantsListState, TenantsListSideEffect, TenantsListAction>() {
 
@@ -53,6 +57,7 @@ class TenantsListViewModel(
         serializer = TenantsListState.serializer()
     ) {
         observeProperties()
+        checkArchivedTenants()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class, kotlinx.coroutines.FlowPreview::class)
@@ -115,6 +120,22 @@ class TenantsListViewModel(
                 postSideEffect(TenantsListSideEffect.NavigateToTenantDetails(action.tenantId))
             }
 
+            is TenantsListAction.OnArchivedTenantBackupCompleted -> intent(registerIdling = false) {
+                when (val result = deleteTenant(action.tenantId)) {
+                    is com.skydoves.sandwich.ApiResponse.Success -> {
+                        postSideEffect(TenantsListSideEffect.ShowMessage("Tenant deleted successfully"))
+                        // Re-check for other archived tenants if necessary
+                        checkArchivedTenants()
+                    }
+                    is com.skydoves.sandwich.ApiResponse.Failure.Error -> {
+                        postSideEffect(TenantsListSideEffect.ShowError("Failed to delete tenant"))
+                    }
+                    is com.skydoves.sandwich.ApiResponse.Failure.Exception -> {
+                        postSideEffect(TenantsListSideEffect.ShowError("Failed to delete tenant"))
+                    }
+                }
+            }
+
             is TenantsListAction.OnRetry -> {
                 observeProperties()
             }
@@ -129,6 +150,16 @@ class TenantsListViewModel(
             .collect { properties ->
                 reduce { state.copy(propertiesState = UiState.Success(properties.toImmutableList())) }
             }
+    }
+    
+    private fun checkArchivedTenants() = intent(registerIdling = false) {
+        val archived = getArchivedTenants(ownerId)
+        if (archived.isNotEmpty()) {
+            val tenant = archived.first()
+            val profileInfo = "Name: ${tenant.name}\nPhone: ${tenant.phone ?: "N/A"}\nEmail: ${tenant.email ?: "N/A"}\nMoved In: ${tenant.moveInDate ?: "N/A"}"
+            val rentInfo = "Rent Amount: ${tenant.rentAmount}\nSecurity Deposit: ${tenant.securityDeposit}\nProperty: ${tenant.propertyName ?: "N/A"}\nUnit: ${tenant.roomNumber ?: "N/A"}"
+            postSideEffect(TenantsListSideEffect.ShowArchivedPrompt(tenant.id, tenant.name, profileInfo, rentInfo))
+        }
     }
 
     private fun mapToDisplayModel(tenant: Tenant): TenantDisplayModel {

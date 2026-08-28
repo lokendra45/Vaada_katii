@@ -60,6 +60,7 @@ class EditPaymentViewModel(
                 amount = TextFieldValue(payment.amount.toString()),
                 paymentDate = payment.date.take(10),
                 selectedMethod = parsePaymentMethod(payment.paymentMethod),
+                receiptNumber = TextFieldValue(payment.receiptNumber ?: ""),
                 notes = TextFieldValue(payment.notes ?: "")
             )
         }
@@ -109,7 +110,7 @@ class EditPaymentViewModel(
 
     private fun updatePayment() = intent {
         val s = state
-        if (!s.canSubmit) return@intent
+        if (s.isSaving || !s.canSubmit) return@intent
 
         reduce { state.copy(isSaving = true) }
 
@@ -124,6 +125,7 @@ class EditPaymentViewModel(
             amount = s.amount.text.toLongOrNull() ?: current.amount,
             date = s.paymentDate,
             paymentMethod = s.selectedMethod?.storage,
+            receiptNumber = s.receiptNumber.text.trim().takeIf { it.isNotBlank() },
             notes = s.notes.text.trim().takeIf { it.isNotBlank() },
             updatedAt = com.gaatho.rent.core.utils.DateTimeUtil.nowIsoString()
         )

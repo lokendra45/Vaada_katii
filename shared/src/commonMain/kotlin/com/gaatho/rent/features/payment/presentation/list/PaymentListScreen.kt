@@ -54,6 +54,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -74,6 +77,7 @@ import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import rentmanagerapp.shared.generated.resources.Res
 import rentmanagerapp.shared.generated.resources.add_payment
 import rentmanagerapp.shared.generated.resources.filter_all_months
@@ -95,13 +99,17 @@ fun PaymentListScreen(
     onNavigateBack: () -> Unit = {},
     onNavigateToPaymentDetails: (String) -> Unit,
     onNavigateToAddPayment: () -> Unit = {},
-    viewModel: PaymentListViewModel = koinInject()
+    viewModel: PaymentListViewModel = koinViewModel()
 ) {
     val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
     val searchText by viewModel.searchText.collectAsStateWithLifecycle()
     val isSearching by viewModel.isSearching.collectAsStateWithLifecycle()
     val pagedPayments = viewModel.pagedPaymentsFlow.collectAsLazyPagingItems()
-    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Refresh pager each time this screen is composed (e.g. after navigating back)
+    LaunchedEffect(Unit) {
+        pagedPayments.refresh()
+    }
 
     LaunchedEffect(viewModel.container.sideEffectFlow) {
         viewModel.container.sideEffectFlow.collect { effect ->
@@ -200,11 +208,7 @@ private fun PaymentListContent(
                 ) {
                     Text(
                         text = stringResource(Res.string.payments_title),
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 17.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        ),
+                        style = MaterialTheme.typography.headlineMedium,
                         modifier = Modifier.weight(1f)
                     )
                     MonthFilterPill(
@@ -360,7 +364,7 @@ private fun MonthFilterPill(
             ) {
                 Text(
                     text = label,
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
+                    style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(Modifier.width(4.dp))
@@ -399,7 +403,7 @@ private fun MonthFilterPill(
 private fun SectionHeader(text: String) {
     Text(
         text = text,
-        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
+        style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
     )
@@ -438,7 +442,7 @@ private fun PaymentRowItem(
                 ) {
                     Text(
                         text = initials,
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                        style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -451,10 +455,7 @@ private fun PaymentRowItem(
             ) {
                 Text(
                     text = payment.tenantName,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 12.sp
-                    ),
+                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -462,10 +463,7 @@ private fun PaymentRowItem(
                 Spacer(Modifier.height(3.dp))
                 Text(
                     text = subtitle,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 10.sp
-                    ),
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -477,10 +475,7 @@ private fun PaymentRowItem(
             Column(horizontalAlignment = Alignment.End) {
                 Text(
                     text = payment.formattedAmount,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 12.sp
-                    ),
+                    style = MaterialTheme.typography.bodyLarge,
                     color = AppColors.EmeraldAccent
                 )
                 Spacer(Modifier.height(4.dp))

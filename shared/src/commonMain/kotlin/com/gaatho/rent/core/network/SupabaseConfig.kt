@@ -18,5 +18,9 @@ data class SupabaseConfig(
     val url: String,
     val anonKey: String,
     /** Web client ID from Google Cloud Console. Required for native Google Sign-In via ComposeAuth. */
-    val googleClientId: String = ""
+    val googleClientId: String = "",
+    /** Supabase S3 compatibility credentials for advanced storage operations. */
+    val s3SecretKey: String = "",
+    val s3AccessKeyId: String = "",
+    val s3Endpoint: String = ""
 )

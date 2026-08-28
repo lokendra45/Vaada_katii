@@ -15,7 +15,14 @@ data class PropertyDto(
     @SerialName("address") val address: String,
     @SerialName("image_url") val imageUrl: String? = null,
     @SerialName("property_type") val propertyType: String = "HOUSE",
+    @SerialName("total_units") val totalUnits: Int = 1,
+    @SerialName("billing_cycle") val billingCycle: String = "1st of the month",
+    @SerialName("units") val units: List<String> = emptyList(),
     @SerialName("monthly_rent") val monthlyRent: Long = 0L,
+    @SerialName("wifi_charge") val wifiCharge: Long = 0L,
+    @SerialName("water_charge") val waterCharge: Long = 0L,
+    @SerialName("electricity_charge") val electricityCharge: Long = 0L,
+    @SerialName("waste_charge") val wasteCharge: Long = 0L,
     @SerialName("description") val description: String = "",
     @SerialName("created_at") val createdAt: String? = null,
     @SerialName("updated_at") val updatedAt: String? = null
@@ -31,7 +38,17 @@ fun PropertyDto.toDomain() = Property(
     address = address,
     imageUrl = imageUrl,
     propertyType = propertyType,
+    totalUnits = totalUnits,
+    billingCycle = billingCycle,
+    units = units.mapNotNull { 
+        try { kotlinx.serialization.json.Json.decodeFromString<com.gaatho.rent.features.property.domain.model.PropertyUnit>(it) } 
+        catch (e: Exception) { null } 
+    },
     monthlyRent = monthlyRent,
+    wifiCharge = wifiCharge,
+    waterCharge = waterCharge,
+    electricityCharge = electricityCharge,
+    wasteCharge = wasteCharge,
     description = description,
     createdAt = createdAt,
     updatedAt = updatedAt
@@ -47,7 +64,14 @@ fun Property.toDto() = PropertyDto(
     address = address,
     imageUrl = imageUrl,
     propertyType = propertyType,
+    totalUnits = totalUnits,
+    billingCycle = billingCycle,
+    units = units.map { kotlinx.serialization.json.Json.encodeToString(com.gaatho.rent.features.property.domain.model.PropertyUnit.serializer(), it) },
     monthlyRent = monthlyRent,
+    wifiCharge = wifiCharge,
+    waterCharge = waterCharge,
+    electricityCharge = electricityCharge,
+    wasteCharge = wasteCharge,
     description = description,
     createdAt = createdAt,
     updatedAt = updatedAt

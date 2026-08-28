@@ -42,7 +42,7 @@ fun HomeScreen(
     val viewModel: HomeViewModel = koinViewModel()
     val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
 
-    viewModel.collectSideEffect { effect ->
+    viewModel.collectSideEffect(lifecycleState = androidx.lifecycle.Lifecycle.State.RESUMED) { effect ->
         when (effect) {
             is HomeSideEffect.NavigateToAddTenant -> onNavigateToAddTenant()
             is HomeSideEffect.NavigateToAddProperty -> onNavigateToAddProperty()

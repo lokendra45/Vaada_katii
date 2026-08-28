@@ -46,6 +46,7 @@ object ErrorMessageExtractor {
     private const val RATE_LIMITED = "You're doing that too much. Please wait a moment and try again."
     private const val PARSE_ERROR = "We couldn't read the server's response. Please try again."
     private const val WEAK_PASSWORD = "Please choose a stronger password."
+    private const val STORAGE_ERROR = "We couldn't upload your file. Please try again."
 
     fun extract(
         throwable: Throwable?,
@@ -89,8 +90,13 @@ object ErrorMessageExtractor {
             is AuthRestException -> defaultMessage // wrong credentials, unconfirmed email, etc.
             is UnauthorizedRestException -> SESSION_EXPIRED // expired/invalid JWT on a Postgrest/Storage call
             is HttpRequestException -> NETWORK // supabase-kt couldn't reach the server at all
-            is RestException -> defaultMessage // any other Postgrest/Storage/Realtime error —
-            // never read .error/.description verbatim, they can contain table/column names.
+            is RestException -> {
+                if (throwable.message?.contains("bucket", ignoreCase = true) == true) {
+                    "Storage is currently unavailable. Please try again later."
+                } else {
+                    STORAGE_ERROR
+                }
+            }
 
             // Catches SocketException, UnknownHostException, SSLHandshakeException,
             // ConnectException, FileNotFoundException, etc.

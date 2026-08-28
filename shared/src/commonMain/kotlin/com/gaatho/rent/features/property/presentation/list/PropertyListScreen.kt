@@ -54,7 +54,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -65,7 +64,6 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
-import coil3.compose.AsyncImage
 import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.AppDimensions
 import com.gaatho.rent.core.designsystem.RentManagerTheme
@@ -134,6 +132,11 @@ fun PropertyListScreen(
         }
     }
     val pagedProperties = viewModel.pagedPropertiesFlow.collectAsLazyPagingItems()
+
+    // Refresh pager each time this screen is composed (e.g. after navigating back)
+    LaunchedEffect(Unit) {
+        pagedProperties.refresh()
+    }
 
     PropertyListContent(
         state = state,
@@ -375,7 +378,7 @@ fun PropertyListContent(
                             }
                         } else if (imageUrl.startsWith("http")) {
                             isImageRendered = true
-                            AsyncImage(
+                            com.gaatho.rent.core.ui.components.AppAsyncImage(
                                 model = imageUrl,
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
@@ -439,10 +442,7 @@ fun PropertyListContent(
 
                     Text(
                         text = stringResource(Res.string.price_per_month, property.priceFormatted),
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            fontWeight = FontWeight.Medium, // 10sp Medium — Figma "NPR 1,25,000 / mo"
-                            color = MaterialTheme.colorScheme.onSurface
-                        ),
+                        style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(top = 2.dp)
                     )
                 }

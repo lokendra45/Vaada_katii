@@ -89,7 +89,7 @@ fun LoginScreen(
     val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    viewModel.collectSideEffect { effect ->
+    viewModel.collectSideEffect(lifecycleState = androidx.lifecycle.Lifecycle.State.RESUMED) { effect ->
         when (effect) {
             is AuthSideEffect.NavigateToHome -> onNavigateToHome()
             is AuthSideEffect.ShowError -> snackbarHostState.showSnackbar(effect.message)
@@ -143,7 +143,7 @@ fun LoginContent(
     onGoogleSignInClick: () -> Unit
 ) {
     Scaffold(
-        modifier = Modifier.fillMaxSize().imePadding(),
+        modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
@@ -199,7 +199,7 @@ fun LoginContent(
                 // Title
                 Text(
                     text = stringResource(Res.string.login_title),
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium),
+                    style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
 
@@ -265,17 +265,14 @@ fun LoginContent(
                                 ) {
                                     Text(
                                         text = "G",
-                                        style = MaterialTheme.typography.titleMedium.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif
-                                        ),
+                                        style = MaterialTheme.typography.titleMedium,
                                         color = Color(0xFF4285F4) // Google Blue
                                     )
                                 }
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text(
                                     text = stringResource(Res.string.continue_with_google),
-                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
+                                    style = MaterialTheme.typography.bodyLarge
                                 )
                             }
                         }
@@ -352,7 +349,7 @@ fun LoginContent(
                                 Text(
                                     text = stringResource(Res.string.forgot_password_question),
                                     color = MaterialTheme.colorScheme.primary,
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
+                                    style = MaterialTheme.typography.bodyMedium
                                 )
                             }
                         }
@@ -376,7 +373,7 @@ fun LoginContent(
                     Text(
                         text = if (state.isLoginMode) stringResource(Res.string.create_account_action) else stringResource(Res.string.sign_in_action),
                         color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.clickable { onAction(AuthAction.OnToggleAuthMode) }.padding(4.dp)
                     )
                 }

@@ -1,7 +1,6 @@
 package com.gaatho.rent.features.splash.presentation
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.LinearEasing
@@ -20,7 +19,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
@@ -37,11 +35,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -127,11 +123,7 @@ fun SplashContent(
         ) {
             Text(
                 text = stringResource(Res.string.splash_app_name),
-                style = MaterialTheme.typography.displayLarge.copy(
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 4.sp,
-                ),
+                style = MaterialTheme.typography.displayLarge,
             )
         }
 
@@ -189,10 +181,7 @@ private fun LoadingIndicator() {
 
         Text(
             text = stringResource(Res.string.splash_tagline),
-            style = MaterialTheme.typography.bodyMedium.copy(
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                lineHeight = 24.sp,
-            ),
+            style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
         )
     }
@@ -206,10 +195,7 @@ private fun ErrorSection(onRetry: () -> Unit) {
     ) {
         Text(
             text = stringResource(Res.string.splash_error_title),
-            style = MaterialTheme.typography.titleMedium.copy(
-                color = MaterialTheme.colorScheme.error,
-                fontWeight = FontWeight.SemiBold,
-            ),
+            style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
         )
 
@@ -217,10 +203,7 @@ private fun ErrorSection(onRetry: () -> Unit) {
 
         Text(
             text = stringResource(Res.string.splash_error_subtitle),
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                lineHeight = 20.sp,
-            ),
+            style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.Center,
         )
 

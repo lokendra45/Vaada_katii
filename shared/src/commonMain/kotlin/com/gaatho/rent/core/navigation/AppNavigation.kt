@@ -2,52 +2,45 @@ package com.gaatho.rent.core.navigation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Login
-import com.gaatho.rent.core.ui.components.AppConfirmDialog
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
-import com.gaatho.rent.core.ui.animation.iosPushTransition
-import com.gaatho.rent.core.ui.animation.iosPopTransition
 import androidx.savedstate.serialization.SavedStateConfiguration
 import com.gaatho.rent.core.auth.SessionManager
+import com.gaatho.rent.core.ui.animation.iosPopTransition
+import com.gaatho.rent.core.ui.animation.iosPushTransition
+import com.gaatho.rent.core.ui.components.AppConfirmDialog
 import com.gaatho.rent.features.auth.presentation.LoginScreen
-import com.gaatho.rent.features.property.presentation.list.PropertyListScreen
-import com.gaatho.rent.features.splash.presentation.SplashScreen
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json.Default.serializersModule
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.polymorphic
 import com.gaatho.rent.features.dashboard.presentation.MainDashboardScreen
 import com.gaatho.rent.features.payment.presentation.details.PaymentDetailsScreen
 import com.gaatho.rent.features.payment.presentation.edit.EditPaymentScreen
+import com.gaatho.rent.features.payment.presentation.list.PaymentListScreen
 import com.gaatho.rent.features.paywall.presentation.PaywallScreen
-import com.gaatho.rent.features.property.presentation.details.PropertyDetailsScreen
 import com.gaatho.rent.features.property.presentation.add.AddPropertyScreen
+import com.gaatho.rent.features.property.presentation.details.PropertyDetailsScreen
 import com.gaatho.rent.features.property.presentation.edit.EditPropertyScreen
+import com.gaatho.rent.features.property.presentation.list.PropertyListScreen
+import com.gaatho.rent.features.splash.presentation.SplashScreen
 import com.gaatho.rent.features.tenant.presentation.add.AddTenantScreen
 import com.gaatho.rent.features.tenant.presentation.edit.EditTenantScreen
 import com.gaatho.rent.features.tenant.presentation.list.TenantsListScreen
-import com.gaatho.rent.features.payment.presentation.list.PaymentListScreen
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
 import org.koin.compose.koinInject
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -99,9 +92,10 @@ fun AppNavigation() {
         )
     }
 
-    NavDisplay(
-        backStack = backStack,
-        onBack = { backStack.removeLastOrNull() },
+    Box(modifier = Modifier.fillMaxSize().imePadding()) {
+        NavDisplay(
+            backStack = backStack,
+            onBack = { backStack.removeLastOrNull() },
         entryDecorators = listOf(
             rememberViewModelStoreNavEntryDecorator()
         ),
@@ -279,6 +273,7 @@ fun AppNavigation() {
             }
         }
     )
+    }
 }
 
 /**

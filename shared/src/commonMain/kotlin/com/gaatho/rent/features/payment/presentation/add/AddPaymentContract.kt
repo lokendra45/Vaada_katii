@@ -21,6 +21,7 @@ data class AddPaymentState(
 
     val propertiesState: UiState<ImmutableList<PropertySelectionModel>> = UiState.Loading,
     val selectedPropertyId: String? = null,
+    val selectedUnit: String? = null,
 
     val paymentDate: String = "",
     val selectedPaymentMethod: PaymentMethod? = null,
@@ -35,6 +36,7 @@ data class AddPaymentState(
         get() = amount.text.isNotBlank() && amount.text != "0" &&
                 selectedTenantId != null &&
                 selectedPropertyId != null &&
+                selectedUnit != null &&
                 paymentDate.isNotBlank() &&
                 selectedPaymentMethod != null &&
                 isReceiptAgreed &&
@@ -43,6 +45,18 @@ data class AddPaymentState(
     /** Rent amount of the currently selected tenant, for the "Total due" label. */
     val selectedTenantRentAmount: Long?
         get() = allTenants.find { it.id == selectedTenantId }?.rentAmount
+        
+    val propertyItems: ImmutableList<PropertySelectionModel> get() = (propertiesState as? UiState.Success)?.data ?: kotlinx.collections.immutable.persistentListOf()
+    val tenantItems: ImmutableList<TenantSelectionModel> get() = (tenantsState as? UiState.Success)?.data ?: kotlinx.collections.immutable.persistentListOf()
+    
+    val selectedTenant: TenantSelectionModel? get() = tenantItems.find { it.id == selectedTenantId }
+    val selectedProperty: PropertySelectionModel? get() = propertyItems.find { it.id == selectedPropertyId }
+    
+    val unitOptions: ImmutableList<String> get() = if (selectedProperty != null && selectedProperty!!.totalUnits > 0) {
+        (1..selectedProperty!!.totalUnits).map { "Unit $it" }.let { kotlinx.collections.immutable.persistentListOf(*it.toTypedArray()) }
+    } else {
+        kotlinx.collections.immutable.persistentListOf()
+    }
 }
 
 data class TenantSelectionModel(
@@ -55,7 +69,8 @@ data class TenantSelectionModel(
 
 data class PropertySelectionModel(
     val id: String,
-    val name: String
+    val name: String,
+    val totalUnits: Int = 1
 )
 
 
@@ -71,6 +86,7 @@ sealed class AddPaymentAction {
     data class OnAmountChanged(val value: TextFieldValue) : AddPaymentAction()
     data class OnTenantSelected(val id: String) : AddPaymentAction()
     data class OnPropertySelected(val id: String) : AddPaymentAction()
+    data class OnUnitSelected(val unit: String) : AddPaymentAction()
     data class OnPaymentDateChanged(val date: String) : AddPaymentAction()
     data class OnPaymentMethodSelected(val method: PaymentMethod) : AddPaymentAction()
     data class OnRemarksChanged(val value: TextFieldValue) : AddPaymentAction()

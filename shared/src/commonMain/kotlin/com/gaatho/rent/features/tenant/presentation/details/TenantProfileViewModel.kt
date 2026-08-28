@@ -34,9 +34,12 @@ class TenantProfileViewModel(
                 name = tenant.name,
                 address = tenant.propertyName ?: "Unknown Property",
                 isVerified = true,
-                avatarUrl = null,
+                avatarUrl = tenant.profileImageUrl,
                 phone = tenant.phone,
-                movedInDate = DateTimeUtil.formatReadableDate(tenant.createdAt)
+                movedInDate = tenant.moveInDate ?: DateTimeUtil.formatReadableDate(tenant.createdAt),
+                roomNumber = tenant.roomNumber,
+                documentUrl = tenant.documentUrl,
+                documentType = tenant.documentType
             )
             
             reduce { state.copy(profileState = UiState.Success(profile)) }
@@ -58,7 +61,12 @@ class TenantProfileViewModel(
                     }
                 }
                 is TenantProfileAction.OnMessageClicked -> {
-                    postSideEffect(TenantProfileEffect.ShowToast("Message clicked"))
+                    val phone = (state.profileState as? UiState.Success)?.data?.phone
+                    if (phone != null) {
+                        postSideEffect(TenantProfileEffect.OpenSmsApp(phone))
+                    } else {
+                        postSideEffect(TenantProfileEffect.ShowError("Phone number not available"))
+                    }
                 }
                 is TenantProfileAction.OnEmailClicked -> {
                     postSideEffect(TenantProfileEffect.ShowToast("Email clicked"))

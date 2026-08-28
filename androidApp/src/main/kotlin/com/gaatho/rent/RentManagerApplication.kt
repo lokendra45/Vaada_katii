@@ -17,7 +17,10 @@ class RentManagerApplication : Application() {
             supabaseConfig = SupabaseConfig(
                 url = BuildConfig.SUPABASE_URL,
                 anonKey = BuildConfig.SUPABASE_KEY,
-                googleClientId = BuildConfig.GOOGLE_CLIENT_ID
+                googleClientId = BuildConfig.GOOGLE_CLIENT_ID,
+                s3SecretKey = BuildConfig.SUPABASE_S3_SECRET_KEY,
+                s3AccessKeyId = BuildConfig.SUPABASE_S3_ACCESS_KEY_ID,
+                s3Endpoint = BuildConfig.SUPABASE_S3_ENDPOINT
             )
         ) {
             androidLogger()

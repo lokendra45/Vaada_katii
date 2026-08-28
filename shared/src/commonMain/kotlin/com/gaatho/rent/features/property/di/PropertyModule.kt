@@ -1,10 +1,10 @@
 package com.gaatho.rent.features.property.di
 
-import com.gaatho.rent.features.property.data.repository.PropertyRepository
 import com.gaatho.rent.features.property.data.repository.CloudPropertyRepository
-import com.gaatho.rent.features.property.presentation.list.PropertyListViewModel
+import com.gaatho.rent.features.property.data.repository.PropertyRepository
 import com.gaatho.rent.features.property.presentation.details.PropertyDetailsViewModel
 import com.gaatho.rent.features.property.presentation.edit.EditPropertyViewModel
+import com.gaatho.rent.features.property.presentation.list.PropertyListViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -43,7 +43,8 @@ val propertyModule = module {
         EditPropertyViewModel(
             propertyId = params.get(),
             propertyRepository = get(),
-            sessionManager = get()
+            sessionManager = get(),
+            storageRepository = get()
         )
     }
 }

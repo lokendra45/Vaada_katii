@@ -15,4 +15,7 @@ val coreModule = module {
             json = get()
         )
     }
+    single<com.gaatho.rent.core.network.StorageRepository> {
+        com.gaatho.rent.core.network.SupabaseStorageRepository(get())
+    }
 }

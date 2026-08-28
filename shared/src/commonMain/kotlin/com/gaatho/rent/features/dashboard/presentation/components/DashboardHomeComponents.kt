@@ -97,10 +97,7 @@ fun DashboardWelcomeHeader(
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     text = "Namaste, \uD83D\uDC4B",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold
-                    ),
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
@@ -300,7 +297,7 @@ fun DashboardRecentActivity(
             Text(
                 text = "See All",
                 modifier = Modifier.clickable(onClick = onSeeAll),
-                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
+                style = MaterialTheme.typography.labelLarge,
                 color = AppColors.EmeraldAccent
             )
         }
@@ -344,7 +341,7 @@ private fun DashboardPillBadge(text: String) {
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+            style = MaterialTheme.typography.labelSmall,
             color = AppColors.EmeraldAccentDark
         )
     }
@@ -374,15 +371,12 @@ private fun DashboardProgressRing(progress: Float, percent: Int) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = "$percent%",
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.ExtraBold
-                ),
+                style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = "PAID",
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -412,10 +406,7 @@ private fun DashboardMetricCard(
             )
             Text(
                 text = metric.value,
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold
-                ),
+                style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
@@ -557,7 +548,7 @@ private fun DashboardActivityCard(
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = "${if (item.isPositive) "+ " else ""}NPR ${formatNpr(item.amount)}",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
+                        style = MaterialTheme.typography.titleMedium,
                         color = if (item.isPositive) AppColors.EmeraldAccent else AppColors.Error,
                         maxLines = 1
                     )

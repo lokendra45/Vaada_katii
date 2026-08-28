@@ -1,50 +1,90 @@
 package com.gaatho.rent.features.tenant.presentation.edit
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.animateContentSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import org.jetbrains.compose.resources.stringResource
-import rentmanagerapp.shared.generated.resources.Res
-import rentmanagerapp.shared.generated.resources.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.designsystem.components.RentManagerOutlinedButton
 import com.gaatho.rent.core.designsystem.components.RentManagerPrimaryButton
-import com.gaatho.rent.core.ui.components.AppCard
 import com.gaatho.rent.core.ui.components.AppDatePickerDialog
 import com.gaatho.rent.core.ui.components.AppDialog
 import com.gaatho.rent.core.ui.components.AppDropdown
+import com.gaatho.rent.core.ui.components.AppImageSourcePicker
 import com.gaatho.rent.core.ui.components.AppTextField
 import com.gaatho.rent.core.ui.components.AppTopBar
 import com.gaatho.rent.core.utils.DateTimeUtil
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberCameraPickerLauncher
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.name
+import io.github.vinceglb.filekit.readBytes
 import kotlinx.collections.immutable.persistentListOf
-import org.koin.compose.koinInject
+import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import org.orbitmvi.orbit.compose.collectSideEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.cancel_action
+import rentmanagerapp.shared.generated.resources.id_proof_upload_label
+import rentmanagerapp.shared.generated.resources.remove_action
+import rentmanagerapp.shared.generated.resources.remove_tenant_desc
+import rentmanagerapp.shared.generated.resources.remove_tenant_title
 
 @Composable
 fun EditTenantScreen(
     tenantId: String,
     onNavigateBack: () -> Unit,
-    viewModel: EditTenantViewModel = koinInject(parameters = { parametersOf(tenantId) })
+    viewModel: EditTenantViewModel = koinViewModel(parameters = { parametersOf(tenantId) })
 ) {
     val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -63,14 +103,34 @@ fun EditTenantScreen(
                 title = "Edit Tenant Details",
                 onBackClick = { viewModel.onAction(EditTenantAction.OnBackClicked) },
                 containerColor = MaterialTheme.colorScheme.background,
-                titleStyle = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                titleStyle = MaterialTheme.typography.titleMedium
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        bottomBar = {
+            Surface(color = MaterialTheme.colorScheme.background) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    RentManagerOutlinedButton(
+                        text = "Remove Tenant",
+                        onClick = { viewModel.onAction(EditTenantAction.OnDeleteClicked) },
+                        modifier = Modifier.weight(1f),
+                        borderColor = AppColors.Error,
+                        contentColor = AppColors.Error
+                    )
+                    RentManagerPrimaryButton(
+                        text = "Save Changes",
+                        onClick = { viewModel.onAction(EditTenantAction.OnSaveClicked) },
+                        modifier = Modifier.weight(1f),
+                        isLoading = state.isSaving
+                    )
+                }
+            }
+        },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         EditTenantContent(
@@ -101,24 +161,9 @@ fun EditTenantContent(
     }
 
     val scrollState = rememberScrollState()
-
-    val labelStyle = MaterialTheme.typography.bodyMedium.copy(
-        fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
-        color = MaterialTheme.colorScheme.onSurface
-    )
-    val fieldStyle = MaterialTheme.typography.bodyMedium.copy(
-        fontWeight = FontWeight.Normal,
-        fontSize = 13.sp
-    )
-    val fieldShape = RoundedCornerShape(12.dp)
-
-    val propertyNames = remember(state.propertyOptions) {
-        state.propertyOptions.map { it.name }.let(::persistentListOf)
-    }
-    val selectedPropertyName = state.propertyOptions.find { it.id == state.propertyId }?.name
-
     var showDatePicker by remember { mutableStateOf(false) }
+    var showProfileSourcePicker by remember { mutableStateOf(false) }
+    var showDocumentSourcePicker by remember { mutableStateOf(false) }
 
     if (showDatePicker) {
         AppDatePickerDialog(
@@ -132,26 +177,137 @@ fun EditTenantContent(
         )
     }
 
+    val scope = rememberCoroutineScope()
+
+    // --- Gallery Launchers ---
+    val documentGalleryLauncher = rememberFilePickerLauncher(
+        type = FileKitType.Image
+    ) { file ->
+        if (file != null) {
+            scope.launch {
+                val bytes = file.readBytes()
+                onAction(EditTenantAction.OnDocumentPicked(file.name, bytes))
+            }
+        }
+    }
+
+    val profileGalleryLauncher = rememberFilePickerLauncher(
+        type = FileKitType.Image
+    ) { file ->
+        if (file != null) {
+            scope.launch {
+                val bytes = file.readBytes()
+                onAction(EditTenantAction.OnProfileImagePicked(file.name, bytes))
+            }
+        }
+    }
+
+    // --- Camera Launchers ---
+    val documentCameraLauncher = rememberCameraPickerLauncher { file ->
+        if (file != null) {
+            scope.launch {
+                val bytes = file.readBytes()
+                onAction(EditTenantAction.OnDocumentPicked(file.name, bytes))
+            }
+        }
+    }
+
+    val profileCameraLauncher = rememberCameraPickerLauncher { file ->
+        if (file != null) {
+            scope.launch {
+                val bytes = file.readBytes()
+                onAction(EditTenantAction.OnProfileImagePicked(file.name, bytes))
+            }
+        }
+    }
+
+    // --- Source Pickers ---
+    if (showProfileSourcePicker) {
+        AppImageSourcePicker(
+            onDismissRequest = { showProfileSourcePicker = false },
+            onGalleryClick = { profileGalleryLauncher.launch() },
+            onCameraClick = { profileCameraLauncher.launch() }
+        )
+    }
+
+    if (showDocumentSourcePicker) {
+        AppImageSourcePicker(
+            onDismissRequest = { showDocumentSourcePicker = false },
+            onGalleryClick = { documentGalleryLauncher.launch() },
+            onCameraClick = { documentCameraLauncher.launch() }
+        )
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(scrollState)
     ) {
         if (state.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
-            return@Column
-        }
-
+        } else {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
-                .verticalScroll(scrollState)
                 .padding(horizontal = 24.dp)
+                .animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
         ) {
             Spacer(Modifier.height(16.dp))
+
+            // ── Profile Photo ────────────────────────────────────────────────
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(androidx.compose.foundation.shape.CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                        .clickable { showProfileSourcePicker = true },
+                    contentAlignment = Alignment.Center
+                ) {
+                    when {
+                        state.pendingProfileBytes != null -> {
+                            // Show local preview before upload
+                            com.gaatho.rent.core.ui.components.AppAsyncImage(
+                                model = state.pendingProfileBytes,
+                                contentDescription = "Profile Preview",
+                                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                        state.profileImageUrl != null -> {
+                            com.gaatho.rent.core.ui.components.AppAsyncImage(
+                                model = state.profileImageUrl,
+                                contentDescription = "Profile Photo",
+                                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                        else -> {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(
+                                    imageVector = androidx.compose.material.icons.Icons.Default.Person,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                    modifier = Modifier.size(32.dp)
+                                )
+                                Text(
+                                    "Add Photo",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(24.dp))
 
             AppTextField(
                 value = state.name,
@@ -159,9 +315,9 @@ fun EditTenantContent(
                 label = "Tenant Full Name",
                 placeholder = "e.g. Suman Maharjan",
                 errorMessage = state.nameError,
-                labelStyle = labelStyle,
-                fieldTextStyle = fieldStyle,
-                shape = fieldShape,
+
+
+
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -172,9 +328,10 @@ fun EditTenantContent(
                 onValueChange = { onAction(EditTenantAction.OnPhoneChanged(it)) },
                 label = "Phone Number",
                 placeholder = "e.g. 9841XXXXXX",
-                labelStyle = labelStyle,
-                fieldTextStyle = fieldStyle,
-                shape = fieldShape,
+
+
+
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone),
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -185,26 +342,26 @@ fun EditTenantContent(
                 onValueChange = { onAction(EditTenantAction.OnEmailChanged(it)) },
                 label = "Email Address",
                 placeholder = "e.g. name@domain.com",
-                labelStyle = labelStyle,
-                fieldTextStyle = fieldStyle,
-                shape = fieldShape,
+
+
+
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(Modifier.height(16.dp))
 
             AppDropdown(
-                options = propertyNames,
-                selectedItem = selectedPropertyName,
+                options = state.propertyNames,
+                selectedItem = state.selectedPropertyName,
                 onItemSelected = { name ->
                     val id = state.propertyOptions.find { it.name == name }?.id
                     if (id != null) onAction(EditTenantAction.OnPropertySelected(id))
                 },
                 label = "Assign Property",
                 placeholder = "Select Property",
-                labelStyle = labelStyle,
-                fieldTextStyle = fieldStyle,
-                shape = fieldShape,
+
+
+
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -214,25 +371,40 @@ fun EditTenantContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                AppTextField(
-                    value = state.unitNumber,
-                    onValueChange = { onAction(EditTenantAction.OnUnitNumberChanged(it)) },
-                    label = "Unit Number",
-                    placeholder = "e.g. Unit 2B",
-                    labelStyle = labelStyle,
-                    fieldTextStyle = fieldStyle,
-                    shape = fieldShape,
-                    modifier = Modifier.weight(1f)
-                )
+                if (state.unitOptions.isNotEmpty()) {
+                    AppDropdown(
+                        options = state.unitOptions,
+                        selectedItem = if (state.unitNumber.text.isNotBlank()) state.unitNumber.text else null,
+                        onItemSelected = { onAction(EditTenantAction.OnUnitSelected(it)) },
+                        label = "Unit Number",
+                        placeholder = "e.g. Unit 2B",
+
+
+
+                        modifier = Modifier.weight(1f)
+                    )
+                } else {
+                    AppTextField(
+                        value = state.unitNumber,
+                        onValueChange = { onAction(EditTenantAction.OnUnitNumberChanged(it)) },
+                        label = "Unit Number",
+                        placeholder = "e.g. Unit 2B",
+
+
+
+                        modifier = Modifier.weight(1f)
+                    )
+                }
                 AppTextField(
                     value = state.rentAmount,
                     onValueChange = { onAction(EditTenantAction.OnRentChanged(it)) },
                     label = "Rent Amount (NPR)",
                     placeholder = "e.g. 25,000",
                     errorMessage = state.rentError,
-                    labelStyle = labelStyle,
-                    fieldTextStyle = fieldStyle,
-                    shape = fieldShape,
+
+
+
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -249,9 +421,9 @@ fun EditTenantContent(
                     readOnly = true,
                     label = "Move-In Date",
                     placeholder = "Select date",
-                    labelStyle = labelStyle,
-                    fieldTextStyle = fieldStyle,
-                    shape = fieldShape,
+
+
+
                     trailingIcon = {
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowDown,
@@ -271,9 +443,9 @@ fun EditTenantContent(
                     onItemSelected = { onAction(EditTenantAction.OnLeaseDurationSelected(it)) },
                     label = "Lease Duration",
                     placeholder = "1 Year",
-                    labelStyle = labelStyle,
-                    fieldTextStyle = fieldStyle,
-                    shape = fieldShape,
+
+
+
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -285,41 +457,91 @@ fun EditTenantContent(
                 onValueChange = { onAction(EditTenantAction.OnSecurityDepositChanged(it)) },
                 label = "Security Deposit (NPR)",
                 placeholder = "e.g. 50,000",
-                labelStyle = labelStyle,
-                fieldTextStyle = fieldStyle,
-                shape = fieldShape,
+
+
+
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(Modifier.height(20.dp))
 
-            IdentityDocumentCard(fileName = state.uploadedDocumentName)
+            // ── Utilities Toggles ───────────────────────────────────────────
+            Text(
+                text = "Utilities Included",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            com.gaatho.rent.core.ui.components.AppCard(
+                modifier = Modifier.fillMaxWidth(),
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    val switchColors = androidx.compose.material3.SwitchDefaults.colors(
+                        uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                        uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        uncheckedBorderColor = MaterialTheme.colorScheme.outline
+                    )
+                    
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text(state.wifiLabel, style = MaterialTheme.typography.bodyMedium)
+                        androidx.compose.material3.Switch(checked = state.hasWifi, onCheckedChange = { onAction(EditTenantAction.OnWifiToggled(it)) }, colors = switchColors)
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text(state.waterLabel, style = MaterialTheme.typography.bodyMedium)
+                        androidx.compose.material3.Switch(checked = state.hasWater, onCheckedChange = { onAction(EditTenantAction.OnWaterToggled(it)) }, colors = switchColors)
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text(state.electricityLabel, style = MaterialTheme.typography.bodyMedium)
+                        androidx.compose.material3.Switch(checked = state.hasElectricity, onCheckedChange = { onAction(EditTenantAction.OnElectricityToggled(it)) }, colors = switchColors)
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text(state.wasteLabel, style = MaterialTheme.typography.bodyMedium)
+                        androidx.compose.material3.Switch(checked = state.hasWaste, onCheckedChange = { onAction(EditTenantAction.OnWasteToggled(it)) }, colors = switchColors)
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // ── Document Type Dropdown ───────────────────────────────────────
+            val docTypes = persistentListOf("Citizenship", "Passport", "Driving License", "National ID")
+            AppDropdown(
+                options = docTypes,
+                selectedItem = state.documentType,
+                onItemSelected = { onAction(EditTenantAction.OnDocumentTypeSelected(it)) },
+                label = "Document Type",
+                placeholder = "Select Type",
+
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            com.gaatho.rent.core.ui.components.AppDocumentPicker(
+                title = stringResource(Res.string.id_proof_upload_label),
+                file = state.documentUrl,
+                previewBytes = state.pendingDocBytes,
+                onClick = { showDocumentSourcePicker = true },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(16.dp))
+            
+            com.gaatho.rent.core.ui.components.AppCard(
+                modifier = Modifier.fillMaxWidth(),
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            ) {
+                Box(modifier = Modifier.padding(16.dp)) {
+                    AnimatedPriceLabel(
+                        priceText = if (state.rentAmount.text.isNotBlank()) state.rentAmount.text else "0",
+                        label = "Total Monthly Due"
+                    )
+                }
+            }
 
             Spacer(Modifier.height(24.dp))
         }
-
-        // ── Footer actions ──────────────────────────────────────────────────
-        Surface(color = MaterialTheme.colorScheme.background) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                RentManagerOutlinedButton(
-                    text = "Remove Tenant",
-                    onClick = { onAction(EditTenantAction.OnDeleteClicked) },
-                    modifier = Modifier.weight(1f),
-                    borderColor = AppColors.Error,
-                    contentColor = AppColors.Error
-                )
-                RentManagerPrimaryButton(
-                    text = "Save Changes",
-                    onClick = { onAction(EditTenantAction.OnSaveClicked) },
-                    modifier = Modifier.weight(1f),
-                    isLoading = state.isSaving
-                )
-            }
         }
     }
 
@@ -337,55 +559,47 @@ fun EditTenantContent(
     }
 }
 
-// ─── Identity document card ───────────────────────────────────────────────────
-
 @Composable
-private fun IdentityDocumentCard(fileName: String?) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+private fun AnimatedPriceLabel(
+    priceText: String,
+    label: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Text(
-            text = "Identity Proof Document",
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontWeight = FontWeight.Medium,
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            ),
-            modifier = Modifier.padding(bottom = 8.dp)
+            text = label,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
         )
-        AppCard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            useCardShadow = false
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Description,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(18.dp)
-                )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "NPR ",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            AnimatedContent(
+                targetState = priceText,
+                transitionSpec = {
+                    val targetNum = targetState.toLongOrNull() ?: 0L
+                    val initialNum = initialState.toLongOrNull() ?: 0L
+                    if (targetNum > initialNum) {
+                        (slideInVertically { height -> height } + fadeIn())
+                            .togetherWith(slideOutVertically { height -> -height } + fadeOut())
+                    } else {
+                        (slideInVertically { height -> -height } + fadeIn())
+                            .togetherWith(slideOutVertically { height -> height } + fadeOut())
+                    }
+                },
+                label = "price_animation"
+            ) { targetText ->
                 Text(
-                    text = fileName ?: "suman_nagarikta.pdf",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
-                    modifier = Modifier.weight(1f),
-                    maxLines = 1
-                )
-                Text(
-                    text = "Replace",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 10.sp,
-                        color = AppColors.Error
-                    )
+                    text = targetText,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         }

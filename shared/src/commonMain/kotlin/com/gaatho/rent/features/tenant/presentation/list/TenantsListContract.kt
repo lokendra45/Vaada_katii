@@ -45,11 +45,18 @@ sealed interface TenantsListSideEffect {
     data class NavigateToTenantDetails(val tenantId: String) : TenantsListSideEffect
     data class ShowError(val message: String) : TenantsListSideEffect
     data class ShowMessage(val message: String) : TenantsListSideEffect
+    data class ShowArchivedPrompt(
+        val tenantId: String, 
+        val tenantName: String,
+        val profileInfo: String,
+        val rentInfo: String
+    ) : TenantsListSideEffect
 }
 
 sealed interface TenantsListAction {
     data class OnStatusFilterChanged(val status: String) : TenantsListAction
     data class OnPropertyFilterChanged(val propertyName: String) : TenantsListAction
     data class OnTenantClicked(val tenantId: String) : TenantsListAction
+    data class OnArchivedTenantBackupCompleted(val tenantId: String) : TenantsListAction
     data object OnRetry : TenantsListAction
 }

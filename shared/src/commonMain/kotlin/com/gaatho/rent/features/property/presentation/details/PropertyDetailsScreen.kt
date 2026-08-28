@@ -34,12 +34,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.rememberViewModelStoreOwner
 import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.designsystem.components.RentManagerOutlinedButton
@@ -52,10 +51,9 @@ import com.gaatho.rent.core.ui.components.AppTopBar
 import com.gaatho.rent.core.utils.CurrencyUtil
 import com.gaatho.rent.core.utils.toImageBitmap
 import com.gaatho.rent.features.property.domain.model.Property
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import org.orbitmvi.orbit.compose.collectSideEffect
 import rentmanagerapp.shared.generated.resources.Res
@@ -70,13 +68,9 @@ import rentmanagerapp.shared.generated.resources.paid_label
 import rentmanagerapp.shared.generated.resources.property_details
 import rentmanagerapp.shared.generated.resources.this_month_collection
 import rentmanagerapp.shared.generated.resources.total_units_label
-import rentmanagerapp.shared.generated.resources.total_units_value
 import rentmanagerapp.shared.generated.resources.unit_assignments_title
 import rentmanagerapp.shared.generated.resources.vacant_label
 import rentmanagerapp.shared.generated.resources.vacant_label_short
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.rememberViewModelStoreOwner
-import org.koin.compose.viewmodel.koinViewModel
 
 // ─── Entry point ──────────────────────────────────────────────────────────────
 
@@ -86,10 +80,8 @@ fun PropertyDetailsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToEdit: (String) -> Unit = {},
     onNavigateToAddTenant: () -> Unit = {},
-    viewModel: PropertyDetailsViewModel = koinInject(parameters = { parametersOf(propertyId) })
+    viewModel: PropertyDetailsViewModel = koinViewModel(parameters = { parametersOf(propertyId) })
 ) {
-    val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
-
     viewModel.collectSideEffect { effect ->
         when (effect) {
             is PropertyDetailsSideEffect.NavigateBack -> onNavigateBack()
@@ -116,11 +108,7 @@ private fun PropertyDetailsContent(
                 title = stringResource(Res.string.property_details),
                 onBackClick = { onAction(PropertyDetailsAction.OnBackClicked) },
                 containerColor = MaterialTheme.colorScheme.background,
-                titleStyle = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 17.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                titleStyle = MaterialTheme.typography.headlineMedium
             )
         },
         bottomBar = {
@@ -181,21 +169,14 @@ private fun PropertyIdentitySection(propertyId: String) {
 
             Text(
                 text = property.name,
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                ),
+                style = MaterialTheme.typography.headlineMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(Modifier.height(4.dp))
             Text(
                 text = property.address,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                ),
+                style = MaterialTheme.typography.bodyMedium,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -261,12 +242,7 @@ private fun PropertyUnitsSection(
 
     Text(
         text = stringResource(Res.string.unit_assignments_title),
-        style = MaterialTheme.typography.titleSmall.copy(
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 11.sp,
-            letterSpacing = 0.22.sp,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        style = MaterialTheme.typography.titleSmall
     )
     Spacer(Modifier.height(12.dp))
 
@@ -330,7 +306,7 @@ private fun PropertyHeroImage(imageUrl: String?) {
                 }
             } else if (imageUrl.startsWith("http")) {
                 isRendered = true
-                AsyncImage(
+                com.gaatho.rent.core.ui.components.AppAsyncImage(
                     model = imageUrl,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
@@ -361,7 +337,7 @@ private fun PropertyHeroImage(imageUrl: String?) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "No Image Added",
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
+                    style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -429,30 +405,17 @@ private fun CollectionSummaryCard(collected: Long, expected: Long, percent: Int)
             ) {
                 Text(
                     text = stringResource(Res.string.this_month_collection),
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 11.sp,
-                        letterSpacing = 0.22.sp,
-                        color = Color.White
-                    )
+                    style = MaterialTheme.typography.titleSmall
                 )
                 Text(
                     text = "$percent%",
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
-                        color = Color.White
-                    )
+                    style = MaterialTheme.typography.titleSmall
                 )
             }
             Text(
                 text = "NPR ${CurrencyUtil.formatNpr(collected.toDouble(), includeSymbol = false)} / " +
                     "NPR ${CurrencyUtil.formatNpr(expected.toDouble(), includeSymbol = false)}",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
-                    color = Color.White
-                )
+                style = MaterialTheme.typography.titleMedium
             )
         }
     }
@@ -482,10 +445,7 @@ private fun TenantRow(unit: UnitDisplayModel) {
             ) {
                 Text(
                     text = unit.tenantName?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
-                    style = MaterialTheme.typography.labelLarge.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    style = MaterialTheme.typography.labelLarge
                 )
             }
 
@@ -496,20 +456,13 @@ private fun TenantRow(unit: UnitDisplayModel) {
             ) {
                 Text(
                     text = unit.tenantName ?: "",
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
+                    style = MaterialTheme.typography.titleSmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = "Unit ${unit.unitNumber} • NPR ${CurrencyUtil.formatNpr(unit.rentPerMonth.toDouble(), includeSymbol = false)} / mo",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontSize = 10.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    ),
+                    style = MaterialTheme.typography.labelSmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -554,7 +507,7 @@ private fun UnitAssignmentsEmpty() {
         ) {
             Text(
                 text = stringResource(Res.string.no_units_title),
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(Modifier.height(4.dp))

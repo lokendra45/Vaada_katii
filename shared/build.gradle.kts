@@ -45,6 +45,7 @@ kotlin {
             implementation(libs.androidx.credentials)
             implementation(libs.androidx.credentials.play.services)
             implementation(libs.googleid)
+            implementation(libs.androidx.exifinterface)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -82,7 +83,7 @@ kotlin {
             implementation(libs.androidx.paging.compose)
 
             // FileKit
-            implementation(libs.filekit.core)
+            implementation(libs.filekit.dialogs)
             implementation(libs.filekit.dialogs.compose)
 
             // Ktor & Logging
