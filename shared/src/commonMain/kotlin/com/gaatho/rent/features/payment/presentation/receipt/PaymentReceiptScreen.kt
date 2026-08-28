@@ -206,7 +206,7 @@ private fun BarcodeStrip(seed: String, modifier: Modifier = Modifier) {
         List(46) { random.nextFloat() * 2.4f + 0.6f }
     }
     Canvas(modifier = modifier.fillMaxWidth().height(38.dp)) {
-        val totalWeight = bars.sum()
+        val totalWeight = remember(bars) { bars.sum() }
         val unit = size.width / totalWeight
         var x = 0f
         bars.forEachIndexed { index, weight ->

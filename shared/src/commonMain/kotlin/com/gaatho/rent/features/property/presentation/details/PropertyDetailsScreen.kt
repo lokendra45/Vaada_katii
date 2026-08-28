@@ -28,6 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -248,7 +249,9 @@ private fun PropertyUnitsSection(
 
     when (val s = state.unitsState) {
         is UiState.Success -> {
-            val assignedUnits = s.data.filter { it.paymentStatus != UnitPaymentStatus.VACANT }
+            val assignedUnits = remember(s.data) {
+                s.data.filter { it.paymentStatus != UnitPaymentStatus.VACANT }
+            }
             if (assignedUnits.isEmpty()) {
                 UnitAssignmentsEmpty()
             } else {

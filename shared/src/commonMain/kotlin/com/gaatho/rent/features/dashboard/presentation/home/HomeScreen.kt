@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
@@ -108,14 +109,16 @@ fun HomeContent(
                 }
                 item {
                     DashboardRecentActivity(
-                        activities = state.recentPayments.map { payment ->
-                            DashboardActivityUi(
-                                title = payment.tenantName,
-                                subtitle = payment.propertyName,
-                                amount = payment.amount,
-                                dateLabel = payment.dateLabel,
-                                isPositive = payment.isPaid
-                            )
+                        activities = remember(state.recentPayments) {
+                            state.recentPayments.map { payment ->
+                                DashboardActivityUi(
+                                    title = payment.tenantName,
+                                    subtitle = payment.propertyName,
+                                    amount = payment.amount,
+                                    dateLabel = payment.dateLabel,
+                                    isPositive = payment.isPaid
+                                )
+                            }
                         },
                         onSeeAll = { onAction(HomeAction.OnSeeAllPaymentsClicked) },
                         onActivityClick = { index ->
