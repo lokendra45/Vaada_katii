@@ -55,6 +55,7 @@ import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.core.ui.components.AppActionPill
+import com.gaatho.rent.core.ui.components.*
 import com.gaatho.rent.core.ui.components.AppStatusBadge
 import com.gaatho.rent.core.utils.TenantUtils
 import kotlinx.collections.immutable.ImmutableList
@@ -289,9 +290,8 @@ private fun ProfileCard(
                         .background(AppColors.EmeraldAccentLight),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
+                    CardTitle(
                         text = initials,
-                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = AppColors.EmeraldAccent
                     )
@@ -300,26 +300,23 @@ private fun ProfileCard(
 
             Spacer(Modifier.height(12.dp))
 
-            Text(
+            CardTitle(
                 text = profile.name,
-                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.W700,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(Modifier.height(4.dp))
 
-            Text(
+            BodyText(
                 text = profile.phone?.takeIf { it.isNotBlank() } ?: "No phone added",
-                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(Modifier.height(2.dp))
 
-            Text(
+            BodySmallText(
                 text = profile.movedInDate?.let { "Moved in: $it" } ?: "Moved in: —",
-                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
@@ -363,9 +360,8 @@ private fun ProfileCard(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    Text(
+                    CardTitle(
                         text = stringResource(Res.string.tenant_id_proof_prefix) + (profile.documentType ?: stringResource(Res.string.tenant_document_fallback)),
-                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -406,9 +402,8 @@ private fun ProfileCard(
 @Composable
 private fun RentDetailsSection(lease: TenantLeaseDisplayModel) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
+        CardTitle(
             text = stringResource(Res.string.tenant_rent_details_label),
-            style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 12.dp)
         )
@@ -462,26 +457,12 @@ private fun RentInfoRow(
     value: String,
     valueColor: Color
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            fontSize = 11.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleSmall,
-            fontSize = 13.sp,
-            color = valueColor
-        )
-    }
+    InfoRow(
+        label = label,
+        value = value,
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        valueColor = valueColor
+    )
 }
 
 // ─── Payment History ──────────────────────────────────────────────────────────
@@ -492,9 +473,8 @@ private fun PaymentHistorySection(
     onAction: (TenantTransactionsAction) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
+        CardTitle(
             text = stringResource(Res.string.tenant_payment_history_label),
-            style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 12.dp)
         )
@@ -526,19 +506,16 @@ private fun HistoryRow(tx: TenantTransactionDisplayModel, onClick: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(
+                CardTitle(
                     text = tx.date,
-                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Text(
+                BodySmallText(
                     text = buildString {
                         append(tx.amount)
                         tx.method?.takeIf { it.isNotBlank() }?.let { append(" • $it") }
                     },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 9.sp
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 

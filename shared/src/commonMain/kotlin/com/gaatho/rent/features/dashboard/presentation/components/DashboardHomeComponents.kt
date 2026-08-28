@@ -23,7 +23,6 @@ import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,7 +36,17 @@ import androidx.compose.ui.unit.dp
 import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.AppShadow.figmaButtonShadow
 import com.gaatho.rent.core.designsystem.AppShadow.figmaHeroShadow
+import com.gaatho.rent.core.ui.components.AmountRow
+import com.gaatho.rent.core.ui.components.AmountText
 import com.gaatho.rent.core.ui.components.AppListItemSurface
+import com.gaatho.rent.core.ui.components.AppSectionHeader
+import com.gaatho.rent.core.ui.components.BodySmallText
+import com.gaatho.rent.core.ui.components.BodyText
+import com.gaatho.rent.core.ui.components.CaptionText
+import com.gaatho.rent.core.ui.components.CardTitle
+import com.gaatho.rent.core.ui.components.LabelText
+import com.gaatho.rent.core.ui.components.MicroText
+import com.gaatho.rent.core.ui.components.SectionTitle
 import com.gaatho.rent.core.utils.TenantUtils
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
@@ -110,14 +119,12 @@ fun DashboardWelcomeHeader(
                 contentScale = ContentScale.Crop
             )
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
+                CaptionText(
                     text = stringResource(Res.string.dashboard_namaste),
-                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Text(
+                SectionTitle(
                     text = if (userName.isNotBlank()) userName else stringResource(Res.string.dashboard_default_name),
-                    style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -179,16 +186,14 @@ fun DashboardCollectionCard(
             ) {
                 DashboardPillBadge(text = stringResource(Res.string.dashboard_this_month_badge))
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
+                    AmountText(
                         text = stringResource(Res.string.currency_npr) + " " + formatNpr(collectedRent),
-                        style = MaterialTheme.typography.displayMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Text(
+                    BodyText(
                         text = stringResource(Res.string.dashboard_target_prefix) + stringResource(Res.string.currency_npr) + " " + formatNpr(totalRent),
-                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -254,7 +259,7 @@ fun DashboardQuickActions(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        DashboardSectionHeader(title = stringResource(Res.string.quick_actions))
+        AppSectionHeader(title = stringResource(Res.string.quick_actions))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -308,13 +313,12 @@ fun DashboardRecentActivity(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            DashboardSectionHeader(title = stringResource(Res.string.dashboard_recent_activity))
-            Text(
-                text = stringResource(Res.string.see_all_action),
-                modifier = Modifier.clickable(onClick = onSeeAll),
-                style = MaterialTheme.typography.labelLarge,
-                color = AppColors.EmeraldAccent
-            )
+            AppSectionHeader(title = stringResource(Res.string.dashboard_recent_activity))
+                LabelText(
+                    text = stringResource(Res.string.see_all_action),
+                    modifier = Modifier.clickable(onClick = onSeeAll),
+                    color = AppColors.EmeraldAccent
+                )
         }
 
         if (activities.isEmpty()) {
@@ -338,27 +342,17 @@ fun DashboardRecentActivity(
 }
 
 @Composable
-private fun DashboardSectionHeader(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleLarge,
-        color = MaterialTheme.colorScheme.onSurface
-    )
-}
-
-@Composable
 private fun DashboardPillBadge(text: String) {
     Surface(
         shape = RoundedCornerShape(100.dp),
         color = AppColors.EmeraldAccentLight,
         border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.EmeraldAccentBorder)
     ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-            style = MaterialTheme.typography.labelSmall,
-            color = AppColors.EmeraldAccentDark
-        )
+            MicroText(
+                text = text,
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                color = AppColors.EmeraldAccentDark
+            )
     }
 }
 
@@ -384,14 +378,12 @@ private fun DashboardProgressRing(progress: Float, percent: Int) {
             )
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
+            CardTitle(
                 text = "$percent%",
-                style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Text(
+            MicroText(
                 text = stringResource(Res.string.dashboard_paid),
-                style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -419,14 +411,12 @@ private fun DashboardMetricCard(
                 tint = metric.iconColor,
                 modifier = Modifier.size(24.dp)
             )
-            Text(
+            CardTitle(
                 text = metric.value,
-                style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Text(
+            BodySmallText(
                 text = metric.label,
-                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -469,9 +459,8 @@ private fun DashboardActionButton(
                 modifier = Modifier.size(18.dp)
             )
             Spacer(modifier = Modifier.width(6.dp))
-            Text(
+            LabelText(
                 text = label,
-                style = MaterialTheme.typography.labelLarge,
                 color = contentColor,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -531,9 +520,8 @@ private fun DashboardActivityCard(
                         tint = AppColors.EmeraldAccent
                     )
                 } else {
-                    Text(
+                    LabelText(
                         text = TenantUtils.getInitials(item.title),
-                        style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -543,16 +531,14 @@ private fun DashboardActivityCard(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                Text(
+                CardTitle(
                     text = item.title,
-                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(
+                BodySmallText(
                     text = item.subtitle,
-                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -560,19 +546,11 @@ private fun DashboardActivityCard(
             }
 
             if (item.amount > 0L) {
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = (if (item.isPositive) "+ " else "") + stringResource(Res.string.currency_npr) + " " + formatNpr(item.amount),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = if (item.isPositive) AppColors.EmeraldAccent else AppColors.Error,
-                        maxLines = 1
-                    )
-                    Text(
-                        text = item.dateLabel,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                AmountRow(
+                    amount = (if (item.isPositive) "+ " else "") + stringResource(Res.string.currency_npr) + " " + formatNpr(item.amount),
+                    subtitle = item.dateLabel,
+                    amountColor = if (item.isPositive) AppColors.EmeraldAccent else AppColors.Error
+                )
             }
         }
     }

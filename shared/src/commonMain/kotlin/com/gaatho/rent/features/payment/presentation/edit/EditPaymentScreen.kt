@@ -55,6 +55,7 @@ import com.gaatho.rent.core.ui.components.AppDialog
 import com.gaatho.rent.core.ui.components.AppDropdown
 import com.gaatho.rent.core.ui.components.AppTextField
 import com.gaatho.rent.core.ui.components.AppTopBar
+import com.gaatho.rent.core.ui.components.*
 import com.gaatho.rent.core.utils.DateTimeUtil
 import com.gaatho.rent.features.payment.presentation.add.PaymentMethod
 import kotlinx.collections.immutable.persistentListOf
@@ -293,13 +294,11 @@ private fun ReadOnlySection(data: EditPaymentData) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Tenant",
-                    style = MaterialTheme.typography.bodyMedium
+                BodyText(
+                    text = "Tenant"
                 )
-                Text(
+                BodyText(
                     text = data.tenantName,
-                    style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1
                 )
             }
@@ -312,13 +311,11 @@ private fun ReadOnlySection(data: EditPaymentData) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Property / Unit",
-                    style = MaterialTheme.typography.bodyMedium
+                BodyText(
+                    text = "Property / Unit"
                 )
-                Text(
+                BodyText(
                     text = data.propertyUnit,
-                    style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1
                 )
             }

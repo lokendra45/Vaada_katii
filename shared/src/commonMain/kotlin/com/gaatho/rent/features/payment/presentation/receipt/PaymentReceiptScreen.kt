@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gaatho.rent.core.designsystem.RentManagerTheme
+import com.gaatho.rent.core.ui.components.*
 import org.jetbrains.compose.resources.stringResource
 import rentmanagerapp.shared.generated.resources.Res
 import rentmanagerapp.shared.generated.resources.*
@@ -106,18 +107,16 @@ private fun ReceiptCard(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            Text(
+            CardTitle(
                 text = stringResource(Res.string.receipt_payment_successful),
-                style = MaterialTheme.typography.labelSmall,
                 color = Color(0xFF22C55E),
                 fontWeight = FontWeight.SemiBold
             )
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            Text(
+            ScreenTitle(
                 text = stringResource(Res.string.currency_npr) + " $amount",
-                style = MaterialTheme.typography.titleLarge,
                 color = InkColor
             )
 
@@ -142,9 +141,8 @@ private fun ReceiptCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
+            CaptionText(
                 text = stringResource(Res.string.receipt_thank_you),
-                style = MaterialTheme.typography.labelSmall,
                 color = FadedInk,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
@@ -160,19 +158,25 @@ private fun ReceiptRow(label: String, value: String, isMono: Boolean = false) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.Top
     ) {
-        Text(
+        CaptionText(
             text = label,
-            style = MaterialTheme.typography.labelSmall,
             color = FadedInk
         )
-        Text(
-            text = value,
-            style = (if (isMono) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium)
-                .copy(fontWeight = FontWeight.Normal),
-            color = InkColor,
-            textAlign = TextAlign.End,
-            modifier = Modifier.weight(1f).padding(start = 24.dp)
-        )
+        if (isMono) {
+            BodySmallText(
+                text = value,
+                color = InkColor,
+                textAlign = TextAlign.End,
+                modifier = Modifier.weight(1f).padding(start = 24.dp)
+            )
+        } else {
+            BodyText(
+                text = value,
+                color = InkColor,
+                textAlign = TextAlign.End,
+                modifier = Modifier.weight(1f).padding(start = 24.dp)
+            )
+        }
     }
 }
 

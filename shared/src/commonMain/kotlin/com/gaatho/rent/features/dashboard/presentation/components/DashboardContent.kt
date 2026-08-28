@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.gaatho.rent.core.ui.components.*
 import com.gaatho.rent.core.ui.animation.tabCrossfadeTransition
 import com.gaatho.rent.features.dashboard.presentation.home.HomeScreen
 import com.gaatho.rent.features.dashboard.presentation.model.DashboardTab
@@ -113,9 +114,8 @@ private fun PlaceholderTab(title: String) {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Text(
+        ScreenTitle(
             text = title,
-            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }

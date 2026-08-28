@@ -45,6 +45,7 @@ import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.core.ui.components.AppDateField
+import com.gaatho.rent.core.ui.components.*
 import com.gaatho.rent.core.ui.components.AppDatePickerDialog
 import com.gaatho.rent.core.ui.components.AppDropdown
 import com.gaatho.rent.core.ui.components.AppSnackbarHost
@@ -231,9 +232,8 @@ fun AddPaymentContent(
 
             // Payment Method
             Column {
-                Text(
+                LabelText(
                     text = stringResource(Res.string.payment_method),
-                    style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -281,9 +281,8 @@ private fun DisabledField(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
-        Text(
+        LabelText(
             text = label,
-            style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -301,9 +300,8 @@ private fun DisabledField(
                     .padding(horizontal = 14.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
-                Text(
+                BodyText(
                     text = if (text.isEmpty()) placeholder else text,
-                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -349,9 +347,8 @@ private fun PaymentMethodChips(
                     .height(33.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(
+                    LabelText(
                         text = label,
-                        style = MaterialTheme.typography.labelLarge,
                         color = if (isSelected) AppColors.EmeraldAccent
                         else MaterialTheme.colorScheme.onSurface
                     )
@@ -384,7 +381,7 @@ private fun RecordPaymentBottomBar(
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = Color.White,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                     disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
                     disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                 )
@@ -392,7 +389,7 @@ private fun RecordPaymentBottomBar(
                 if (isSaving) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(18.dp),
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         strokeWidth = 2.dp
                     )
                 } else {
@@ -420,15 +417,13 @@ private fun NoTenantsEmptyState(modifier: Modifier = Modifier) {
             modifier = Modifier.size(64.dp)
         )
         Spacer(Modifier.height(24.dp))
-        Text(
+        SectionTitle(
             text = stringResource(Res.string.payment_no_active_tenants),
-            style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(Modifier.height(8.dp))
-        Text(
+        BodyText(
             text = stringResource(Res.string.payment_no_active_tenants_subtitle),
-            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )

@@ -38,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.gaatho.rent.core.ui.components.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -197,18 +198,16 @@ fun LoginContent(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Title
-                Text(
+                ScreenTitle(
                     text = stringResource(Res.string.login_title),
-                    style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Subtitle
-                Text(
+                BodyText(
                     text = stringResource(Res.string.login_subtitle),
-                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 16.dp)
@@ -282,13 +281,12 @@ fun LoginContent(
                         // OR Divider
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                             HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
-                            Text(
-                                text = stringResource(Res.string.or_divider),
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = FontWeight.Medium
-                            )
+                                CardTitle(
+                                    text = stringResource(Res.string.or_divider),
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontWeight = FontWeight.Medium
+                                )
                             HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
                         }
 
@@ -296,9 +294,8 @@ fun LoginContent(
 
                         // Email Field
                         Column(modifier = Modifier.fillMaxWidth()) {
-                            Text(
+                            CardTitle(
                                 text = stringResource(Res.string.email_address_label),
-                                style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontWeight = FontWeight.Medium,
                                 modifier = Modifier.padding(bottom = 8.dp)
@@ -314,9 +311,8 @@ fun LoginContent(
                         // Password Field
                         Spacer(modifier = Modifier.height(16.dp))
                         Column(modifier = Modifier.fillMaxWidth()) {
-                            Text(
+                            CardTitle(
                                 text = stringResource(Res.string.password_label),
-                                style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontWeight = FontWeight.Medium,
                                 modifier = Modifier.padding(bottom = 8.dp)
@@ -364,16 +360,14 @@ fun LoginContent(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
+                    BodyText(
                         text = if (state.isLoginMode) stringResource(Res.string.dont_have_account) else stringResource(Res.string.already_have_account),
-                        color = MaterialTheme.colorScheme.onBackground,
-                        style = MaterialTheme.typography.bodyMedium
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(
+                    BodyText(
                         text = if (state.isLoginMode) stringResource(Res.string.create_account_action) else stringResource(Res.string.sign_in_action),
                         color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.clickable { onAction(AuthAction.OnToggleAuthMode) }.padding(4.dp)
                     )
                 }
@@ -399,9 +393,9 @@ fun LoginContent(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Text(stringResource(Res.string.privacy_policy), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(stringResource(Res.string.terms_of_service), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(stringResource(Res.string.help_center), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        CaptionText(stringResource(Res.string.privacy_policy), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        CaptionText(stringResource(Res.string.terms_of_service), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        CaptionText(stringResource(Res.string.help_center), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
                 

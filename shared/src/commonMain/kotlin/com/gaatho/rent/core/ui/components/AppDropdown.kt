@@ -309,9 +309,8 @@ fun <T> AppDropdown(
                 if (filteredOptions.isEmpty()) {
                     DropdownMenuItem(
                         text = {
-                            Text(
+                            BodyText(
                                 text = stringResource(Res.string.component_dropdown_no_results),
-                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         },
@@ -337,9 +336,8 @@ fun <T> AppDropdown(
                                             itemLeadingIcon(item)
                                             Spacer(modifier = Modifier.width(8.dp))
                                         }
-                                        Text(
+                                        BodyText(
                                             text = itemLabel(item),
-                                            style = MaterialTheme.typography.bodyMedium,
                                             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                                             color = if (isSelected) colors.selectedItemColor else MaterialTheme.colorScheme.onSurface,
                                             maxLines = 1,
@@ -371,9 +369,8 @@ fun <T> AppDropdown(
 
         val bottomText = if (isError) errorText else supportingText
         if (bottomText != null) {
-            Text(
+            MicroText(
                 text = bottomText,
-                style = MaterialTheme.typography.labelSmall,
                 color = if (isError) colors.errorSupportingTextColor else colors.supportingTextColor,
                 modifier = Modifier.padding(top = 4.dp, start = 4.dp),
             )

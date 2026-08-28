@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.gaatho.rent.core.ui.components.*
 
 /**
  * Paywall screen — placeholder until WebView-based payment (eSewa / Khalti) is integrated.
@@ -61,17 +62,15 @@ fun PaywallScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text(
+            SectionTitle(
                 text = stringResource(Res.string.paywall_upgrade_title),
-                style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Text(
+            BodyText(
                 text = stringResource(Res.string.paywall_description),
-                style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center
             )
 

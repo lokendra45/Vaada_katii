@@ -76,6 +76,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import com.gaatho.rent.core.ui.components.*
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import org.orbitmvi.orbit.compose.collectSideEffect
@@ -303,9 +304,8 @@ fun EditTenantContent(
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                     modifier = Modifier.size(32.dp)
                                 )
-                                Text(
+                                CaptionText(
                                     stringResource(Res.string.add_photo_label),
-                                    style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
@@ -473,9 +473,8 @@ fun EditTenantContent(
             Spacer(Modifier.height(20.dp))
 
             // ── Utilities Toggles ───────────────────────────────────────────
-            Text(
+            BodyText(
                 text = stringResource(Res.string.utilities_included_label),
-                style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             com.gaatho.rent.core.ui.components.AppCard(
@@ -490,19 +489,19 @@ fun EditTenantContent(
                     )
                     
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text(state.wifiLabel, style = MaterialTheme.typography.bodyMedium)
+                        BodyText(state.wifiLabel)
                         androidx.compose.material3.Switch(checked = state.hasWifi, onCheckedChange = { onAction(EditTenantAction.OnWifiToggled(it)) }, colors = switchColors)
                     }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text(state.waterLabel, style = MaterialTheme.typography.bodyMedium)
+                        BodyText(state.waterLabel)
                         androidx.compose.material3.Switch(checked = state.hasWater, onCheckedChange = { onAction(EditTenantAction.OnWaterToggled(it)) }, colors = switchColors)
                     }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text(state.electricityLabel, style = MaterialTheme.typography.bodyMedium)
+                        BodyText(state.electricityLabel)
                         androidx.compose.material3.Switch(checked = state.hasElectricity, onCheckedChange = { onAction(EditTenantAction.OnElectricityToggled(it)) }, colors = switchColors)
                     }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text(state.wasteLabel, style = MaterialTheme.typography.bodyMedium)
+                        BodyText(state.wasteLabel)
                         androidx.compose.material3.Switch(checked = state.hasWaste, onCheckedChange = { onAction(EditTenantAction.OnWasteToggled(it)) }, colors = switchColors)
                     }
                 }
@@ -575,15 +574,13 @@ private fun AnimatedPriceLabel(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
+        CardTitle(
             text = label,
-            style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
+            CardTitle(
                 text = stringResource(Res.string.currency_npr) + " ",
-                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
             AnimatedContent(
@@ -601,9 +598,8 @@ private fun AnimatedPriceLabel(
                 },
                 label = "price_animation"
             ) { targetText ->
-                Text(
+                SectionTitle(
                     text = targetText,
-                    style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
@@ -663,15 +659,13 @@ private fun NoPropertiesEmptyState(modifier: Modifier = Modifier) {
             modifier = Modifier.size(64.dp)
         )
         Spacer(Modifier.height(24.dp))
-        Text(
+        SectionTitle(
             text = stringResource(Res.string.no_properties_empty_title),
-            style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(Modifier.height(8.dp))
-        Text(
+        BodyText(
             text = stringResource(Res.string.no_properties_empty_body),
-            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )

@@ -195,9 +195,8 @@ internal fun AppDialogContent(
             if (bodyContent != null) {
                 Column { bodyContent() }
             } else if (!body.isNullOrBlank()) {
-                Text(
+                BodyText(
                     text = body,
-                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = when (layout) {
                         AppDialog.Layout.Center     -> androidx.compose.ui.text.style.TextAlign.Center
@@ -329,9 +328,9 @@ private fun CenteredHeader(
             )
         }
         Spacer(Modifier.height(16.dp))
-        Text(
+        CardTitle(
             text = title,
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
@@ -363,9 +362,9 @@ private fun HorizontalHeader(
                 modifier = Modifier.size(22.dp)
             )
         }
-        Text(
+        CardTitle(
             text = title,
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface
         )
     }
@@ -686,14 +685,13 @@ private fun PaymentSummaryRow(label: String, value: String) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment     = Alignment.CenterVertically
     ) {
-        Text(
+        BodyText(
             text  = label,
-            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Text(
+        CardTitle(
             text       = value,
-            style      = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+            fontWeight = FontWeight.SemiBold,
             color      = MaterialTheme.colorScheme.onSurface
         )
     }

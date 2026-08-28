@@ -1,5 +1,7 @@
 package com.gaatho.rent.features.settings.presentation
 
+import com.gaatho.rent.core.ui.components.*
+
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -334,9 +336,8 @@ private fun SettingsGroup(
     title: String,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Text(
+    LabelText(
         text = title,
-        style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(start = 4.dp, top = 24.dp, bottom = 10.dp)
     )
@@ -380,23 +381,20 @@ private fun SettingsNavRow(
         ) {
             leading()
             Column(modifier = Modifier.weight(1f)) {
-                Text(
+                CardTitle(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium,
                     color = titleColor
                 )
                 if (subtitle != null) {
-                    Text(
+                    BodySmallText(
                         text = subtitle,
-                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                     )
                 }
             }
             if (trailingLabel != null) {
-                Text(
+                BodyText(
                     text = trailingLabel,
-                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f)
                 )
             }
@@ -443,9 +441,8 @@ private fun SettingsToggleRow(
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             SettingsIcon(icon = icon)
-            Text(
+            CardTitle(
                 text = title,
-                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f)
             )
@@ -456,9 +453,9 @@ private fun SettingsToggleRow(
                     .height(24.dp)
                     .scale(scale),
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White,
+                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
                     checkedTrackColor = AppColors.EmeraldAccent,
-                    uncheckedThumbColor = Color.White,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
                     uncheckedTrackColor = MaterialTheme.colorScheme.outlineVariant,
                     uncheckedBorderColor = MaterialTheme.colorScheme.outlineVariant
                 )
@@ -521,9 +518,8 @@ private fun ProfileAvatar(
                 modifier = Modifier.fillMaxSize()
             )
         } else {
-            Text(
+            LabelText(
                 text = displayName.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
-                style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }

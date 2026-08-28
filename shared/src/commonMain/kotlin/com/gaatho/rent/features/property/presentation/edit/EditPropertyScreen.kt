@@ -54,6 +54,7 @@ import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.components.RentManagerOutlinedButton
 import com.gaatho.rent.core.designsystem.components.RentManagerPrimaryButton
 import com.gaatho.rent.core.ui.components.AppCard
+import com.gaatho.rent.core.ui.components.*
 import com.gaatho.rent.core.ui.components.AppDialog
 import com.gaatho.rent.core.ui.components.AppDropdown
 import com.gaatho.rent.core.ui.components.AppImageSourcePicker
@@ -229,9 +230,8 @@ fun PropertyFormContent(
 
                     // ── Unit Names & Rents Editor ────────────────────────────────────
                     if (state.unitsCount > 0) {
-                        Text(
+                        LabelText(
                         stringResource(if (state.unitsCount == 1) Res.string.property_unit_details_single else Res.string.property_unit_details_multi),
-                        style = MaterialTheme.typography.labelLarge,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
 
@@ -273,7 +273,7 @@ fun PropertyFormContent(
                     }
 
                     // ── Utility Charges ─────────────────────────────────────────────
-                    Text(stringResource(Res.string.property_monthly_utility_charges), style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(bottom = 8.dp))
+                    LabelText(stringResource(Res.string.property_monthly_utility_charges), modifier = Modifier.padding(bottom = 8.dp))
                     AppCard(
                         modifier = Modifier.fillMaxWidth(),
                         containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
@@ -422,9 +422,8 @@ private fun PropertyPhotoSection(
 
     val shape = RoundedCornerShape(12.dp)
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
+        BodyText(
             stringResource(Res.string.property_photo_label),
-            style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
@@ -455,7 +454,7 @@ private fun PropertyPhotoSection(
                             .padding(vertical = 6.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(stringResource(Res.string.property_tap_to_change_photo), style = MaterialTheme.typography.labelSmall, color = Color.White)
+                        CaptionText(stringResource(Res.string.property_tap_to_change_photo), color = Color.White)
                     }
                 }
                 imageUrl != null -> {
@@ -473,7 +472,7 @@ private fun PropertyPhotoSection(
                             .padding(vertical = 6.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(stringResource(Res.string.property_tap_to_change_photo), style = MaterialTheme.typography.labelSmall, color = Color.White)
+                        CaptionText(stringResource(Res.string.property_tap_to_change_photo), color = Color.White)
                     }
                 }
                 else -> {
@@ -485,9 +484,8 @@ private fun PropertyPhotoSection(
                             modifier = Modifier.size(36.dp)
                         )
                         Spacer(Modifier.height(8.dp))
-                        Text(
+                        LabelText(
                             stringResource(Res.string.property_tap_to_add_photo),
-                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
                     }

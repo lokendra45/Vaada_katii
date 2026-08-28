@@ -47,6 +47,7 @@ import com.gaatho.rent.core.designsystem.components.RentManagerOutlinedButton
 import com.gaatho.rent.core.designsystem.components.RentManagerPrimaryButton
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.core.ui.components.AppCard
+import com.gaatho.rent.core.ui.components.*
 import com.gaatho.rent.core.ui.components.AppStatusBadge
 import com.gaatho.rent.core.ui.components.AppSummaryCard
 import com.gaatho.rent.core.ui.components.AppTopBar
@@ -169,16 +170,14 @@ private fun PropertyIdentitySection(propertyId: String) {
 
             Spacer(Modifier.height(16.dp))
 
-            Text(
+            SectionTitle(
                 text = property.name,
-                style = MaterialTheme.typography.headlineMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(Modifier.height(4.dp))
-            Text(
+            BodyText(
                 text = property.address,
-                style = MaterialTheme.typography.bodyMedium,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -242,9 +241,8 @@ private fun PropertyUnitsSection(
     )
     val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
 
-    Text(
-        text = stringResource(Res.string.unit_assignments_title),
-        style = MaterialTheme.typography.titleSmall
+    CardTitle(
+        text = stringResource(Res.string.unit_assignments_title)
     )
     Spacer(Modifier.height(12.dp))
 
@@ -337,9 +335,8 @@ private fun PropertyHeroImage(imageUrl: String?) {
                     )
                 }
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(
+                LabelText(
                     text = stringResource(Res.string.property_no_image_added),
-                    style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -405,19 +402,16 @@ private fun CollectionSummaryCard(collected: Long, expected: Long, percent: Int)
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = stringResource(Res.string.this_month_collection),
-                    style = MaterialTheme.typography.titleSmall
+                CardTitle(
+                    text = stringResource(Res.string.this_month_collection)
                 )
-                Text(
-                    text = "$percent%",
-                    style = MaterialTheme.typography.titleSmall
+                CardTitle(
+                    text = "$percent%"
                 )
             }
-            Text(
+            CardTitle(
                 text = stringResource(Res.string.currency_npr) + " " + CurrencyUtil.formatNpr(collected.toDouble(), includeSymbol = false) + " / " +
-                    "NPR ${CurrencyUtil.formatNpr(expected.toDouble(), includeSymbol = false)}",
-                style = MaterialTheme.typography.titleMedium
+                    "NPR ${CurrencyUtil.formatNpr(expected.toDouble(), includeSymbol = false)}"
             )
         }
     }
@@ -445,9 +439,8 @@ private fun TenantRow(unit: UnitDisplayModel) {
                     .background(AppColors.EmeraldAccentLight),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = unit.tenantName?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
-                    style = MaterialTheme.typography.labelLarge
+                LabelText(
+                    text = unit.tenantName?.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
                 )
             }
 
@@ -456,15 +449,13 @@ private fun TenantRow(unit: UnitDisplayModel) {
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                Text(
+                CardTitle(
                     text = unit.tenantName ?: "",
-                    style = MaterialTheme.typography.titleSmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(
+                CaptionText(
                     text = stringResource(Res.string.property_unit_rent_format, unit.unitNumber, CurrencyUtil.formatNpr(unit.rentPerMonth.toDouble(), includeSymbol = false)),
-                    style = MaterialTheme.typography.labelSmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -507,15 +498,13 @@ private fun UnitAssignmentsEmpty() {
             modifier = Modifier.padding(24.dp).fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
+            BodyText(
                 text = stringResource(Res.string.no_units_title),
-                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(Modifier.height(4.dp))
-            Text(
+            BodySmallText(
                 text = stringResource(Res.string.no_units_desc),
-                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }

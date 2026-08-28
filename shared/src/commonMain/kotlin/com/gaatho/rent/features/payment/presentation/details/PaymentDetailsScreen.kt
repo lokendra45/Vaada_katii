@@ -54,6 +54,7 @@ import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.AppDimensions
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.core.ui.components.AppTopBar
+import com.gaatho.rent.core.ui.components.*
 import com.gaatho.rent.core.utils.TenantUtils
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -205,17 +206,15 @@ private fun PaymentDetailsContent(
                         
                         Spacer(modifier = Modifier.height(16.dp))
                         
-                        Text(
+                        ScreenTitle(
                             text = "NPR ${data.payment.amount}",
-                            style = MaterialTheme.typography.displaySmall,
                             color = MaterialTheme.colorScheme.onBackground
                         )
                         
                         Spacer(modifier = Modifier.height(8.dp))
                         
-                        Text(
+                        BodyText(
                             text = data.payment.date, // You could format this better
-                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         
@@ -241,26 +240,22 @@ private fun PaymentDetailsContent(
                                             .background(Color(TenantUtils.getAvatarColors(data.tenant?.name ?: "").first)),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text(
-                                            text = TenantUtils.getInitials(data.tenant?.name ?: "?"),
-                                            style = MaterialTheme.typography.titleMedium
+                                        CardTitle(
+                                            text = TenantUtils.getInitials(data.tenant?.name ?: "?")
                                         )
                                     }
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Column {
-                                        Text(
+                                        CaptionText(
                                             text = "TENANT",
-                                            style = MaterialTheme.typography.labelSmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
-                                        Text(
-                                            text = data.tenant?.name ?: "Unknown Tenant",
-                                            style = MaterialTheme.typography.titleMedium
+                                        CardTitle(
+                                            text = data.tenant?.name ?: "Unknown Tenant"
                                         )
                                         if (data.property != null) {
-                                            Text(
+                                            BodySmallText(
                                                 text = "${data.tenant?.roomNumber ?: ""} ${data.property.name}",
-                                                style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         }
@@ -284,9 +279,8 @@ private fun PaymentDetailsContent(
                         Spacer(modifier = Modifier.height(24.dp))
                         
                         // Breakdown Section
-                        Text(
+                        CardTitle(
                             text = "Breakdown",
-                            style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
                         )
 
@@ -309,13 +303,11 @@ private fun PaymentDetailsContent(
                                         .padding(16.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Text(
-                                        text = "Total Amount",
-                                        style = MaterialTheme.typography.titleMedium
+                                    CardTitle(
+                                        text = "Total Amount"
                                     )
-                                    Text(
-                                        text = "NPR ${data.payment.amount}",
-                                        style = MaterialTheme.typography.titleMedium
+                                    CardTitle(
+                                        text = "NPR ${data.payment.amount}"
                                     )
                                 }
                             }
@@ -362,9 +354,8 @@ private fun PaymentStatusBadge(status: String) {
             if (status.lowercase() == "paid") {
                 Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, tint = textColor, modifier = Modifier.size(14.dp))
             }
-            Text(
-                text = status,
-                style = MaterialTheme.typography.labelMedium
+            LabelText(
+                text = status
             )
         }
     }
@@ -377,18 +368,16 @@ private fun DetailRow(label: String, value: String, icon: androidx.compose.ui.gr
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
+        BodyText(
             text = label,
-            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (icon != null) {
                 Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
             }
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyLarge
+            BodyText(
+                text = value
             )
         }
     }
@@ -402,9 +391,8 @@ private fun TransactionIdRow(transactionId: String) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
+        BodyText(
             text = "Transaction ID",
-            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Row(
@@ -414,9 +402,8 @@ private fun TransactionIdRow(transactionId: String) {
                 clipboardManager.setText(AnnotatedString(transactionId))
             }
         ) {
-            Text(
+            BodyText(
                 text = transactionId,
-                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Icon(
@@ -436,14 +423,12 @@ private fun BreakdownRow(label: String, value: String) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
+        BodyText(
             text = label,
-            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge
+        BodyText(
+            text = value
         )
     }
 }

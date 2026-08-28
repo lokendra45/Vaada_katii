@@ -1,5 +1,7 @@
 package com.gaatho.rent.features.payment.presentation.list
 
+import com.gaatho.rent.core.ui.components.*
+
 import org.jetbrains.compose.resources.stringResource
 import rentmanagerapp.shared.generated.resources.*
 import androidx.compose.animation.AnimatedVisibility
@@ -182,7 +184,7 @@ private fun PaymentListContent(
                     onClick = { onAction(PaymentListAction.OnAddPaymentClicked) },
                     shape = RoundedCornerShape(50),
                     containerColor = AppColors.EmeraldAccent,
-                    contentColor = Color.White,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                     icon = { Icon(Icons.Default.AttachMoney, contentDescription = null) },
                     text = { Text(stringResource(Res.string.add_payment)) },
                     expanded = true
@@ -208,9 +210,8 @@ private fun PaymentListContent(
                         .padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
+                    SectionTitle(
                         text = stringResource(Res.string.payments_title),
-                        style = MaterialTheme.typography.headlineMedium,
                         modifier = Modifier.weight(1f)
                     )
                     MonthFilterPill(
@@ -291,8 +292,8 @@ private fun PaymentListContent(
                                             lastDate = date
                                             val headerDate = date
                                             item(key = "header_$headerDate") {
-                                                SectionHeader(
-                                                    text = paymentGroupHeader(headerDate, today)
+                                                AppSectionHeader(
+                                                    title = paymentGroupHeader(headerDate, today)
                                                 )
                                             }
                                         }
@@ -364,9 +365,8 @@ private fun MonthFilterPill(
                 modifier = Modifier.padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
+                LabelText(
                     text = label,
-                    style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(Modifier.width(4.dp))
@@ -401,16 +401,6 @@ private fun MonthFilterPill(
     }
 }
 
-@Composable
-private fun SectionHeader(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
-    )
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PaymentRowItem(
@@ -442,9 +432,8 @@ private fun PaymentRowItem(
                         .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
+                    LabelText(
                         text = initials,
-                        style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -455,17 +444,15 @@ private fun PaymentRowItem(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(
+                CardTitle(
                     text = payment.tenantName,
-                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(Modifier.height(3.dp))
-                Text(
+                BodySmallText(
                     text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -475,9 +462,8 @@ private fun PaymentRowItem(
             Spacer(Modifier.width(8.dp))
 
             Column(horizontalAlignment = Alignment.End) {
-                Text(
+                AmountText(
                     text = payment.formattedAmount,
-                    style = MaterialTheme.typography.bodyLarge,
                     color = AppColors.EmeraldAccent
                 )
                 Spacer(Modifier.height(4.dp))

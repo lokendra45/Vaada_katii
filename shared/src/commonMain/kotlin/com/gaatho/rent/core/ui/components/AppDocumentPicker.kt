@@ -44,10 +44,8 @@ fun AppDocumentPicker(
     val hasFile = file != null || previewBytes != null
 
     Column(modifier = modifier.fillMaxWidth()) {
-        Text(
+        CaptionText(
             text = title,
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -99,9 +97,8 @@ fun AppDocumentPicker(
                             .padding(vertical = 4.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
+                        MicroText(
                             text = stringResource(Res.string.common_tap_to_change),
-                            style = MaterialTheme.typography.labelSmall,
                             color = Color.White
                         )
                     }
@@ -123,9 +120,8 @@ fun AppDocumentPicker(
                             .padding(vertical = 4.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
+                        MicroText(
                             text = stringResource(Res.string.common_tap_to_change),
-                            style = MaterialTheme.typography.labelSmall,
                             color = Color.White
                         )
                     }
@@ -145,10 +141,8 @@ fun AppDocumentPicker(
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(Modifier.height(8.dp))
-                        Text(
+                        CaptionText(
                             text = stringResource(Res.string.document_picker_attached),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -170,16 +164,13 @@ fun AppDocumentPicker(
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(Modifier.height(8.dp))
-                        Text(
+                        CaptionText(
                             text = stringResource(Res.string.document_picker_upload_hint),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Medium
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(Modifier.height(4.dp))
-                        Text(
+                        MicroText(
                             text = stringResource(Res.string.document_picker_max_size),
-                            style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }

@@ -1,5 +1,7 @@
 package com.gaatho.rent.features.tenant.presentation.list
 
+import com.gaatho.rent.core.ui.components.*
+
 import org.jetbrains.compose.resources.stringResource
 import rentmanagerapp.shared.generated.resources.*
 import androidx.compose.animation.AnimatedVisibility
@@ -225,7 +227,7 @@ fun TenantsListContent(
                     onClick = onNavigateToAddTenant,
                     shape = RoundedCornerShape(50),
                     containerColor = AppColors.EmeraldAccent,
-                    contentColor = Color.White,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                     icon = { Icon(Icons.Default.Add, contentDescription = "Add Tenant") },
                     text = { Text(stringResource(Res.string.tenant_add_title)) },
                     expanded = true
@@ -286,7 +288,7 @@ fun TenantsListContent(
                             is LoadState.Error -> {
                                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text(stringResource(Res.string.tenant_failed_load), style = MaterialTheme.typography.titleMedium)
+                                        CardTitle(stringResource(Res.string.tenant_failed_load))
                                         Spacer(modifier = Modifier.height(8.dp))
                                         Button(onClick = { pagedTenants.retry() }) {
                                             Text(stringResource(Res.string.retry))
@@ -394,9 +396,8 @@ private fun TenantsFilterStrip(
                     .clickable { onAction(TenantsListAction.OnStatusFilterChanged(value)) }
                     .padding(horizontal = 18.dp, vertical = 8.dp)
             ) {
-                Text(
-                    text = displayLabel,
-                    style = MaterialTheme.typography.labelMedium
+                LabelText(
+                    text = displayLabel
                 )
             }
         }
@@ -433,9 +434,8 @@ private fun TenantRowItem(
                         .background(Color(tenant.avatarBgColorHex)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = tenant.initials,
-                        style = MaterialTheme.typography.titleMedium
+                    LabelText(
+                        text = tenant.initials
                     )
                 }
 
@@ -443,9 +443,8 @@ private fun TenantRowItem(
 
                 // Name & Status
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
+                    CardTitle(
                         text = tenant.name,
-                        style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -494,9 +493,8 @@ private fun TenantRowItem(
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
-                        Text(
+                        CaptionText(
                             text = stringResource(Res.string.property_details_title),
-                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         if (tenant.propertyName.isNullOrBlank()) {
@@ -518,17 +516,15 @@ private fun TenantRowItem(
                                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                         modifier = Modifier.size(14.dp)
                                     )
-                                    Text(
+                                    MicroText(
                                         text = stringResource(Res.string.tenant_assign_button),
-                                        style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
                             }
                         } else {
-                            Text(
+                            LabelText(
                                 text = tenant.propertyName,
-                                style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -544,9 +540,8 @@ private fun TenantRowItem(
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(12.dp)
                                     )
-                                    Text(
+                                    CaptionText(
                                         text = stringResource(Res.string.tenant_unit_format, tenant.roomNumber),
-                                        style = MaterialTheme.typography.labelMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
@@ -563,19 +558,16 @@ private fun TenantRowItem(
                         horizontalAlignment = Alignment.End,
                         verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
-                        Text(
+                        CaptionText(
                             text = stringResource(Res.string.tenant_rent_label),
-                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Text(
+                        AmountText(
                             text = CurrencyUtil.formatNprLabel(tenant.rentAmount),
-                            style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.primary
                         )
-                        Text(
+                        CaptionText(
                             text = stringResource(Res.string.tenant_per_month_suffix),
-                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }

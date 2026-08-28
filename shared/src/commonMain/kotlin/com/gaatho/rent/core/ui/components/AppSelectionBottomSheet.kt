@@ -81,9 +81,8 @@ fun <T> AppSelectionBottomSheet(
                 .navigationBarsPadding()
         ) {
             // Title
-            Text(
+            SectionTitle(
                 text = title,
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(horizontal = Spacing.ScreenPadding, vertical = Spacing.StackTight)
             )
 
@@ -127,9 +126,8 @@ fun <T> AppSelectionBottomSheet(
                         .height(120.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
+                    BodyText(
                         text = emptyText,
-                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
                 }
@@ -201,20 +199,17 @@ private fun <T> SelectionItemRow(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(
+                CardTitle(
                     text = item.title,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        color = if (isSelected)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.onSurface
-                    )
+                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                    color = if (isSelected)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurface
                 )
                 if (item.subtitle != null) {
-                    Text(
+                    BodySmallText(
                         text = item.subtitle,
-                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
                 }

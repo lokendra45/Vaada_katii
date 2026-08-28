@@ -2,6 +2,8 @@
 
 package com.gaatho.rent.features.property.presentation.list
 
+import com.gaatho.rent.core.ui.components.*
+
 import org.jetbrains.compose.resources.stringResource
 import rentmanagerapp.shared.generated.resources.*
 
@@ -210,7 +212,7 @@ fun PropertyListContent(
                     onClick = { onAction(OnAddPropertyClicked) },
                     shape = RoundedCornerShape(50),
                     containerColor = AppColors.EmeraldAccent,
-                    contentColor = Color.White,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                     icon = { Icon(Icons.Default.Add, contentDescription = null) },
                     text = { Text(stringResource(Res.string.property_add_button)) },
                     expanded = true
@@ -404,17 +406,15 @@ fun PropertyListContent(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text(
+                    CardTitle(
                         text = property.name,
-                        style = MaterialTheme.typography.titleLarge, // 13sp Bold — Figma "Baluwatar House"
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
 
-                    Text(
+                    BodySmallText(
                         text = property.address,
-                        style = MaterialTheme.typography.bodySmall, // 10sp Regular — Figma "Baluwatar, Kathmandu"
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -443,9 +443,8 @@ fun PropertyListContent(
                         )
                     }
 
-                    Text(
+                    BodySmallText(
                         text = stringResource(Res.string.price_per_month, property.priceFormatted),
-                        style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(top = 2.dp)
                     )
                 }
@@ -543,9 +542,8 @@ private fun ErrorState(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text(
+        BodyText(
             text = ErrorMessageExtractor.extractFromString(message),
-            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.error,
             textAlign = TextAlign.Center
         )

@@ -27,93 +27,117 @@ fun rentManagerTypography(): Typography {
     val satoshi = satoshiFontFamily()
     return remember(satoshi) {
         Typography(
-            displayMedium = TextStyle(
+            // Hero financial figure only (balances, amounts). Used sparingly.
+            displayLarge = TextStyle(
                 fontFamily = satoshi,
                 fontWeight = FontWeight.ExtraBold,
+                fontSize = 22.sp,
+                lineHeight = 28.sp,
+            ),
+            // Screen titles — just a touch above the original 18sp.
+            displayMedium = TextStyle(
+                fontFamily = satoshi,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                lineHeight = 26.sp,
+            ),
+            displaySmall = TextStyle(
+                fontFamily = satoshi,
+                fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
-            ),
-            
-            // Screen titles and compact section headers.
-            headlineMedium = TextStyle(
-                fontFamily = satoshi,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-            
-            ),
-            
-            // Sub-Screen Titles
-            titleLarge = TextStyle(
-                fontFamily = satoshi,
-                fontWeight = FontWeight.Bold,
-                fontSize = 13.sp,
-            
+                lineHeight = 24.sp,
             ),
 
+            // Section headers
+            headlineLarge = TextStyle(
+                fontFamily = satoshi,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 18.sp,
+                lineHeight = 24.sp,
+            ),
+            headlineMedium = TextStyle(
+                fontFamily = satoshi,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 16.sp,
+                lineHeight = 22.sp,
+            ),
+            headlineSmall = TextStyle(
+                fontFamily = satoshi,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 15.sp,
+                lineHeight = 21.sp,
+            ),
+
+            // Card / list-item titles
+            titleLarge = TextStyle(
+                fontFamily = satoshi,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 15.sp,
+                lineHeight = 21.sp,
+            ),
             titleMedium = TextStyle(
                 fontFamily = satoshi,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 12.sp,
-            
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
             ),
-            
-            // Body Large
-            bodyLarge = TextStyle(
+            titleSmall = TextStyle(
                 fontFamily = satoshi,
                 fontWeight = FontWeight.Medium,
                 fontSize = 13.sp,
-             
+                lineHeight = 18.sp,
             ),
-            
-            // List Item Titles (from Figma "General": 12px Medium)
-            bodyMedium = TextStyle(
+
+            // Body
+            bodyLarge = TextStyle(
                 fontFamily = satoshi,
                 fontWeight = FontWeight.Medium,
-                fontSize = 12.sp,
-              
+                fontSize = 15.sp,
+                lineHeight = 22.sp,
             ),
-            
-            // Small Body / Descriptions (from Figma: 10.29px Regular)
+            bodyMedium = TextStyle(
+                fontFamily = satoshi,
+                fontWeight = FontWeight.Normal,
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
+            ),
             bodySmall = TextStyle(
                 fontFamily = satoshi,
                 fontWeight = FontWeight.Normal,
-                fontSize = 10.sp,
-               
+                fontSize = 12.sp,
+                lineHeight = 18.sp,
             ),
-            
-            // Tabs / Highlight Labels (from Figma "Category": 12px SemiBold)
+
+            // Labels / captions
             labelLarge = TextStyle(
                 fontFamily = satoshi,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 11.sp,
-            
+                fontWeight = FontWeight.Medium,
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
             ),
-            
-            // Small Metadata
             labelMedium = TextStyle(
                 fontFamily = satoshi,
                 fontWeight = FontWeight.Medium,
-                fontSize = 9.5.sp,
-            
+                fontSize = 12.sp,
+                lineHeight = 16.sp,
             ),
-            
-            // Tiny Labels
             labelSmall = TextStyle(
                 fontFamily = satoshi,
                 fontWeight = FontWeight.Normal,
-                fontSize = 8.sp,
-        
-            )
+                fontSize = 11.sp,
+                lineHeight = 16.sp,
+            ),
         )
     }
 }
 
 /**
- * Tabular-numeral style for financial data.
- * Uses Satoshi ExtraBold ~21px.
+ * Tabular-numeral style for financial data (amounts, balances).
  */
 @Composable
 fun monoDataTextStyle(): TextStyle = TextStyle(
     fontFamily = satoshiFontFamily(),
     fontWeight = FontWeight.ExtraBold,
-    fontSize = 20.sp
+    fontSize = 22.sp,
+    lineHeight = 28.sp
 )

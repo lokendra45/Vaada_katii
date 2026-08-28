@@ -51,16 +51,14 @@ fun EmptyStateCard(
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Text(
+            CardTitle(
                 text = title,
-                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
+            BodyText(
                 text = description,
-                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )

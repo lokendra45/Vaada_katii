@@ -64,18 +64,16 @@ fun AppIllustratedEmptyState(
         
         Spacer(modifier = Modifier.height(24.dp))
         
-        Text(
+        CardTitle(
             text = title,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
         )
         
         Spacer(modifier = Modifier.height(10.dp))
         
-        Text(
+        BodyText(
             text = description,
-            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 16.dp)

@@ -36,6 +36,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.style.TextAlign
+import com.gaatho.rent.core.ui.components.*
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -121,9 +122,8 @@ fun SplashContent(
                 .alpha(logoAlpha.value)
                 .scale(logoScale.value),
         ) {
-            Text(
+            ScreenTitle(
                 text = stringResource(Res.string.splash_app_name),
-                style = MaterialTheme.typography.displayLarge,
             )
         }
 
@@ -179,9 +179,8 @@ private fun LoadingIndicator() {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text(
+        BodyText(
             text = stringResource(Res.string.splash_tagline),
-            style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
         )
     }
@@ -193,17 +192,15 @@ private fun ErrorSection(onRetry: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(horizontal = 40.dp),
     ) {
-        Text(
+        CardTitle(
             text = stringResource(Res.string.splash_error_title),
-            style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
+        BodySmallText(
             text = stringResource(Res.string.splash_error_subtitle),
-            style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.Center,
         )
 

@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,10 +39,9 @@ fun OfflineBanner(
                 .padding(8.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(
+            BodySmallText(
                 text = stringResource(Res.string.common_offline_banner),
-                color = MaterialTheme.colorScheme.onErrorContainer,
-                style = MaterialTheme.typography.bodySmall
+                color = MaterialTheme.colorScheme.onErrorContainer
             )
         }
     }

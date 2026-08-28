@@ -168,9 +168,8 @@ fun AppTextField(
                 }
 
                 if (topRightLabel != null) {
-                    Text(
+                    BodySmallText(
                         text = topRightLabel,
-                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -253,9 +252,8 @@ fun AppTextField(
         }
 
         if (errorMessage != null) {
-            Text(
+            BodySmallText(
                 text = errorMessage,
-                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(top = 4.dp, start = 4.dp)
             )

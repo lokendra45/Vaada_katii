@@ -86,12 +86,8 @@ fun AppSearchBar(
                     contentAlignment = Alignment.CenterStart
                 ) {
                     if (query.isEmpty()) {
-                        Text(
+                        BodySmallText(
                             text = placeholderText,
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 12.sp
-                            ),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -102,9 +98,8 @@ fun AppSearchBar(
                         value = query,
                         onValueChange = onQueryChange,
                         singleLine = true,
-                        textStyle = MaterialTheme.typography.bodyMedium.copy(
+                        textStyle = MaterialTheme.typography.bodySmall.copy(
                             fontWeight = FontWeight.Medium,
-                            fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         ),
                         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
@@ -143,17 +138,15 @@ fun AppSearchBar(
                                 .clickable { onSuggestionSelected(suggestion) }
                                 .padding(horizontal = 12.dp, vertical = 10.dp)
                         ) {
-                            Text(
+                            CardTitle(
                                 text = suggestion.title,
-                                style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                             if (suggestion.subtitle != null) {
-                                Text(
+                                BodySmallText(
                                     text = suggestion.subtitle,
-                                    style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis

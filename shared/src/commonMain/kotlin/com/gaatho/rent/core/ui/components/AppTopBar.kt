@@ -44,11 +44,9 @@ fun AppTopBar(
                     overflow = TextOverflow.Ellipsis
                 )
                 if (subtitle != null) {
-                    Text(
+                    BodySmallText(
                         text = subtitle,
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f)
-                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )

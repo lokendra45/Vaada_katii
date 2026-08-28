@@ -40,9 +40,8 @@ fun AppImageSourcePicker(
                 .fillMaxWidth()
                 .padding(bottom = 32.dp, start = 16.dp, end = 16.dp)
         ) {
-            Text(
+            CardTitle(
                 text = stringResource(Res.string.component_select_image_source),
-                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 16.dp, start = 16.dp)
             )
 

@@ -80,12 +80,8 @@ fun AppDateField(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
+                BodyText(
                     text = if (value.isBlank()) placeholder else DateTimeUtil.formatDisplayDate(value),
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 13.sp
-                    ),
                     color = if (value.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant
                     else MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
@@ -99,9 +95,8 @@ fun AppDateField(
             }
         }
         if (errorMessage != null) {
-            Text(
+            BodySmallText(
                 text = errorMessage,
-                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(top = 4.dp)
             )
@@ -139,7 +134,7 @@ fun AppDatePickerDialog(
     ) {
         DatePicker(
             state = state,
-            title = { Text(title, style = MaterialTheme.typography.titleMedium) }
+            title = { CardTitle(text = title) }
         )
     }
 }

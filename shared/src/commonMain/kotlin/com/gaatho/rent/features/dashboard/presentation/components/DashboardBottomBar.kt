@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.gaatho.rent.core.ui.components.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gaatho.rent.core.designsystem.AppColors
@@ -56,9 +57,8 @@ fun DashboardBottomBar(
                     )
                 },
                 label = {
-                    Text(
+                    CardTitle(
                         text = stringResource(tab.title),
-                        style = MaterialTheme.typography.labelMedium,
                         fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
                     )
                 },
