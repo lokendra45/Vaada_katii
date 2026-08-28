@@ -1,5 +1,7 @@
 package com.gaatho.rent.features.payment.presentation.list
 
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.*
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -223,7 +225,7 @@ private fun PaymentListContent(
                 AppSearchBar(
                     query = searchText,
                     onQueryChange = onSearchQueryChanged,
-                    placeholderText = "Search by tenant or property...",
+                    placeholderText = stringResource(Res.string.payment_search_placeholder),
                     suggestions = emptyList(),
                     onSuggestionSelected = {},
                     modifier = Modifier

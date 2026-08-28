@@ -1,5 +1,7 @@
 package com.gaatho.rent.features.property.presentation.add
 
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.*
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -38,7 +40,7 @@ fun AddPropertyScreen(
     Scaffold(
         topBar = {
             AppTopBar(
-                title = "Add New Property",
+                title = stringResource(Res.string.property_add_new_title),
                 onBackClick = { viewModel.onAction(EditPropertyAction.OnBackClicked) },
                 containerColor = MaterialTheme.colorScheme.background
             )

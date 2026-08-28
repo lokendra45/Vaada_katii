@@ -105,7 +105,7 @@ fun EditTenantScreen(
     Scaffold(
         topBar = {
             AppTopBar(
-                title = "Edit Tenant Details",
+                title = stringResource(Res.string.tenant_edit_title),
                 onBackClick = { viewModel.onAction(EditTenantAction.OnBackClicked) },
                 containerColor = MaterialTheme.colorScheme.background,
                 titleStyle = MaterialTheme.typography.titleMedium
@@ -121,14 +121,14 @@ fun EditTenantScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     RentManagerOutlinedButton(
-                        text = "Remove Tenant",
+                        text = stringResource(Res.string.tenant_remove_button),
                         onClick = { viewModel.onAction(EditTenantAction.OnDeleteClicked) },
                         modifier = Modifier.weight(1f),
                         borderColor = AppColors.Error,
                         contentColor = AppColors.Error
                     )
                     RentManagerPrimaryButton(
-                        text = "Save Changes",
+                        text = stringResource(Res.string.tenant_save_changes_button),
                         onClick = { viewModel.onAction(EditTenantAction.OnSaveClicked) },
                         modifier = Modifier.weight(1f),
                         isLoading = state.isSaving
@@ -157,9 +157,9 @@ fun EditTenantContent(
             variant = AppDialog.Variant.Success,
             layout = AppDialog.Layout.Center,
             icon = Icons.Default.CheckCircle,
-            title = "Success!",
-            body = "Tenant has been saved successfully.",
-            confirmText = "OK",
+            title = stringResource(Res.string.tenant_success_title),
+            body = stringResource(Res.string.tenant_saved_body),
+            confirmText = stringResource(Res.string.common_ok),
             onConfirm = { onAction(EditTenantAction.OnSuccessDialogDismissed) },
             onDismiss = { onAction(EditTenantAction.OnSuccessDialogDismissed) }
         )
@@ -178,7 +178,7 @@ fun EditTenantContent(
                 showDatePicker = false
             },
             onDismiss = { showDatePicker = false },
-            title = "Move-In Date"
+            title = stringResource(Res.string.tenant_move_in_date_label)
         )
     }
 
@@ -319,8 +319,8 @@ fun EditTenantContent(
             AppTextField(
                 value = state.name,
                 onValueChange = { onAction(EditTenantAction.OnNameChanged(it)) },
-                label = "Tenant Full Name",
-                placeholder = "e.g. Suman Maharjan",
+                label = stringResource(Res.string.tenant_full_name_label),
+                placeholder = stringResource(Res.string.tenant_full_name_placeholder),
                 errorMessage = state.nameError,
 
 
@@ -333,8 +333,8 @@ fun EditTenantContent(
             AppTextField(
                 value = state.phone,
                 onValueChange = { onAction(EditTenantAction.OnPhoneChanged(it)) },
-                label = "Phone Number",
-                placeholder = "e.g. 9841XXXXXX",
+                label = stringResource(Res.string.tenant_phone_label),
+                placeholder = stringResource(Res.string.tenant_phone_placeholder),
 
 
 
@@ -347,8 +347,8 @@ fun EditTenantContent(
             AppTextField(
                 value = state.email,
                 onValueChange = { onAction(EditTenantAction.OnEmailChanged(it)) },
-                label = "Email Address",
-                placeholder = "e.g. name@domain.com",
+                label = stringResource(Res.string.tenant_email_label),
+                placeholder = stringResource(Res.string.tenant_email_placeholder),
 
 
 
@@ -383,8 +383,8 @@ fun EditTenantContent(
                         options = state.unitOptions.toPersistentList(),
                         selectedItem = if (state.unitNumber.text.isNotBlank()) state.unitNumber.text else null,
                         onItemSelected = { onAction(EditTenantAction.OnUnitSelected(it)) },
-                        label = "Unit Number",
-                        placeholder = "e.g. Unit 2B",
+                        label = stringResource(Res.string.unit_number_label),
+                        placeholder = stringResource(Res.string.tenant_unit_number_placeholder),
 
 
 
@@ -394,8 +394,8 @@ fun EditTenantContent(
                     AppTextField(
                         value = state.unitNumber,
                         onValueChange = { onAction(EditTenantAction.OnUnitNumberChanged(it)) },
-                        label = "Unit Number",
-                        placeholder = "e.g. Unit 2B",
+                        label = stringResource(Res.string.unit_number_label),
+                        placeholder = stringResource(Res.string.tenant_unit_number_placeholder),
 
 
 
@@ -405,8 +405,8 @@ fun EditTenantContent(
                 AppTextField(
                     value = state.rentAmount,
                     onValueChange = { onAction(EditTenantAction.OnRentChanged(it)) },
-                    label = "Rent Amount (NPR)",
-                    placeholder = "e.g. 25,000",
+                    label = stringResource(Res.string.tenant_rent_amount_label),
+                    placeholder = stringResource(Res.string.tenant_rent_amount_placeholder),
                     errorMessage = state.rentError,
 
 
@@ -426,8 +426,8 @@ fun EditTenantContent(
                     value = DateTimeUtil.formatDisplayDate(state.moveInDate),
                     onValueChange = {},
                     readOnly = true,
-                    label = "Move-In Date",
-                    placeholder = "Select date",
+                    label = stringResource(Res.string.tenant_move_in_date_label),
+                    placeholder = stringResource(Res.string.tenant_move_in_date_placeholder),
 
 
 
@@ -461,8 +461,8 @@ fun EditTenantContent(
             AppTextField(
                 value = state.securityDeposit,
                 onValueChange = { onAction(EditTenantAction.OnSecurityDepositChanged(it)) },
-                label = "Security Deposit (NPR)",
-                placeholder = "e.g. 50,000",
+                label = stringResource(Res.string.tenant_security_deposit_npr_label),
+                placeholder = stringResource(Res.string.tenant_security_deposit_placeholder),
 
 
 
@@ -540,7 +540,7 @@ fun EditTenantContent(
                 Box(modifier = Modifier.padding(16.dp)) {
                     AnimatedPriceLabel(
                         priceText = if (state.rentAmount.text.isNotBlank()) state.rentAmount.text else "0",
-                        label = "Total Monthly Due"
+                        label = stringResource(Res.string.tenant_total_monthly_due)
                     )
                 }
             }
@@ -582,7 +582,7 @@ private fun AnimatedPriceLabel(
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "NPR ",
+                text = stringResource(Res.string.currency_npr) + " ",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )

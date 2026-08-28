@@ -309,6 +309,168 @@
     <string name="document_type_placeholder">प्रकार छान्नुहोस्</string>
     <string name="no_properties_empty_title">कुनै सम्पत्ति छैन</string>
     <string name="no_properties_empty_body">तपाईंले भाडावाल थप्नु अघि कम्तिमा एउटा सम्पत्ति थप्नु पर्छ। कृपया सम्पत्ति खण्डमा गएर पहिलो सम्पत्ति थप्नुहोस्।</string>
+
+    <!-- i18n: Common (extracted user-visible literals) -->
+    <string name="common_ok">ठीक छ</string>
+    <string name="common_not_now">अहिले होइन</string>
+    <string name="common_offline_banner">तपाईं हाल अफलाइन हुनुहुन्छ। क्यास गरिएको डाटा देखाइँदैछ।</string>
+    <string name="common_tap_to_change">परिवर्तन गर्न ट्याप गर्नुहोस्</string>
+
+    <string name="component_select_image_source">तस्विरको स्रोत छान्नुहोस्</string>
+    <string name="component_gallery">ग्यालरी</string>
+    <string name="component_camera">क्यामेरा</string>
+    <string name="component_dropdown_no_results">कुनै नतिजा भेटिएन</string>
+
+    <string name="security_setup_required">सेटअप आवश्यक</string>
+    <string name="security_app_locked">एप लक गरिएको</string>
+    <string name="security_not_enrolled_desc">बायोमेट्रिक सक्षम छ तर यो यन्त्रमा कुनै औंठा छाप दर्ता गरिएको छैन। कृपया सिस्टम सेटिङमा सेटअप गर्नुहोस्।</string>
+    <string name="security_app_locked_desc">आफ्नो सम्पत्ति डाटा पहुँच गर्न प्रमाणीकरण आवश्यक छ।</string>
+    <string name="security_go_to_settings">सेटिङमा जानुहोस्</string>
+    <string name="security_unlock_fingerprint">औंठा छापले अनलक गर्नुहोस्</string>
+
+    <string name="nav_sign_in_required">साइन इन आवश्यक</string>
+    <string name="nav_sign_in_required_body">यो कार्य गर्न तपाईं साइन इन हुनुपर्छ। के तपाईं अहिले साइन इन गर्न चाहनुहुन्छ?</string>
+
+    <string name="dashboard_namaste">नमस्ते, 🙏</string>
+    <string name="dashboard_default_name">रमेश जी</string>
+    <string name="dashboard_this_month_badge">यो महिना</string>
+    <string name="dashboard_reminder">सम्झना</string>
+    <string name="dashboard_recent_activity">हालैको गतिविधि</string>
+    <string name="dashboard_paid">तिरेको</string>
+    <string name="dashboard_no_recent_payments">हालैको कुनै भुक्तानी छैन</string>
+    <string name="dashboard_no_recent_payments_subtitle">नयाँ भाडा गतिविधि यहाँ देखिनेछ</string>
+
+    <string name="payment_no_active_tenants">कुनै सक्रिय भाडावाल छैनन्</string>
+    <string name="payment_no_active_tenants_subtitle">भुक्तानी रेकर्ड गर्न तपाईंसँग कम्तीमा एउटा सक्रिय भाडावाल हुनुपर्छ। भाडावाल ट्याबमा जानुहोस् र आफ्नो पहिलो भाडावाल थप्नुहोस्।</string>
+    <string name="payment_search_placeholder">भाडावाल वा सम्पत्ति अनुसार खोज्नुहोस्...</string>
+    <string name="payment_failed_to_load">भुक्तानी लोड गर्न सकिएन</string>
+    <string name="payment_detail_tenant_label">भाडावाल</string>
+    <string name="payment_unknown_tenant">अज्ञात भाडावाल</string>
+    <string name="payment_detail_payment_month_label">भुक्तानी महिना</string>
+    <string name="payment_detail_current_month">हालको महिना</string>
+    <string name="payment_detail_payment_method_label">भुक्तानी माध्यम</string>
+    <string name="payment_detail_bank_transfer_default">बैंक ट्रान्सफर</string>
+    <string name="payment_detail_breakdown">विवरण</string>
+    <string name="payment_detail_base_rent">आधारभूत भाडा</string>
+    <string name="payment_detail_utilities">उपयोगिता</string>
+    <string name="payment_detail_utilities_value">NPR ०</string>
+    <string name="payment_detail_total_amount">कुल रकम</string>
+    <string name="payment_detail_transaction_id">कारोबार आईडी</string>
+    <string name="payment_edit_title">भुक्तानी विवरण सम्पादन</string>
+    <string name="payment_edit_success_body">भुक्तानी विवरण अपडेट गरिएको छ।</string>
+    <string name="payment_edit_amount_label">भुक्तानी रकम (NPR)</string>
+    <string name="payment_edit_notes_label">नोटहरू</string>
+    <string name="payment_edit_notes_placeholder">उदा. अक्टोबर भाडा पूर्ण तिरियो।</string>
+    <string name="payment_edit_delete_button">भुक्तानी मेटाउनुहोस्</string>
+    <string name="payment_edit_update_button">भुक्तानी अपडेट गर्नुहोस्</string>
+    <string name="payment_edit_tenant_label">भाडावाल</string>
+    <string name="payment_edit_property_unit_label">सम्पत्ति / युनिट</string>
+
+    <string name="receipt_payment_successful">भुक्तानी सफल</string>
+    <string name="receipt_property_label">सम्पत्ति</string>
+    <string name="receipt_tenant_label">भाडावाल</string>
+    <string name="receipt_date_label">मिति</string>
+    <string name="receipt_method_label">विधि</string>
+    <string name="receipt_transaction_id_label">कारोबार आईडी</string>
+    <string name="receipt_thank_you">kotha प्रयोग गरेकोमा धन्यवाद</string>
+
+    <string name="paywall_upgrade_title">प्रिमियममा अपग्रेड गर्नुहोस्</string>
+    <string name="paywall_description">असीमित सम्पत्ति, भाडावाल र भुक्तानी रेकर्ड अनलक गर्नुहोस्।\n\neSewa / Khalti भुक्तानी चाँडै आउँदैछ।</string>
+    <string name="paywall_pay_button">eSewa / Khalti बाट तिर्नुहोस्</string>
+
+    <string name="property_add_new_title">नयाँ सम्पत्ति थप्नुहोस्</string>
+    <string name="property_failed_to_load">सम्पत्ति लोड गर्न सकिएन</string>
+    <string name="property_no_image_added">कुनै तस्विर थपिएको छैन</string>
+    <string name="property_edit_title">सम्पत्ति विवरण सम्पादन</string>
+    <string name="property_monthly_utility_charges">मासिक उपयोगिता शुल्क (वैकल्पिक)</string>
+    <string name="property_wifi_label">वाइफाइ</string>
+    <string name="property_wifi_placeholder">उदा. ५००</string>
+    <string name="property_water_label">पानी</string>
+    <string name="property_water_placeholder">उदा. ३००</string>
+    <string name="property_electricity_label">विद्युत</string>
+    <string name="property_electricity_placeholder">उदा. ० (प्रति युनिट)</string>
+    <string name="property_update_changes_button">परिवर्तन अपडेट गर्नुहोस्</string>
+    <string name="property_added_title">सम्पत्ति थपियो</string>
+    <string name="property_updated_title">सम्पत्ति अपडेट गरियो</string>
+    <string name="property_added_body">नयाँ सम्पत्ति तपाईंको सूचीमा सफलतापूर्वक थपिएको छ।</string>
+    <string name="property_updated_body">सम्पत्ति विवरण सफलतापूर्वक अपडेट गरिएको छ।</string>
+    <string name="property_photo_label">सम्पत्ति तस्विर</string>
+    <string name="property_tap_to_change_photo">तस्विर परिवर्तन गर्न ट्याप गर्नुहोस्</string>
+    <string name="property_tap_to_add_photo">सम्पत्ति तस्विर थप्न ट्याप गर्नुहोस्</string>
+
+    <string name="settings_language_display_nepali">नेपाली (नेपाली)</string>
+    <string name="settings_currency_npr">NPR (रू)</string>
+
+    <string name="tenant_archived_backup_title">सङ्ग्रहित भाडावाल ब्याकअप</string>
+    <string name="tenant_backup_delete_button">ब्याकअप र मेटाउनुहोस्</string>
+    <string name="tenant_no_match_criteria">तपाईंको मापदण्ड मिल्ने कुनै भाडावाल भेटिएन।</string>
+    <string name="tenant_no_tenants_desc">भाडा ट्र्याक गर्न आफ्नो पहिलो भाडावाल थप्नुहोस्</string>
+    <string name="tenant_filter_inactive">निष्क्रिय</string>
+    <string name="tenant_filter_pending">विचाराधीन</string>
+    <string name="tenant_assign_button">नियुक्त गर्नुहोस्</string>
+    <string name="tenant_per_month_suffix">/ महिना</string>
+    <string name="tenant_profile_title">भाडावाल प्रोफाइल</string>
+    <string name="tenant_delete_dialog_title">भाडावाल मेटाउनुहोस्</string>
+    <string name="tenant_delete_dialog_body">के तपाईं यो भाडावाल मेटाउन निश्चित हुनुहुन्छ? यो कार्य पूर्ववत हुन सक्दैन।</string>
+    <string name="tenant_no_phone">कुनै फोन थपिएको छैन</string>
+    <string name="tenant_remind_action">सम्झाउनुहोस्</string>
+    <string name="tenant_rent_details_label">भाडा विवरण</string>
+    <string name="tenant_unit_room_label">युनिट / कोठा</string>
+    <string name="tenant_security_deposit_label">धरौटी रकम</string>
+    <string name="tenant_payment_due_date_label">भुक्तानी दिने मिति</string>
+    <string name="tenant_payment_history_label">भुक्तानी इतिहास</string>
+    <string name="tenant_edit_title">भाडावाल विवरण सम्पादन</string>
+    <string name="tenant_remove_button">भाडावाल हटाउनुहोस्</string>
+    <string name="tenant_save_changes_button">परिवर्तनहरू सेभ गर्नुहोस्</string>
+    <string name="tenant_total_monthly_due">कुल मासिक बाँकी</string>
+
+    <!-- Property form (remaining literals) -->
+    <string name="property_base_rent_label">आधारभूत भाडा (NPR)</string>
+    <string name="property_base_rent_placeholder">उदा. २५,०००</string>
+    <string name="property_save_button">सम्पत्ति सेभ गर्नुहोस्</string>
+    <string name="property_unit_details_single">सम्पत्तिको कोठा विवरण</string>
+    <string name="property_unit_details_multi">कोठा विवरण (नाम र भाडा)</string>
+    <string name="property_image_preview_desc">सम्पत्ति तस्विर पूर्वावलोकन</string>
+    <string name="property_image_desc">सम्पत्ति तस्विर</string>
+
+    <!-- Tenant form (remaining literals) -->
+    <string name="tenant_move_in_date_label">भर्ना मिति</string>
+    <string name="tenant_move_in_date_placeholder">मिति छान्नुहोस्</string>
+    <string name="tenant_unit_number_placeholder">उदा. कोठा २बी</string>
+    <string name="tenant_rent_amount_label">भाडा रकम (NPR)</string>
+    <string name="tenant_rent_amount_placeholder">उदा. २५,०००</string>
+    <string name="tenant_security_deposit_npr_label">धरौटी रकम (NPR)</string>
+    <string name="tenant_security_deposit_placeholder">उदा. ५०,०००</string>
+    <string name="currency_npr">NPR</string>
+    <string name="tenant_add_title">भाडावाल थप्नुहोस्</string>
+    <string name="tenant_list_title">भाडावालहरू</string>
+    <string name="tenant_no_tenants_title">कुनै भाडावाल छैनन्</string>
+    <string name="property_details_title">सम्पत्ति विवरण</string>
+    <string name="tenant_status_active">सक्रिय</string>
+    <string name="tenant_monthly_rent_label">मासिक भाडा</string>
+    <string name="tenant_lease_duration_label">लिज अवधि</string>
+    <string name="tenant_call_action">कल</string>
+    <string name="tenant_id_proof_prefix">ID प्रमाण: </string>
+    <string name="tenant_document_fallback">कागजात</string>
+    <string name="tenant_rent_label">भाडा</string>
+    <string name="tenant_unit_format">कोठा %1$s</string>
+    <string name="tenant_archived_prompt_body">भाडावाल %1$s ३० दिनभन्दा बढी निष्क्रिय हुनुहुन्छ। स्वतः हटाइनु अघि कृपया तिनीहरूको विवरण PDF को रूपमा ब्याकअप लिनुहोस्।</string>
+    <string name="property_add_button">सम्पत्ति थप्नुहोस्</string>
+
+    <!-- ViewModel / platform strings -->
+    <string name="dashboard_target_prefix">लक्ष्य: </string>
+    <string name="property_unit_rent_format">कोठा %1$s • NPR %2$s / महिना</string>
+    <string name="app_confirm_new_feature_title">नयाँ सुविधा उपलब्ध</string>
+    <string name="app_confirm_new_feature_body">तपाईं अब सबै भाडावालको लागि भाडा रिमाइन्डर स्वचालित गर्न सक्नुहुन्छ। एउटा पटक सेटअप गर्नुहोस् र प्रणालीले बाँकी हेर्न दिनुहोस्।</string>
+    <string name="app_confirm_learn_more">थप जान्नुहोस्</string>
+    <string name="notification_rent_overdue_title">भाडा बाँकी</string>
+    <string name="notification_rent_overdue_body">तपाईंसँग %1$d भाडावालको बाँकी भाडा छ।</string>
+    <string name="security_auth_required_title">प्रमाणीकरण आवश्यक</string>
+    <string name="security_auth_desc">Rent Manager अनलक गर्न फिंगरप्रिन्ट प्रयोग गर्नुहोस्</string>
+    <string name="settings_biometrics_title">बायोमेट्रिक सक्षम गर्नुहोस्</string>
+    <string name="settings_biometrics_desc">फिंगरप्रिन्ट लगइन सक्षम गर्न आफ्नो पहिचान प्रमाणित गर्नुहोस्</string>
+    <string name="biometric_unavailable">यस यन्त्रमा बायोमेट्रिक उपलब्ध छैन वा दर्ता गरिएको छैन।</string>
+    <string name="auth_failed_message">प्रमाणीकरण असफल भयो। कृपया फेरि प्रयास गर्नुहोस्।</string>
 </resources>
 
 

@@ -107,7 +107,7 @@ private fun ReceiptCard(
             Spacer(modifier = Modifier.height(14.dp))
 
             Text(
-                text = "PAYMENT SUCCESSFUL",
+                text = stringResource(Res.string.receipt_payment_successful),
                 style = MaterialTheme.typography.labelSmall,
                 color = Color(0xFF22C55E),
                 fontWeight = FontWeight.SemiBold
@@ -116,7 +116,7 @@ private fun ReceiptCard(
             Spacer(modifier = Modifier.height(6.dp))
 
             Text(
-                text = "NPR $amount",
+                text = stringResource(Res.string.currency_npr) + " $amount",
                 style = MaterialTheme.typography.titleLarge,
                 color = InkColor
             )
@@ -125,16 +125,16 @@ private fun ReceiptCard(
             PerforatedDivider()
             Spacer(modifier = Modifier.height(24.dp))
 
-            ReceiptRow(label = "PROPERTY", value = propertyName)
-            ReceiptRow(label = "TENANT", value = tenantName)
-            ReceiptRow(label = "DATE", value = date)
-            ReceiptRow(label = "METHOD", value = paymentMethod)
+            ReceiptRow(label = stringResource(Res.string.receipt_property_label), value = propertyName)
+            ReceiptRow(label = stringResource(Res.string.receipt_tenant_label), value = tenantName)
+            ReceiptRow(label = stringResource(Res.string.receipt_date_label), value = date)
+            ReceiptRow(label = stringResource(Res.string.receipt_method_label), value = paymentMethod)
 
             Spacer(modifier = Modifier.height(20.dp))
             PerforatedDivider()
             Spacer(modifier = Modifier.height(24.dp))
 
-            ReceiptRow(label = "TRANSACTION ID", value = transactionId, isMono = true)
+            ReceiptRow(label = stringResource(Res.string.receipt_transaction_id_label), value = transactionId, isMono = true)
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -143,7 +143,7 @@ private fun ReceiptCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "THANK YOU FOR USING kotha",
+                text = stringResource(Res.string.receipt_thank_you),
                 style = MaterialTheme.typography.labelSmall,
                 color = FadedInk,
                 textAlign = TextAlign.Center,

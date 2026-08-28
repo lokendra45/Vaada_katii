@@ -1,5 +1,7 @@
 package com.gaatho.rent.features.property.presentation.details
 
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -336,7 +338,7 @@ private fun PropertyHeroImage(imageUrl: String?) {
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "No Image Added",
+                    text = stringResource(Res.string.property_no_image_added),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -413,7 +415,7 @@ private fun CollectionSummaryCard(collected: Long, expected: Long, percent: Int)
                 )
             }
             Text(
-                text = "NPR ${CurrencyUtil.formatNpr(collected.toDouble(), includeSymbol = false)} / " +
+                text = stringResource(Res.string.currency_npr) + " " + CurrencyUtil.formatNpr(collected.toDouble(), includeSymbol = false) + " / " +
                     "NPR ${CurrencyUtil.formatNpr(expected.toDouble(), includeSymbol = false)}",
                 style = MaterialTheme.typography.titleMedium
             )
@@ -461,7 +463,7 @@ private fun TenantRow(unit: UnitDisplayModel) {
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "Unit ${unit.unitNumber} • NPR ${CurrencyUtil.formatNpr(unit.rentPerMonth.toDouble(), includeSymbol = false)} / mo",
+                    text = stringResource(Res.string.property_unit_rent_format, unit.unitNumber, CurrencyUtil.formatNpr(unit.rentPerMonth.toDouble(), includeSymbol = false)),
                     style = MaterialTheme.typography.labelSmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

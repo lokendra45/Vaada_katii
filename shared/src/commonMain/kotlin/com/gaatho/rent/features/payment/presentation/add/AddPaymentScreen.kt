@@ -55,6 +55,7 @@ import com.gaatho.rent.core.ui.components.rememberAppSnackbarState
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.*
 import rentmanagerapp.shared.generated.resources.assign_property_label
 import rentmanagerapp.shared.generated.resources.payment_add_title
 import rentmanagerapp.shared.generated.resources.payment_amount_label
@@ -420,13 +421,13 @@ private fun NoTenantsEmptyState(modifier: Modifier = Modifier) {
         )
         Spacer(Modifier.height(24.dp))
         Text(
-            text = "No Active Tenants",
+            text = stringResource(Res.string.payment_no_active_tenants),
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "You need at least one active tenant to record a payment. Go to the Tenants tab and add your first tenant.",
+            text = stringResource(Res.string.payment_no_active_tenants_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center

@@ -41,7 +41,13 @@ import com.gaatho.rent.features.tenant.presentation.list.TenantsListScreen
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.common_not_now
+import rentmanagerapp.shared.generated.resources.nav_sign_in_required
+import rentmanagerapp.shared.generated.resources.nav_sign_in_required_body
+import rentmanagerapp.shared.generated.resources.sign_in_action
 
 @OptIn(ExperimentalSerializationApi::class)
 private val navConfig = SavedStateConfiguration {
@@ -77,10 +83,10 @@ fun AppNavigation() {
     if (showGuestLoginDialog) {
         AppConfirmDialog(
             icon = Icons.AutoMirrored.Outlined.Login,
-            title = "Sign in Required",
-            body = "You need to be signed in to perform this action. Would you like to sign in now?",
-            confirmText = "Sign In",
-            dismissText = "Not Now",
+            title = stringResource(Res.string.nav_sign_in_required),
+            body = stringResource(Res.string.nav_sign_in_required_body),
+            confirmText = stringResource(Res.string.sign_in_action),
+            dismissText = stringResource(Res.string.common_not_now),
             onConfirm = {
                 showGuestLoginDialog = false
                 backStack.clear()

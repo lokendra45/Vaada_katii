@@ -52,11 +52,11 @@ class SecurityViewModel(
         authenticator.openEnrollmentSettings()
     }
 
-    fun authenticate() {
+    fun authenticate(title: String, subtitle: String) {
         viewModelScope.launch {
             val result = authenticator.authenticate(
-                title = "Authentication Required",
-                subtitle = "Use fingerprint to unlock Rent Manager"
+                title = title,
+                subtitle = subtitle
             )
 
             when (result) {

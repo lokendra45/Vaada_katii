@@ -1,5 +1,7 @@
 package com.gaatho.rent.features.tenant.presentation.details
 
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -97,7 +99,7 @@ private fun TenantDetailsContent(
     Scaffold(
         topBar = {
             com.gaatho.rent.core.ui.components.AppTopBar(
-                title = "Tenant Profile",
+                title = stringResource(Res.string.tenant_profile_title),
                 onBackClick = { onAction(TenantDetailsAction.OnBackClicked) },
                 actions = {
                     IconButton(onClick = { onNavigateToEdit(tenantId) }) {
@@ -188,10 +190,10 @@ private fun ProfileSection(
             variant = com.gaatho.rent.core.ui.components.AppDialog.Variant.Destructive,
             layout = com.gaatho.rent.core.ui.components.AppDialog.Layout.Center,
             icon = Icons.Default.Delete,
-            title = "Delete Tenant",
-            body = "Are you sure you want to delete this tenant? This action cannot be undone.",
-            confirmText = "Delete",
-            dismissText = "Cancel",
+            title = stringResource(Res.string.tenant_delete_dialog_title),
+            body = stringResource(Res.string.tenant_delete_dialog_body),
+            confirmText = stringResource(Res.string.delete_action),
+            dismissText = stringResource(Res.string.cancel_action),
             onConfirm = { viewModel.onAction(TenantProfileAction.OnDeleteConfirmed) },
             onDismiss = { viewModel.onAction(TenantProfileAction.OnDeleteDismissed) }
         )
@@ -338,13 +340,13 @@ private fun ProfileCard(
             ) {
                 AppActionPill(
                     icon = Icons.Outlined.Call,
-                    label = "Call", // Should ideally be string resource, but keeping it simple for now
+                        label = stringResource(Res.string.tenant_call_action), // Should ideally be string resource, but keeping it simple for now
                     onClick = { onAction(TenantProfileAction.OnCallClicked) },
                     modifier = Modifier.weight(1f)
                 )
                 AppActionPill(
                     icon = Icons.Outlined.Notifications,
-                    label = "Remind", // Should ideally be string resource
+                        label = stringResource(Res.string.tenant_remind_action), // Should ideally be string resource
                     onClick = { onAction(TenantProfileAction.OnMessageClicked) },
                     modifier = Modifier.weight(1f)
                 )
@@ -362,7 +364,7 @@ private fun ProfileCard(
                     horizontalAlignment = Alignment.Start
                 ) {
                     Text(
-                        text = "ID Proof: ${profile.documentType ?: "Document"}",
+                        text = stringResource(Res.string.tenant_id_proof_prefix) + (profile.documentType ?: stringResource(Res.string.tenant_document_fallback)),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -405,7 +407,7 @@ private fun ProfileCard(
 private fun RentDetailsSection(lease: TenantLeaseDisplayModel) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Rent Details",
+            text = stringResource(Res.string.tenant_rent_details_label),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 12.dp)
@@ -419,33 +421,33 @@ private fun RentDetailsSection(lease: TenantLeaseDisplayModel) {
         ) {
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                 RentInfoRow(
-                    label = "Monthly Rent",
+                    label = stringResource(Res.string.tenant_monthly_rent_label),
                     value = lease.monthlyRent,
                     valueColor = MaterialTheme.colorScheme.onSurface
                 )
                 HorizontalDivider(color = AppColors.CardBorder)
                 RentInfoRow(
-                    label = "Lease Duration",
+                    label = stringResource(Res.string.tenant_lease_duration_label),
                     value = lease.leaseTerm,
                     valueColor = MaterialTheme.colorScheme.onSurface
                 )
                 if (lease.roomNumber != null) {
                     HorizontalDivider(color = AppColors.CardBorder)
                     RentInfoRow(
-                        label = "Unit / Room",
+                        label = stringResource(Res.string.tenant_unit_room_label),
                         value = lease.roomNumber,
                         valueColor = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 HorizontalDivider(color = AppColors.CardBorder)
                 RentInfoRow(
-                    label = "Security Deposit",
+                    label = stringResource(Res.string.tenant_security_deposit_label),
                     value = lease.securityDeposit ?: "—",
                     valueColor = MaterialTheme.colorScheme.onSurface
                 )
                 HorizontalDivider(color = AppColors.CardBorder)
                 RentInfoRow(
-                    label = "Payment Due Date",
+                    label = stringResource(Res.string.tenant_payment_due_date_label),
                     value = lease.paymentDueDate ?: "—",
                     valueColor = AppColors.Error
                 )
@@ -491,7 +493,7 @@ private fun PaymentHistorySection(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Payment History",
+            text = stringResource(Res.string.tenant_payment_history_label),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 12.dp)

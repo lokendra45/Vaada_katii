@@ -17,6 +17,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.component_camera
+import rentmanagerapp.shared.generated.resources.component_gallery
+import rentmanagerapp.shared.generated.resources.component_select_image_source
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,13 +41,13 @@ fun AppImageSourcePicker(
                 .padding(bottom = 32.dp, start = 16.dp, end = 16.dp)
         ) {
             Text(
-                text = "Select Image Source",
+                text = stringResource(Res.string.component_select_image_source),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 16.dp, start = 16.dp)
             )
 
             ListItem(
-                headlineContent = { Text("Gallery") },
+                headlineContent = { Text(stringResource(Res.string.component_gallery)) },
                 leadingContent = {
                     Icon(Icons.Outlined.PhotoLibrary, contentDescription = null)
                 },
@@ -53,7 +58,7 @@ fun AppImageSourcePicker(
             )
 
             ListItem(
-                headlineContent = { Text("Camera") },
+                headlineContent = { Text(stringResource(Res.string.component_camera)) },
                 leadingContent = {
                     Icon(Icons.Outlined.PhotoCamera, contentDescription = null)
                 },

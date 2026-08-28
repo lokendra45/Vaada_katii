@@ -2,6 +2,9 @@
 
 package com.gaatho.rent.features.property.presentation.list
 
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.*
+
 // Removed AddPropertyBottomSheet imports
 
 import androidx.compose.animation.AnimatedVisibility
@@ -209,7 +212,7 @@ fun PropertyListContent(
                     containerColor = AppColors.EmeraldAccent,
                     contentColor = Color.White,
                     icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                    text = { Text("Add Property") },
+                    text = { Text(stringResource(Res.string.property_add_button)) },
                     expanded = true
                 )
             }

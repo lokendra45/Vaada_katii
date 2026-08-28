@@ -1,5 +1,7 @@
 package com.gaatho.rent.features.paywall.presentation
 
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,7 +62,7 @@ fun PaywallScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Upgrade to Premium",
+                text = stringResource(Res.string.paywall_upgrade_title),
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center
             )
@@ -68,7 +70,7 @@ fun PaywallScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Unlock unlimited properties, tenants, and payment records.\n\neSewa / Khalti payment coming soon.",
+                text = stringResource(Res.string.paywall_description),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center
             )
@@ -84,7 +86,7 @@ fun PaywallScreen(
                 )
             ) {
                 Text(
-                    text = "Pay with eSewa / Khalti",
+                    text = stringResource(Res.string.paywall_pay_button),
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(vertical = 6.dp)
                 )
@@ -98,7 +100,7 @@ fun PaywallScreen(
                 shape = MaterialTheme.shapes.large
             ) {
                 Text(
-                    text = "Not Now",
+                    text = stringResource(Res.string.common_not_now),
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(vertical = 6.dp)
                 )

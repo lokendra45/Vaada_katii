@@ -316,6 +316,168 @@
     <string name="document_type_placeholder">Select Type</string>
     <string name="no_properties_empty_title">No Properties Yet</string>
     <string name="no_properties_empty_body">You need to add at least one property before you can add a tenant. Go to the Properties tab and add your first property.</string>
+
+    <!-- i18n: Common (extracted user-visible literals) -->
+    <string name="common_ok">OK</string>
+    <string name="common_not_now">Not Now</string>
+    <string name="common_offline_banner">You are currently offline. Showing cached data.</string>
+    <string name="common_tap_to_change">Tap to change</string>
+
+    <string name="component_select_image_source">Select Image Source</string>
+    <string name="component_gallery">Gallery</string>
+    <string name="component_camera">Camera</string>
+    <string name="component_dropdown_no_results">No results found</string>
+
+    <string name="security_setup_required">Setup Required</string>
+    <string name="security_app_locked">App Locked</string>
+    <string name="security_not_enrolled_desc">Biometrics are enabled but no fingerprint is enrolled on this device. Please set it up in system settings.</string>
+    <string name="security_app_locked_desc">Authentication is required to access your property data.</string>
+    <string name="security_go_to_settings">Go to Settings</string>
+    <string name="security_unlock_fingerprint">Unlock with Fingerprint</string>
+
+    <string name="nav_sign_in_required">Sign in Required</string>
+    <string name="nav_sign_in_required_body">You need to be signed in to perform this action. Would you like to sign in now?</string>
+
+    <string name="dashboard_namaste">Namaste, 🙏</string>
+    <string name="dashboard_default_name">Ramesh ji</string>
+    <string name="dashboard_this_month_badge">THIS MONTH</string>
+    <string name="dashboard_reminder">Reminder</string>
+    <string name="dashboard_recent_activity">Recent Activity</string>
+    <string name="dashboard_paid">PAID</string>
+    <string name="dashboard_no_recent_payments">No recent payments</string>
+    <string name="dashboard_no_recent_payments_subtitle">New rent activity will appear here</string>
+
+    <string name="payment_no_active_tenants">No Active Tenants</string>
+    <string name="payment_no_active_tenants_subtitle">You need at least one active tenant to record a payment. Go to the Tenants tab and add your first tenant.</string>
+    <string name="payment_search_placeholder">Search by tenant or property...</string>
+    <string name="payment_failed_to_load">Failed to load payments</string>
+    <string name="payment_detail_tenant_label">TENANT</string>
+    <string name="payment_unknown_tenant">Unknown Tenant</string>
+    <string name="payment_detail_payment_month_label">Payment Month</string>
+    <string name="payment_detail_current_month">Current Month</string>
+    <string name="payment_detail_payment_method_label">Payment Method</string>
+    <string name="payment_detail_bank_transfer_default">Bank Transfer</string>
+    <string name="payment_detail_breakdown">Breakdown</string>
+    <string name="payment_detail_base_rent">Base Rent</string>
+    <string name="payment_detail_utilities">Utilities</string>
+    <string name="payment_detail_utilities_value">NPR 0</string>
+    <string name="payment_detail_total_amount">Total Amount</string>
+    <string name="payment_detail_transaction_id">Transaction ID</string>
+    <string name="payment_edit_title">Edit Payment Details</string>
+    <string name="payment_edit_success_body">Payment details have been updated.</string>
+    <string name="payment_edit_amount_label">Payment Amount (NPR)</string>
+    <string name="payment_edit_notes_label">Notes</string>
+    <string name="payment_edit_notes_placeholder">e.g. October rent paid completely.</string>
+    <string name="payment_edit_delete_button">Delete Payment</string>
+    <string name="payment_edit_update_button">Update Payment</string>
+    <string name="payment_edit_tenant_label">Tenant</string>
+    <string name="payment_edit_property_unit_label">Property / Unit</string>
+
+    <string name="receipt_payment_successful">PAYMENT SUCCESSFUL</string>
+    <string name="receipt_property_label">PROPERTY</string>
+    <string name="receipt_tenant_label">TENANT</string>
+    <string name="receipt_date_label">DATE</string>
+    <string name="receipt_method_label">METHOD</string>
+    <string name="receipt_transaction_id_label">TRANSACTION ID</string>
+    <string name="receipt_thank_you">THANK YOU FOR USING kotha</string>
+
+    <string name="paywall_upgrade_title">Upgrade to Premium</string>
+    <string name="paywall_description">Unlock unlimited properties, tenants, and payment records.\n\neSewa / Khalti payment coming soon.</string>
+    <string name="paywall_pay_button">Pay with eSewa / Khalti</string>
+
+    <string name="property_add_new_title">Add New Property</string>
+    <string name="property_failed_to_load">Failed to load properties</string>
+    <string name="property_no_image_added">No Image Added</string>
+    <string name="property_edit_title">Edit Property Details</string>
+    <string name="property_monthly_utility_charges">Monthly Utility Charges (Optional)</string>
+    <string name="property_wifi_label">WiFi</string>
+    <string name="property_wifi_placeholder">e.g. 500</string>
+    <string name="property_water_label">Water</string>
+    <string name="property_water_placeholder">e.g. 300</string>
+    <string name="property_electricity_label">Electricity</string>
+    <string name="property_electricity_placeholder">e.g. 0 (per unit)</string>
+    <string name="property_update_changes_button">Update Changes</string>
+    <string name="property_added_title">Property Added</string>
+    <string name="property_updated_title">Property Updated</string>
+    <string name="property_added_body">The new property has been successfully added to your portfolio.</string>
+    <string name="property_updated_body">The property details have been successfully updated.</string>
+    <string name="property_photo_label">Property Photo</string>
+    <string name="property_tap_to_change_photo">Tap to change photo</string>
+    <string name="property_tap_to_add_photo">Tap to add property photo</string>
+
+    <string name="settings_language_display_nepali">Nepali (नेपाली)</string>
+    <string name="settings_currency_npr">NPR (रू)</string>
+
+    <string name="tenant_archived_backup_title">Archived Tenant Backup</string>
+    <string name="tenant_backup_delete_button">Backup &amp; Delete</string>
+    <string name="tenant_no_match_criteria">No tenants found matching your criteria.</string>
+    <string name="tenant_no_tenants_desc">Add your first tenant to start tracking rent</string>
+    <string name="tenant_filter_inactive">Inactive</string>
+    <string name="tenant_filter_pending">Pending</string>
+    <string name="tenant_assign_button">Assign</string>
+    <string name="tenant_per_month_suffix">/ month</string>
+    <string name="tenant_profile_title">Tenant Profile</string>
+    <string name="tenant_delete_dialog_title">Delete Tenant</string>
+    <string name="tenant_delete_dialog_body">Are you sure you want to delete this tenant? This action cannot be undone.</string>
+    <string name="tenant_no_phone">No phone added</string>
+    <string name="tenant_remind_action">Remind</string>
+    <string name="tenant_rent_details_label">Rent Details</string>
+    <string name="tenant_unit_room_label">Unit / Room</string>
+    <string name="tenant_security_deposit_label">Security Deposit</string>
+    <string name="tenant_payment_due_date_label">Payment Due Date</string>
+    <string name="tenant_payment_history_label">Payment History</string>
+    <string name="tenant_edit_title">Edit Tenant Details</string>
+    <string name="tenant_remove_button">Remove Tenant</string>
+    <string name="tenant_save_changes_button">Save Changes</string>
+    <string name="tenant_total_monthly_due">Total Monthly Due</string>
+
+    <!-- Property form (remaining literals) -->
+    <string name="property_base_rent_label">Base Rent (NPR)</string>
+    <string name="property_base_rent_placeholder">e.g. 25,000</string>
+    <string name="property_save_button">Save Property</string>
+    <string name="property_unit_details_single">Property Unit Details</string>
+    <string name="property_unit_details_multi">Unit Details (Names &amp; Rents)</string>
+    <string name="property_image_preview_desc">Property Image Preview</string>
+    <string name="property_image_desc">Property Photo</string>
+
+    <!-- Tenant form (remaining literals) -->
+    <string name="tenant_move_in_date_label">Move-In Date</string>
+    <string name="tenant_move_in_date_placeholder">Select date</string>
+    <string name="tenant_unit_number_placeholder">e.g. Unit 2B</string>
+    <string name="tenant_rent_amount_label">Rent Amount (NPR)</string>
+    <string name="tenant_rent_amount_placeholder">e.g. 25,000</string>
+    <string name="tenant_security_deposit_npr_label">Security Deposit (NPR)</string>
+    <string name="tenant_security_deposit_placeholder">e.g. 50,000</string>
+    <string name="currency_npr">NPR</string>
+    <string name="tenant_add_title">Add Tenant</string>
+    <string name="tenant_list_title">Tenants</string>
+    <string name="tenant_no_tenants_title">No Tenants</string>
+    <string name="property_details_title">Property Details</string>
+    <string name="tenant_status_active">Active</string>
+    <string name="tenant_monthly_rent_label">Monthly Rent</string>
+    <string name="tenant_lease_duration_label">Lease Duration</string>
+    <string name="tenant_call_action">Call</string>
+    <string name="tenant_id_proof_prefix">ID Proof: </string>
+    <string name="tenant_document_fallback">Document</string>
+    <string name="tenant_rent_label">Rent</string>
+    <string name="tenant_unit_format">Unit %1$s</string>
+    <string name="tenant_archived_prompt_body">Tenant %1$s has been inactive for more than 30 days. Please backup their details as a PDF before they are automatically deleted.</string>
+    <string name="property_add_button">Add Property</string>
+
+    <!-- ViewModel / platform strings -->
+    <string name="dashboard_target_prefix">Target: </string>
+    <string name="property_unit_rent_format">Unit %1$s • NPR %2$s / mo</string>
+    <string name="app_confirm_new_feature_title">New Feature Available</string>
+    <string name="app_confirm_new_feature_body">You can now automate rent reminders for all tenants. Set it up once and let the system handle the rest.</string>
+    <string name="app_confirm_learn_more">Learn More</string>
+    <string name="notification_rent_overdue_title">Rent Overdue</string>
+    <string name="notification_rent_overdue_body">You have %1$d tenant(s) with overdue rent.</string>
+    <string name="security_auth_required_title">Authentication Required</string>
+    <string name="security_auth_desc">Use fingerprint to unlock Rent Manager</string>
+    <string name="settings_biometrics_title">Enable Biometrics</string>
+    <string name="settings_biometrics_desc">Verify your identity to enable fingerprint login</string>
+    <string name="biometric_unavailable">Biometrics not available or not enrolled on this device.</string>
+    <string name="auth_failed_message">Authentication failed. Please try again.</string>
 </resources>
 
 

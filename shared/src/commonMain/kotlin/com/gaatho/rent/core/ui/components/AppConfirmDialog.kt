@@ -1,5 +1,7 @@
 package com.gaatho.rent.core.ui.components
 
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -500,9 +502,9 @@ private fun PreviewInformational() {
                 variant     = AppDialog.Variant.Informational,
                 layout      = AppDialog.Layout.Center,
                 icon        = Icons.Filled.Lightbulb,
-                title       = "New Feature Available",
-                body        = "You can now automate rent reminders for all tenants. Set it up once and let the system handle the rest.",
-                confirmText = "Learn More",
+                title       = stringResource(Res.string.app_confirm_new_feature_title),
+                body        = stringResource(Res.string.app_confirm_new_feature_body),
+                confirmText = stringResource(Res.string.app_confirm_learn_more),
                 dismissText = null,
                 onConfirm   = {},
             )

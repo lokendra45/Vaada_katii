@@ -16,7 +16,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.gaatho.rent.core.network.connectivity.ConnectivityObserver
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.common_offline_banner
 
 @Composable
 fun OfflineBanner(
@@ -38,7 +41,7 @@ fun OfflineBanner(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "You are currently offline. Showing cached data.",
+                text = stringResource(Res.string.common_offline_banner),
                 color = MaterialTheme.colorScheme.onErrorContainer,
                 style = MaterialTheme.typography.bodySmall
             )

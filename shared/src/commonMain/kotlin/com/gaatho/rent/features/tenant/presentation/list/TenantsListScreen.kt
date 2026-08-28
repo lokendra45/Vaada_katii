@@ -1,5 +1,7 @@
 package com.gaatho.rent.features.tenant.presentation.list
 
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.*
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -116,8 +118,8 @@ fun TenantsListScreen(
     if (archivedPromptData != null) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { /* Force action */ },
-            title = { Text("Archived Tenant Backup") },
-            text = { Text("Tenant ${archivedPromptData!!.tenantName} has been inactive for more than 30 days. Please backup their details as a PDF before they are automatically deleted.") },
+            title = { Text(stringResource(Res.string.tenant_archived_backup_title)) },
+            text = { Text(stringResource(Res.string.tenant_archived_prompt_body, archivedPromptData!!.tenantName)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -145,13 +147,13 @@ fun TenantsListScreen(
                     if (isSavingBackup) {
                         CircularProgressIndicator(modifier = Modifier.size(16.dp), color = MaterialTheme.colorScheme.onPrimary)
                     } else {
-                        Text("Backup & Delete")
+                        Text(stringResource(Res.string.tenant_backup_delete_button))
                     }
                 }
             },
             dismissButton = {
                 androidx.compose.material3.TextButton(onClick = { archivedPromptData = null }) {
-                    Text("Cancel")
+                    Text(stringResource(Res.string.cancel_action))
                 }
             }
         )
@@ -206,7 +208,7 @@ fun TenantsListContent(
     Scaffold(
         topBar = {
             com.gaatho.rent.core.ui.components.AppTopBar(
-                title = "Tenants",
+                title = stringResource(Res.string.tenant_list_title),
                 onBackClick = onNavigateBack,
                 containerColor = MaterialTheme.colorScheme.background
             )
@@ -225,7 +227,7 @@ fun TenantsListContent(
                     containerColor = AppColors.EmeraldAccent,
                     contentColor = Color.White,
                     icon = { Icon(Icons.Default.Add, contentDescription = "Add Tenant") },
-                    text = { Text("Add Tenant") },
+                    text = { Text(stringResource(Res.string.tenant_add_title)) },
                     expanded = true
                 )
             }
@@ -299,7 +301,7 @@ fun TenantsListContent(
                                             contentAlignment = Alignment.Center,
                                             modifier = Modifier.fillMaxWidth().weight(1f).padding(32.dp)
                                         ) {
-                                            Text("No tenants found matching your criteria.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                            Text(stringResource(Res.string.tenant_no_match_criteria), color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         }
                                     } else {
                                         Box(
@@ -311,7 +313,7 @@ fun TenantsListContent(
                                         ) {
                                             com.gaatho.rent.core.ui.components.AppIllustratedEmptyState(
                                                 icon = Icons.Default.Person,
-                                                title = "No tenants found",
+                                                title = stringResource(Res.string.tenant_no_tenants_title),
                                                 description = "Add your first tenant to start tracking rent"
                                             )
                                         }
@@ -493,7 +495,7 @@ private fun TenantRowItem(
                         verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         Text(
-                            text = "Property Details",
+                            text = stringResource(Res.string.property_details_title),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -517,7 +519,7 @@ private fun TenantRowItem(
                                         modifier = Modifier.size(14.dp)
                                     )
                                     Text(
-                                        text = "Assign",
+                                        text = stringResource(Res.string.tenant_assign_button),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
@@ -543,7 +545,7 @@ private fun TenantRowItem(
                                         modifier = Modifier.size(12.dp)
                                     )
                                     Text(
-                                        text = "Unit ${tenant.roomNumber}",
+                                        text = stringResource(Res.string.tenant_unit_format, tenant.roomNumber),
                                         style = MaterialTheme.typography.labelMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         maxLines = 1,
@@ -562,7 +564,7 @@ private fun TenantRowItem(
                         verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         Text(
-                            text = "Rent",
+                            text = stringResource(Res.string.tenant_rent_label),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -572,7 +574,7 @@ private fun TenantRowItem(
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "/ month",
+                            text = stringResource(Res.string.tenant_per_month_suffix),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

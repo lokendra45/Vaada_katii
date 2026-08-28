@@ -100,7 +100,7 @@ fun AppDocumentPicker(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Tap to change",
+                            text = stringResource(Res.string.common_tap_to_change),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White
                         )
@@ -124,7 +124,7 @@ fun AppDocumentPicker(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Tap to change",
+                            text = stringResource(Res.string.common_tap_to_change),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White
                         )

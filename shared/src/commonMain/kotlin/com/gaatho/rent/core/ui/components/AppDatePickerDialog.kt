@@ -35,6 +35,7 @@ import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
 import rentmanagerapp.shared.generated.resources.Res
 import rentmanagerapp.shared.generated.resources.cancel
+import rentmanagerapp.shared.generated.resources.common_ok
 import kotlin.time.Clock
 import kotlin.time.Instant as KtInstant
 
@@ -127,7 +128,7 @@ fun AppDatePickerDialog(
                 }
                 onDismiss()
             }) {
-                Text("OK")
+                Text(stringResource(Res.string.common_ok))
             }
         },
         dismissButton = {

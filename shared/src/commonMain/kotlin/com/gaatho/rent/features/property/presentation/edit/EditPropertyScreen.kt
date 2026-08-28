@@ -113,7 +113,7 @@ fun EditPropertyScreen(
     Scaffold(
         topBar = {
             AppTopBar(
-                title = if (propertyId == "new") "Add New Property" else "Edit Property Details",
+                title = if (propertyId == "new") stringResource(Res.string.property_add_new_title) else stringResource(Res.string.property_edit_title),
                 onBackClick = { viewModel.onAction(EditPropertyAction.OnBackClicked) },
                 containerColor = MaterialTheme.colorScheme.background
             )
@@ -229,7 +229,11 @@ fun PropertyFormContent(
 
                     // ── Unit Names & Rents Editor ────────────────────────────────────
                     if (state.unitsCount > 0) {
-                        Text(state.unitSectionLabel, style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(bottom = 8.dp))
+                        Text(
+                        stringResource(if (state.unitsCount == 1) Res.string.property_unit_details_single else Res.string.property_unit_details_multi),
+                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
 
                         AppCard(
                             modifier = Modifier.fillMaxWidth(),
@@ -269,7 +273,7 @@ fun PropertyFormContent(
                     }
 
                     // ── Utility Charges ─────────────────────────────────────────────
-                    Text("Monthly Utility Charges (Optional)", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(bottom = 8.dp))
+                    Text(stringResource(Res.string.property_monthly_utility_charges), style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(bottom = 8.dp))
                     AppCard(
                         modifier = Modifier.fillMaxWidth(),
                         containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
@@ -279,16 +283,16 @@ fun PropertyFormContent(
                                 AppTextField(
                                     value = state.wifiCharge,
                                     onValueChange = { onAction(EditPropertyAction.OnWifiChargeChanged(it)) },
-                                    label = "WiFi",
-                                    placeholder = "e.g. 500",
+                                    label = stringResource(Res.string.property_wifi_label),
+                                    placeholder = stringResource(Res.string.property_wifi_placeholder),
                                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number),
                                     modifier = Modifier.weight(1f)
                                 )
                                 AppTextField(
                                     value = state.waterCharge,
                                     onValueChange = { onAction(EditPropertyAction.OnWaterChargeChanged(it)) },
-                                    label = "Water",
-                                    placeholder = "e.g. 300",
+                                    label = stringResource(Res.string.property_water_label),
+                                    placeholder = stringResource(Res.string.property_water_placeholder),
                                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number),
                                     modifier = Modifier.weight(1f)
                                 )
@@ -298,8 +302,8 @@ fun PropertyFormContent(
                                 AppTextField(
                                     value = state.electricityCharge,
                                     onValueChange = { onAction(EditPropertyAction.OnElectricityChargeChanged(it)) },
-                                    label = "Electricity",
-                                    placeholder = "e.g. 0 (per unit)",
+                                    label = stringResource(Res.string.property_electricity_label),
+                                    placeholder = stringResource(Res.string.property_electricity_placeholder),
                                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number),
                                     modifier = Modifier.weight(1f)
                                 )
@@ -345,7 +349,7 @@ fun PropertyFormContent(
                 ) {
                     if (!isNewProperty) {
                         RentManagerOutlinedButton(
-                            text = "Delete",
+                            text = stringResource(Res.string.delete_action),
                             onClick = { onAction(EditPropertyAction.OnDeleteClicked) },
                             modifier = Modifier.weight(1f),
                             borderColor = AppColors.Error,
@@ -353,7 +357,7 @@ fun PropertyFormContent(
                         )
                     }
                     RentManagerPrimaryButton(
-                        text = if (isNewProperty) "Save Property" else "Update Changes",
+                        text = if (isNewProperty) stringResource(Res.string.property_save_button) else stringResource(Res.string.property_update_changes_button),
                         onClick = { onAction(EditPropertyAction.OnSaveClicked) },
                         modifier = Modifier.weight(if (isNewProperty) 2f else 1f),
                         isLoading = state.isSaving
@@ -378,9 +382,9 @@ fun PropertyFormContent(
         if (state.showSuccessDialog) {
             AppDialog(
                 icon = Icons.Default.Home,
-                title = if (isNewProperty) "Property Added" else "Property Updated",
-                body = if (isNewProperty) "The new property has been successfully added to your portfolio." else "The property details have been successfully updated.",
-                confirmText = "Okay",
+                title = if (isNewProperty) stringResource(Res.string.property_added_title) else stringResource(Res.string.property_updated_title),
+                body = if (isNewProperty) stringResource(Res.string.property_added_body) else stringResource(Res.string.property_updated_body),
+                confirmText = stringResource(Res.string.common_ok),
                 dismissText = null,
                 onConfirm = { onAction(EditPropertyAction.OnSuccessDialogDismissed) },
                 onDismiss = { onAction(EditPropertyAction.OnSuccessDialogDismissed) },
@@ -419,7 +423,7 @@ private fun PropertyPhotoSection(
     val shape = RoundedCornerShape(12.dp)
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            "Property Photo",
+            stringResource(Res.string.property_photo_label),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -438,7 +442,7 @@ private fun PropertyPhotoSection(
                     // Live local preview before upload
                     com.gaatho.rent.core.ui.components.AppAsyncImage(
                         model = previewBytes,
-                        contentDescription = "Property Image Preview",
+                        contentDescription = stringResource(Res.string.property_image_preview_desc),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
@@ -451,13 +455,13 @@ private fun PropertyPhotoSection(
                             .padding(vertical = 6.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Tap to change photo", style = MaterialTheme.typography.labelSmall, color = Color.White)
+                        Text(stringResource(Res.string.property_tap_to_change_photo), style = MaterialTheme.typography.labelSmall, color = Color.White)
                     }
                 }
                 imageUrl != null -> {
                     com.gaatho.rent.core.ui.components.AppAsyncImage(
                         model = imageUrl,
-                        contentDescription = "Property Photo",
+                        contentDescription = stringResource(Res.string.property_image_desc),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
@@ -469,7 +473,7 @@ private fun PropertyPhotoSection(
                             .padding(vertical = 6.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Tap to change photo", style = MaterialTheme.typography.labelSmall, color = Color.White)
+                        Text(stringResource(Res.string.property_tap_to_change_photo), style = MaterialTheme.typography.labelSmall, color = Color.White)
                     }
                 }
                 else -> {
@@ -482,7 +486,7 @@ private fun PropertyPhotoSection(
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            "Tap to add property photo",
+                            stringResource(Res.string.property_tap_to_add_photo),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
