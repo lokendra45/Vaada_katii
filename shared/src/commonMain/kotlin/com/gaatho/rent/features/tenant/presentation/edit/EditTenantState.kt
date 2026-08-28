@@ -49,6 +49,9 @@ data class EditTenantState(
     val waterLabel: String get() = if (selectedProperty != null && selectedProperty!!.waterCharge > 0) "Water (NPR ${selectedProperty!!.waterCharge})" else "Water"
     val electricityLabel: String get() = if (selectedProperty != null && selectedProperty!!.electricityCharge > 0) "Electricity (NPR ${selectedProperty!!.electricityCharge})" else "Electricity"
     val wasteLabel: String get() = if (selectedProperty != null && selectedProperty!!.wasteCharge > 0) "Waste (NPR ${selectedProperty!!.wasteCharge})" else "Waste"
+    
+    val availableLeaseDurations: List<String> get() = listOf("1 Year", "2 Years", "3 Years", "5 Years")
+    val availableDocumentTypes: List<String> get() = listOf("Citizenship", "Passport", "Driving License", "National ID")
 }
 
 data class PropertyUnitOption(

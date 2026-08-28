@@ -52,6 +52,7 @@ data class EditPropertyState(
     val unitsCount: Int get() = units.size
     val unitSectionLabel: String get() = if (unitsCount == 1) "Property Unit Details" else "Unit Details (Names & Rents)"
     val allAmenities: List<String> get() = (listOf("Water", "Electricity", "WiFi", "Parking", "Security", "Waste") + selectedAmenities).distinct()
+    val availablePropertyTypes: List<String> get() = listOf("HOUSE", "APARTMENT", "FLAT", "SHOP", "BUILDING")
 }
 
 sealed interface EditPropertySideEffect {

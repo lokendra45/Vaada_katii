@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Common -->
     <string name="app_name">कोठा</string>
@@ -283,4 +283,32 @@
     <string name="confirm_action">पक्का गर्नुहोस्</string>
     <string name="done_action">भयो (Done)</string>
 
+    <!-- Missing Strings -->
+    <string name="payment_select_property_first">पहिले सम्पत्ति छान्नुहोस्</string>
+    <string name="payment_select_unit">कोठा छान्नुहोस्</string>
+    <string name="payment_method_label">भुक्तानी माध्यम</string>
+    <string name="payment_method_placeholder">माध्यम छान्नुहोस्</string>
+    <string name="payment_receipt_number_label">रसिद नम्बर</string>
+    <string name="payment_receipt_number_placeholder">जस्तै: TXN-९८२३१०८९२०१</string>
+    <string name="property_street_label">सडक ठेगाना</string>
+    <string name="property_street_placeholder">जस्तै: वडा नं. ४, बालुवाटार</string>
+    <string name="property_city_label">शहर</string>
+    <string name="property_city_placeholder">जस्तै: काठमाडौं</string>
+    <string name="property_total_units_label">कोठाहरूको संख्या</string>
+    <string name="property_total_units_placeholder">जस्तै: ५</string>
+    <string name="property_unit_name_label">कोठाको नाम</string>
+    <string name="property_unit_name_indexed_label">नाम %1$d</string>
+    <string name="property_unit_name_placeholder">जस्तै: फ्ल्याट १ए</string>
+    <string name="property_unit_rent_label">भाडा</string>
+    <string name="property_unit_rent_placeholder">२५०००</string>
+    <string name="property_waste_charge_label">फोहोर</string>
+    <string name="property_waste_charge_placeholder">जस्तै: २००</string>
+    <string name="add_photo_label">फोटो थप्नुहोस्</string>
+    <string name="utilities_included_label">सुविधाहरू समावेश</string>
+    <string name="document_type_label">कागजात प्रकार</string>
+    <string name="document_type_placeholder">प्रकार छान्नुहोस्</string>
+    <string name="no_properties_empty_title">कुनै सम्पत्ति छैन</string>
+    <string name="no_properties_empty_body">तपाईंले भाडावाल थप्नु अघि कम्तिमा एउटा सम्पत्ति थप्नु पर्छ। कृपया सम्पत्ति खण्डमा गएर पहिलो सम्पत्ति थप्नुहोस्।</string>
 </resources>
+
+

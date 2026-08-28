@@ -1,5 +1,9 @@
 package com.gaatho.rent.features.payment.presentation.add
 
+
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,7 +13,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,9 +24,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.animateContentSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,11 +37,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.RentManagerTheme
@@ -54,8 +52,6 @@ import com.gaatho.rent.core.ui.components.AppSnackbarVariant
 import com.gaatho.rent.core.ui.components.AppTextField
 import com.gaatho.rent.core.ui.components.AppTopBar
 import com.gaatho.rent.core.ui.components.rememberAppSnackbarState
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import rentmanagerapp.shared.generated.resources.Res
@@ -75,6 +71,8 @@ import rentmanagerapp.shared.generated.resources.payment_property_unit_placehold
 import rentmanagerapp.shared.generated.resources.payment_record_button
 import rentmanagerapp.shared.generated.resources.payment_remarks_label
 import rentmanagerapp.shared.generated.resources.payment_remarks_placeholder
+import rentmanagerapp.shared.generated.resources.payment_select_property_first
+import rentmanagerapp.shared.generated.resources.payment_select_unit
 import rentmanagerapp.shared.generated.resources.payment_tenant_label
 import rentmanagerapp.shared.generated.resources.payment_tenant_placeholder
 import rentmanagerapp.shared.generated.resources.unit_number_label
@@ -129,7 +127,7 @@ fun AddPaymentContent(
             selectedDate = state.paymentDate,
             onDateSelected = { onAction(AddPaymentAction.OnPaymentDateChanged(it)) },
             onDismiss = { onAction(AddPaymentAction.OnDatePickerDismissed) },
-            title = "Payment Date"
+            title = stringResource(Res.string.payment_date_label)
         )
     }
 
@@ -207,7 +205,7 @@ fun AddPaymentContent(
                 onItemSelected = { onAction(AddPaymentAction.OnUnitSelected(it)) },
                 label = stringResource(Res.string.unit_number_label),
                 placeholder = if (state.selectedProperty == null)
-                    "Select a property first" else "Select unit",
+                    stringResource(Res.string.payment_select_property_first) else stringResource(Res.string.payment_select_unit),
                 shape = fieldShape,
                 enabled = state.selectedProperty != null,
                 modifier = Modifier.fillMaxWidth()
@@ -463,3 +461,4 @@ private fun AddPaymentScreenDarkPreview() {
         )
     }
 }
+

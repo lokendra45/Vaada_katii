@@ -1,5 +1,10 @@
 package com.gaatho.rent.features.tenant.presentation.edit
 
+import rentmanagerapp.shared.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
+import kotlinx.collections.immutable.toPersistentList
+
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -73,7 +79,6 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import org.orbitmvi.orbit.compose.collectSideEffect
-import rentmanagerapp.shared.generated.resources.Res
 import rentmanagerapp.shared.generated.resources.cancel_action
 import rentmanagerapp.shared.generated.resources.id_proof_upload_label
 import rentmanagerapp.shared.generated.resources.remove_action
@@ -248,6 +253,8 @@ fun EditTenantContent(
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
+        } else if (state.propertyOptions.isEmpty()) {
+            NoPropertiesEmptyState(modifier = Modifier.fillMaxSize())
         } else {
         Column(
             modifier = Modifier
@@ -297,7 +304,7 @@ fun EditTenantContent(
                                     modifier = Modifier.size(32.dp)
                                 )
                                 Text(
-                                    "Add Photo",
+                                    stringResource(Res.string.add_photo_label),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -351,14 +358,14 @@ fun EditTenantContent(
             Spacer(Modifier.height(16.dp))
 
             AppDropdown(
-                options = state.propertyNames,
+                options = state.propertyNames.toPersistentList(),
                 selectedItem = state.selectedPropertyName,
                 onItemSelected = { name ->
                     val id = state.propertyOptions.find { it.name == name }?.id
                     if (id != null) onAction(EditTenantAction.OnPropertySelected(id))
                 },
-                label = "Assign Property",
-                placeholder = "Select Property",
+                label = stringResource(Res.string.assign_property_label),
+                placeholder = stringResource(Res.string.assign_property_placeholder),
 
 
 
@@ -373,7 +380,7 @@ fun EditTenantContent(
             ) {
                 if (state.unitOptions.isNotEmpty()) {
                     AppDropdown(
-                        options = state.unitOptions,
+                        options = state.unitOptions.toPersistentList(),
                         selectedItem = if (state.unitNumber.text.isNotBlank()) state.unitNumber.text else null,
                         onItemSelected = { onAction(EditTenantAction.OnUnitSelected(it)) },
                         label = "Unit Number",
@@ -436,13 +443,12 @@ fun EditTenantContent(
                     modifier = Modifier.weight(1f)
                 )
 
-                val leaseDurations = persistentListOf("1 Year", "2 Years", "3 Years", "5 Years")
                 AppDropdown(
-                    options = leaseDurations,
+                    options = state.availableLeaseDurations.toPersistentList(),
                     selectedItem = state.leaseDuration,
                     onItemSelected = { onAction(EditTenantAction.OnLeaseDurationSelected(it)) },
-                    label = "Lease Duration",
-                    placeholder = "1 Year",
+                    label = stringResource(Res.string.lease_duration_label),
+                    placeholder = stringResource(Res.string.lease_duration_placeholder),
 
 
 
@@ -468,7 +474,7 @@ fun EditTenantContent(
 
             // ── Utilities Toggles ───────────────────────────────────────────
             Text(
-                text = "Utilities Included",
+                text = stringResource(Res.string.utilities_included_label),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
@@ -505,13 +511,12 @@ fun EditTenantContent(
             Spacer(Modifier.height(16.dp))
 
             // ── Document Type Dropdown ───────────────────────────────────────
-            val docTypes = persistentListOf("Citizenship", "Passport", "Driving License", "National ID")
             AppDropdown(
-                options = docTypes,
+                options = state.availableDocumentTypes.toPersistentList(),
                 selectedItem = state.documentType,
                 onItemSelected = { onAction(EditTenantAction.OnDocumentTypeSelected(it)) },
-                label = "Document Type",
-                placeholder = "Select Type",
+                label = stringResource(Res.string.document_type_label),
+                placeholder = stringResource(Res.string.document_type_placeholder),
 
                 modifier = Modifier.fillMaxWidth()
             )
@@ -641,3 +646,39 @@ private fun EditTenantLoadingPreview() {
         )
     }
 }
+
+@Composable
+private fun NoPropertiesEmptyState(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Home,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(64.dp)
+        )
+        Spacer(Modifier.height(24.dp))
+        Text(
+            text = stringResource(Res.string.no_properties_empty_title),
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = stringResource(Res.string.no_properties_empty_body),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
+    }
+}
+
+
+
+
+

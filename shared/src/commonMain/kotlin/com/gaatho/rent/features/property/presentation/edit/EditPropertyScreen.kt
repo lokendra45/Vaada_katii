@@ -1,5 +1,10 @@
 package com.gaatho.rent.features.property.presentation.edit
 
+import rentmanagerapp.shared.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
+import kotlinx.collections.immutable.toPersistentList
+
+
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -60,17 +65,33 @@ import io.github.vinceglb.filekit.dialogs.compose.rememberCameraPickerLauncher
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.name
 import io.github.vinceglb.filekit.readBytes
-import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import org.orbitmvi.orbit.compose.collectSideEffect
-import rentmanagerapp.shared.generated.resources.Res
 import rentmanagerapp.shared.generated.resources.cancel_action
 import rentmanagerapp.shared.generated.resources.delete_action
 import rentmanagerapp.shared.generated.resources.delete_property_desc
 import rentmanagerapp.shared.generated.resources.delete_property_title
+import rentmanagerapp.shared.generated.resources.property_city_label
+import rentmanagerapp.shared.generated.resources.property_city_placeholder
+import rentmanagerapp.shared.generated.resources.property_name_label
+import rentmanagerapp.shared.generated.resources.property_name_placeholder
+import rentmanagerapp.shared.generated.resources.property_street_label
+import rentmanagerapp.shared.generated.resources.property_street_placeholder
+import rentmanagerapp.shared.generated.resources.property_total_units_label
+import rentmanagerapp.shared.generated.resources.property_total_units_placeholder
+import rentmanagerapp.shared.generated.resources.property_type_label
+import rentmanagerapp.shared.generated.resources.property_type_placeholder
+import rentmanagerapp.shared.generated.resources.property_unit_name_indexed_label
+import rentmanagerapp.shared.generated.resources.property_unit_name_label
+import rentmanagerapp.shared.generated.resources.property_unit_name_placeholder
+import rentmanagerapp.shared.generated.resources.property_unit_rent_label
+import rentmanagerapp.shared.generated.resources.property_unit_rent_placeholder
+import rentmanagerapp.shared.generated.resources.property_waste_charge_label
+import rentmanagerapp.shared.generated.resources.property_waste_charge_placeholder
 
 @Composable
 fun EditPropertyScreen(
@@ -148,8 +169,8 @@ fun PropertyFormContent(
                     AppTextField(
                         value = state.name,
                         onValueChange = { onAction(EditPropertyAction.OnNameChanged(it)) },
-                        label = "Property Name",
-                        placeholder = "e.g. Baluwatar House",
+                        label = stringResource(Res.string.property_name_label),
+                        placeholder = stringResource(Res.string.property_name_placeholder),
                         errorMessage = state.nameError,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -159,8 +180,8 @@ fun PropertyFormContent(
                     AppTextField(
                         value = state.streetAddress,
                         onValueChange = { onAction(EditPropertyAction.OnStreetAddressChanged(it)) },
-                        label = "Street Address",
-                        placeholder = "e.g. Ward No. 4, Baluwatar",
+                        label = stringResource(Res.string.property_street_label),
+                        placeholder = stringResource(Res.string.property_street_placeholder),
                         errorMessage = state.addressError,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -170,21 +191,20 @@ fun PropertyFormContent(
                     AppTextField(
                         value = state.city,
                         onValueChange = { onAction(EditPropertyAction.OnCityChanged(it)) },
-                        label = "City",
-                        placeholder = "e.g. Kathmandu",
+                        label = stringResource(Res.string.property_city_label),
+                        placeholder = stringResource(Res.string.property_city_placeholder),
                         modifier = Modifier.fillMaxWidth()
                     )
 
                     Spacer(Modifier.height(16.dp))
 
-                    val propertyTypes = remember { persistentListOf("HOUSE", "APARTMENT", "FLAT", "SHOP", "BUILDING") }
                     AppDropdown(
-                        options = propertyTypes,
+                        options = state.availablePropertyTypes.toPersistentList(),
                         selectedItem = state.propertyType,
                         onItemSelected = { onAction(EditPropertyAction.OnTypeChanged(it)) },
                         itemLabel = { it.lowercase().replaceFirstChar { ch -> ch.uppercase() } },
-                        label = "Property Type",
-                        placeholder = "Apartment",
+                        label = stringResource(Res.string.property_type_label),
+                        placeholder = stringResource(Res.string.property_type_placeholder),
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -198,8 +218,8 @@ fun PropertyFormContent(
                         AppTextField(
                             value = state.totalUnits,
                             onValueChange = { onAction(EditPropertyAction.OnTotalUnitsChanged(it)) },
-                            label = "Number of Units",
-                            placeholder = "e.g. 5",
+                            label = stringResource(Res.string.property_total_units_label),
+                            placeholder = stringResource(Res.string.property_total_units_placeholder),
                             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.weight(1f)
                         )
@@ -228,15 +248,15 @@ fun PropertyFormContent(
                                             AppTextField(
                                                 value = unit.name,
                                                 onValueChange = { onAction(EditPropertyAction.OnUnitNameChanged(index, it)) },
-                                                label = if (state.unitsCount == 1) "Unit Name" else "Name ${index + 1}",
-                                                placeholder = "e.g. Flat 1A",
+                                                label = if (state.unitsCount == 1) stringResource(Res.string.property_unit_name_label) else stringResource(Res.string.property_unit_name_indexed_label, index + 1),
+                                                placeholder = stringResource(Res.string.property_unit_name_placeholder),
                                                 modifier = Modifier.weight(1.5f)
                                             )
                                             AppTextField(
                                                 value = unit.monthlyRent,
                                                 onValueChange = { onAction(EditPropertyAction.OnUnitRentChanged(index, it)) },
-                                                label = "Rent",
-                                                placeholder = "25000",
+                                                label = stringResource(Res.string.property_unit_rent_label),
+                                                placeholder = stringResource(Res.string.property_unit_rent_placeholder),
                                                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number),
                                                 modifier = Modifier.weight(1f)
                                             )
@@ -286,8 +306,8 @@ fun PropertyFormContent(
                                 AppTextField(
                                     value = state.wasteCharge,
                                     onValueChange = { onAction(EditPropertyAction.OnWasteChargeChanged(it)) },
-                                    label = "Waste",
-                                    placeholder = "e.g. 200",
+                                    label = stringResource(Res.string.property_waste_charge_label),
+                                    placeholder = stringResource(Res.string.property_waste_charge_placeholder),
                                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number),
                                     modifier = Modifier.weight(1f)
                                 )
@@ -487,3 +507,5 @@ private fun PropertyPhotoSection(
         }
     }
 }
+
+

@@ -290,4 +290,32 @@
     <string name="splash_error_subtitle">We couldn\'t connect. Check your internet and try again.</string>
     <string name="splash_retry">Try Again</string>
 
+    <!-- Missing Strings -->
+    <string name="payment_select_property_first">Select a property first</string>
+    <string name="payment_select_unit">Select unit</string>
+    <string name="payment_method_label">Payment Method</string>
+    <string name="payment_method_placeholder">Select method</string>
+    <string name="payment_receipt_number_label">Receipt Number</string>
+    <string name="payment_receipt_number_placeholder">e.g. TXN-98231089201</string>
+    <string name="property_street_label">Street Address</string>
+    <string name="property_street_placeholder">e.g. Ward No. 4, Baluwatar</string>
+    <string name="property_city_label">City</string>
+    <string name="property_city_placeholder">e.g. Kathmandu</string>
+    <string name="property_total_units_label">Number of Units</string>
+    <string name="property_total_units_placeholder">e.g. 5</string>
+    <string name="property_unit_name_label">Unit Name</string>
+    <string name="property_unit_name_indexed_label">Name %1$d</string>
+    <string name="property_unit_name_placeholder">e.g. Flat 1A</string>
+    <string name="property_unit_rent_label">Rent</string>
+    <string name="property_unit_rent_placeholder">25000</string>
+    <string name="property_waste_charge_label">Waste</string>
+    <string name="property_waste_charge_placeholder">e.g. 200</string>
+    <string name="add_photo_label">Add Photo</string>
+    <string name="utilities_included_label">Utilities Included</string>
+    <string name="document_type_label">Document Type</string>
+    <string name="document_type_placeholder">Select Type</string>
+    <string name="no_properties_empty_title">No Properties Yet</string>
+    <string name="no_properties_empty_body">You need to add at least one property before you can add a tenant. Go to the Properties tab and add your first property.</string>
 </resources>
+
+

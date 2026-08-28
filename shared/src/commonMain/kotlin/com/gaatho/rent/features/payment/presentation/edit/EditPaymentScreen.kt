@@ -1,5 +1,10 @@
 package com.gaatho.rent.features.payment.presentation.edit
 
+import rentmanagerapp.shared.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
+import kotlinx.collections.immutable.toPersistentList
+
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -57,7 +62,6 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import org.orbitmvi.orbit.compose.collectSideEffect
-import rentmanagerapp.shared.generated.resources.Res
 import rentmanagerapp.shared.generated.resources.cancel_action
 import rentmanagerapp.shared.generated.resources.delete_action
 import rentmanagerapp.shared.generated.resources.delete_payment_desc
@@ -124,7 +128,7 @@ fun EditPaymentContent(
             selectedDate = state.paymentDate,
             onDateSelected = { onAction(EditPaymentAction.OnPaymentDateChanged(it)) },
             onDismiss = { onAction(EditPaymentAction.OnDatePickerDismissed) },
-            title = "Payment Date"
+            title = stringResource(Res.string.payment_date_label)
         )
     }
 
@@ -176,8 +180,8 @@ fun EditPaymentContent(
                         value = DateTimeUtil.formatDisplayDate(state.paymentDate),
                         onValueChange = {},
                         readOnly = true,
-                        label = "Payment Date",
-                        placeholder = "Select date",
+                        label = stringResource(Res.string.payment_date_label),
+                        placeholder = stringResource(Res.string.payment_date_placeholder),
                         shape = fieldShape,
                         trailingIcon = {
                             Icon(
@@ -194,12 +198,12 @@ fun EditPaymentContent(
                     Spacer(Modifier.height(16.dp))
 
                     AppDropdown(
-                        options = state.availableMethods,
+                        options = state.availableMethods.toPersistentList(),
                         selectedItem = state.selectedMethod,
                         onItemSelected = { onAction(EditPaymentAction.OnMethodSelected(it)) },
                         itemLabel = { it.displayName },
-                        label = "Payment Method",
-                        placeholder = "Select method",
+                        label = stringResource(Res.string.payment_method_label),
+                        placeholder = stringResource(Res.string.payment_method_placeholder),
                         shape = fieldShape,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -209,8 +213,8 @@ fun EditPaymentContent(
                     AppTextField(
                         value = state.receiptNumber,
                         onValueChange = { onAction(EditPaymentAction.OnReceiptNumberChanged(it)) },
-                        label = "Receipt Number",
-                        placeholder = "e.g. TXN-98231089201",
+                        label = stringResource(Res.string.payment_receipt_number_label),
+                        placeholder = stringResource(Res.string.payment_receipt_number_placeholder),
                         shape = fieldShape,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -358,3 +362,5 @@ private fun EditPaymentLoadingPreview() {
         )
     }
 }
+
+
