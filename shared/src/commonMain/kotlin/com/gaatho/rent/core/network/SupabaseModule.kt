@@ -45,14 +45,19 @@ fun supabaseModule(config: SupabaseConfig) = module {
             supabaseKey = config.anonKey
         ) {
             httpConfig {
-                install(Logging) {
-                    logger = object : Logger {
-                        override fun log(message: String) {
-                            AppLogger.network.i { message }
+                if (config.isDebug) {
+                    install(Logging) {
+                        logger = object : Logger {
+                            override fun log(message: String) {
+                                AppLogger.network.i { message }
+                            }
                         }
+                        // HEADERS only — avoids logging request bodies that may contain sensitive data
+                        level = LogLevel.HEADERS
                     }
-                    level = LogLevel.ALL
                 }
+                // In production (isDebug=false), no Logging plugin is installed.
+                // This prevents JWT tokens and request bodies from leaking to logcat.
             }
             install(Auth) {
                 // Must match the OAuth deep-link intent-filter in AndroidManifest.xml so that

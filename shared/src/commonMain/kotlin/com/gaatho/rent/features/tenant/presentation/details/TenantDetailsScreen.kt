@@ -507,10 +507,21 @@ private fun HistoryRow(tx: TenantTransactionDisplayModel, onClick: () -> Unit) {
                 )
             }
 
+            val isDarkTheme = com.gaatho.rent.core.environment.LocalAppTheme.current
+            val isPaid = tx.isPaid
+            
             AppStatusBadge(
                 label = tx.status,
-                containerColor = if (tx.isPaid) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else com.gaatho.rent.core.designsystem.AppColors.Warning.copy(alpha = 0.15f),
-                contentColor = if (tx.isPaid) MaterialTheme.colorScheme.primary else com.gaatho.rent.core.designsystem.AppColors.Warning,
+                containerColor = if (isDarkTheme) {
+                    if (isPaid) MaterialTheme.colorScheme.primaryContainer else com.gaatho.rent.core.designsystem.AppColors.WarningContainer
+                } else {
+                    if (isPaid) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else com.gaatho.rent.core.designsystem.AppColors.Warning.copy(alpha = 0.15f)
+                },
+                contentColor = if (isDarkTheme) {
+                    if (isPaid) MaterialTheme.colorScheme.onPrimaryContainer else com.gaatho.rent.core.designsystem.AppColors.OnWarning
+                } else {
+                    if (isPaid) MaterialTheme.colorScheme.primary else com.gaatho.rent.core.designsystem.AppColors.Warning
+                },
                 horizontalPadding = 12.dp,
                 verticalPadding = 5.dp
             )

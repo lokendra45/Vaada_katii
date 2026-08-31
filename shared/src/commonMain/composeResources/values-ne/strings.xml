@@ -164,9 +164,9 @@
     <string name="payment_method_esewa">ईसेवा (eSewa)</string>
     <string name="payment_method_khalti">खल्ती (Khalti)</string>
     
-    <string name="tenant_name_label">पूरा नाम</string>
-    <string name="tenant_phone_label">फोन नम्बर</string>
-    <string name="tenant_email_label">इमेल ठेगाना</string>
+    <string name="tenant_name_label">पूरा नाम *</string>
+    <string name="tenant_phone_label">फोन नम्बर *</string>
+    <string name="tenant_email_label">इमेल ठेगाना (ऐच्छिक)</string>
     <string name="tenant_address_label">स्थायी ठेगाना</string>
     <string name="tenant_occupation_label">पेशा (काम)</string>
     <string name="tenant_room_label">कोठा/फ्ल्याट छान्नुहोस्</string>
@@ -250,27 +250,31 @@
     <!-- Add Tenant Screen -->
     <string name="add_tenant_screen_title">नयाँ भाडावाल थप्नुहोस्</string>
     <string name="add_tenant_btn">भाडावाल थप्नुहोस्</string>
-    <string name="tenant_full_name_label">पूरा नाम</string>
+    <string name="tenant_full_name_label">पूरा नाम *</string>
     <string name="tenant_full_name_placeholder">जस्तै: सुमन महर्जन</string>
     <string name="tenant_phone_placeholder">जस्तै: ९८४१XXXXXX</string>
     <string name="tenant_email_placeholder">जस्तै: name@domain.com</string>
-    <string name="assign_property_label">घर छान्नुहोस्</string>
+    <string name="assign_property_label">घर छान्नुहोस् *</string>
     <string name="assign_property_placeholder">कुन घरमा राख्ने?</string>
-    <string name="unit_number_label">कोठा/फ्ल्याट नम्बर</string>
+    <string name="unit_number_label">कोठा/फ्ल्याट नम्बर *</string>
     <string name="unit_number_placeholder">जस्तै: कोठा २ख</string>
-    <string name="rent_amount_label">भाडा रकम (NPR)</string>
+    <string name="rent_amount_label">भाडा रकम (NPR) *</string>
     <string name="rent_amount_placeholder">जस्तै: २५,०००</string>
-    <string name="move_in_date_label">सरेको मिति</string>
+    <string name="move_in_date_label">सरेको मिति *</string>
     <string name="move_in_date_placeholder">मिति छान्नुहोस्</string>
-    <string name="lease_duration_label">भाडाको अवधि</string>
+    <string name="lease_duration_label">भाडाको अवधि *</string>
     <string name="lease_duration_placeholder">१ वर्ष</string>
-    <string name="security_deposit_label">धरौटी रकम (NPR)</string>
+    <string name="security_deposit_label">धरौटी रकम (NPR) (ऐच्छिक)</string>
     <string name="security_deposit_placeholder">जस्तै: ५०,०००</string>
-    <string name="id_proof_upload_label">परिचय पत्र (नागरिकता / पासपोर्ट)</string>
+    <string name="id_proof_upload_label">परिचय पत्र (ऐच्छिक)</string>
     <string name="tenant_success_title">सफल भयो!</string>
     <string name="tenant_saved_body">भाडावालको विवरण सफलतापूर्वक सेभ भयो।</string>
 
     <!-- Newly Extracted Strings -->
+    <string name="section_personal_info">व्यक्तिगत विवरण *</string>
+    <string name="section_lease_property">भाडा र घर विवरण *</string>
+    <string name="section_deposit_utilities">धरौटी र सुविधाहरू (ऐच्छिक)</string>
+    <string name="section_documents">परिचय पत्र र कागजात (ऐच्छिक)</string>
     <string name="remove_tenant_title">भाडावाल हटाउने?</string>
     <string name="remove_tenant_desc">यसो गर्दा यो भाडावाल सधैंको लागि हट्नेछ।</string>
     <string name="remove_action">हटाउनुहोस्</string>
@@ -304,8 +308,8 @@
     <string name="property_waste_charge_label">फोहोर</string>
     <string name="property_waste_charge_placeholder">जस्तै: २००</string>
     <string name="add_photo_label">फोटो थप्नुहोस्</string>
-    <string name="utilities_included_label">सुविधाहरू समावेश</string>
-    <string name="document_type_label">कागजात प्रकार</string>
+    <string name="utilities_included_label">सुविधाहरू समावेश (ऐच्छिक)</string>
+    <string name="document_type_label">कागजात प्रकार (ऐच्छिक)</string>
     <string name="document_type_placeholder">प्रकार छान्नुहोस्</string>
     <string name="no_properties_empty_title">कुनै सम्पत्ति छैन</string>
     <string name="no_properties_empty_body">तपाईंले भाडावाल थप्नु अघि कम्तिमा एउटा सम्पत्ति थप्नु पर्छ। कृपया सम्पत्ति खण्डमा गएर पहिलो सम्पत्ति थप्नुहोस्।</string>
@@ -434,12 +438,12 @@
     <string name="property_image_desc">सम्पत्ति तस्विर</string>
 
     <!-- Tenant form (remaining literals) -->
-    <string name="tenant_move_in_date_label">भर्ना मिति</string>
+    <string name="tenant_move_in_date_label">भर्ना मिति *</string>
     <string name="tenant_move_in_date_placeholder">मिति छान्नुहोस्</string>
     <string name="tenant_unit_number_placeholder">उदा. कोठा २बी</string>
-    <string name="tenant_rent_amount_label">भाडा रकम (NPR)</string>
+    <string name="tenant_rent_amount_label">भाडा रकम (NPR) *</string>
     <string name="tenant_rent_amount_placeholder">उदा. २५,०००</string>
-    <string name="tenant_security_deposit_npr_label">धरौटी रकम (NPR)</string>
+    <string name="tenant_security_deposit_npr_label">धरौटी रकम (NPR) (ऐच्छिक)</string>
     <string name="tenant_security_deposit_placeholder">उदा. ५०,०००</string>
     <string name="currency_npr">NPR</string>
     <string name="tenant_add_title">भाडावाल थप्नुहोस्</string>
@@ -448,7 +452,7 @@
     <string name="property_details_title">सम्पत्ति विवरण</string>
     <string name="tenant_status_active">सक्रिय</string>
     <string name="tenant_monthly_rent_label">मासिक भाडा</string>
-    <string name="tenant_lease_duration_label">लिज अवधि</string>
+    <string name="tenant_lease_duration_label">लिज अवधि *</string>
     <string name="tenant_call_action">कल</string>
     <string name="tenant_id_proof_prefix">ID प्रमाण: </string>
     <string name="tenant_document_fallback">कागजात</string>

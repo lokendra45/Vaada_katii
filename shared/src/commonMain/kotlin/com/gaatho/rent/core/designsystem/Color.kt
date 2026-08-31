@@ -55,7 +55,7 @@ val LightOnErrorContainer = Color(0xFFED3241)
 
 val DarkPrimary            = Color(0xFF006FFD) 
 val DarkOnPrimary          = Color(0xFFFFFFFF)
-val DarkPrimaryContainer   = Color(0xFF2897FF) 
+val DarkPrimaryContainer   = Color(0xFF00388A) 
 val DarkOnPrimaryContainer = Color(0xFFEAF2FF) 
 val DarkInversePrimary     = Color(0xFF006FFD)
 
@@ -86,12 +86,12 @@ val DarkOnSecondaryContainer = Color(0xFFE8E9F1)
 
 val DarkTertiary            = Color(0xFFFFB37C)
 val DarkOnTertiary          = Color(0xFF1F2024)
-val DarkTertiaryContainer   = Color(0xFFE86339)
+val DarkTertiaryContainer   = Color(0xFF8A3012)
 val DarkOnTertiaryContainer = Color(0xFFFFF4E4)
 
 val DarkError            = Color(0xFFFF616D)
 val DarkOnError          = Color(0xFF1F2024)
-val DarkErrorContainer   = Color(0xFFED3241)
+val DarkErrorContainer   = Color(0xFF93000A)
 val DarkOnErrorContainer = Color(0xFFFFE2E5)
 
 // ══════════════════════════════════════════════════════════════════════════════

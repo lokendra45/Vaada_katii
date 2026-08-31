@@ -412,7 +412,7 @@ private fun SettingsNavRow(
             HorizontalDivider(
                 modifier = Modifier.padding(start = 58.dp),
                 thickness = 0.5.dp,
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                color = MaterialTheme.colorScheme.outlineVariant
             )
         }
     }
@@ -468,7 +468,7 @@ private fun SettingsToggleRow(
             HorizontalDivider(
                 modifier = Modifier.padding(start = 58.dp),
                 thickness = 0.5.dp,
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                color = MaterialTheme.colorScheme.outlineVariant
             )
         }
     }

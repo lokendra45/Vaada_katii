@@ -56,7 +56,7 @@ fun AppDocumentPicker(
                 .height(if (previewBytes != null || (file != null && file !is String)) 180.dp else 104.dp)
                 .clip(shape)
                 .background(
-                    if (hasFile) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
+                    if (hasFile) MaterialTheme.colorScheme.primaryContainer
                     else MaterialTheme.colorScheme.surfaceContainerLow
                 )
                 .then(

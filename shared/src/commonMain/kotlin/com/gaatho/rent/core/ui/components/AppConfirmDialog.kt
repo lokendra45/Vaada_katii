@@ -1,9 +1,23 @@
 package com.gaatho.rent.core.ui.components
 
-import org.jetbrains.compose.resources.stringResource
-import rentmanagerapp.shared.generated.resources.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -13,8 +27,17 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,14 +47,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.runtime.remember
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.app_confirm_learn_more
+import rentmanagerapp.shared.generated.resources.app_confirm_new_feature_body
+import rentmanagerapp.shared.generated.resources.app_confirm_new_feature_title
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AppDialog — Unified, highly-customisable dialog system
@@ -128,8 +148,14 @@ fun AppDialog(
     ) {
         AnimatedVisibility(
             visibleState = transitionState,
-            enter = scaleIn(spring(stiffness = 300f, dampingRatio = 0.85f), initialScale = 0.8f) + fadeIn(),
-            exit = scaleOut(spring(stiffness = 300f, dampingRatio = 0.85f), targetScale = 0.8f) + fadeOut()
+            enter = scaleIn(
+                animationSpec = spring(stiffness = 250f, dampingRatio = 0.72f),
+                initialScale = 0.85f
+            ) + fadeIn(animationSpec = spring(stiffness = 250f)),
+            exit = scaleOut(
+                animationSpec = spring(stiffness = 250f, dampingRatio = 0.85f),
+                targetScale = 0.85f
+            ) + fadeOut(animationSpec = spring(stiffness = 250f))
         ) {
             AppDialogContent(
                 icon            = icon,
@@ -186,7 +212,7 @@ internal fun AppDialogContent(
                     HorizontalHeader(icon, title, colors)
                     HorizontalDivider(
                         modifier = Modifier.padding(vertical = 16.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                        color = MaterialTheme.colorScheme.outlineVariant
                     )
                 }
             }
@@ -413,7 +439,7 @@ object AppDialog {
     @Composable
     fun variantColors(variant: Variant): VariantColors = when (variant) {
         Variant.Informational -> VariantColors(
-            iconBg      = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f),
+            iconBg      = MaterialTheme.colorScheme.primaryContainer,
             iconTint    = MaterialTheme.colorScheme.primary,
             buttonColor = MaterialTheme.colorScheme.primary,
         )
@@ -428,7 +454,7 @@ object AppDialog {
             buttonColor = MaterialTheme.colorScheme.primary,
         )
         Variant.Destructive -> VariantColors(
-            iconBg      = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+            iconBg      = MaterialTheme.colorScheme.errorContainer,
             iconTint    = MaterialTheme.colorScheme.error,
             buttonColor = MaterialTheme.colorScheme.error,
         )
@@ -541,7 +567,7 @@ private fun PreviewSuccess() {
                         shape    = RoundedCornerShape(12.dp),
                         color    = MaterialTheme.colorScheme.surfaceContainerLowest,
                         border   = androidx.compose.foundation.BorderStroke(
-                            1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                            1.dp, MaterialTheme.colorScheme.outlineVariant
                         )
                     ) {
                         Column(

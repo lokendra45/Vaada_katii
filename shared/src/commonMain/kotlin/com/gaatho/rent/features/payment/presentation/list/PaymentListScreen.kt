@@ -383,12 +383,12 @@ private fun PaymentRowItem(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
+                        .background(MaterialTheme.colorScheme.primaryContainer),
                     contentAlignment = Alignment.Center
                 ) {
                     LabelText(
                         text = initials,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
 
@@ -416,9 +416,10 @@ private fun PaymentRowItem(
             Spacer(Modifier.width(8.dp))
 
             Column(horizontalAlignment = Alignment.End) {
-                AmountText(
+                CardTitle(
                     text = payment.formattedAmount,
-                    color = AppColors.EmeraldAccent
+                    color = AppColors.EmeraldAccent,
+                    fontWeight = FontWeight.ExtraBold
                 )
                 Spacer(Modifier.height(4.dp))
                 PaymentMethodBadge(payment.paymentMethod)
@@ -427,13 +428,13 @@ private fun PaymentRowItem(
             Icon(
                 imageVector = Icons.Default.KeyboardArrowRight,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp).align(Alignment.CenterVertically)
             )
         }
         HorizontalDivider(
             modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            color = MaterialTheme.colorScheme.outlineVariant
         )
     }
 }

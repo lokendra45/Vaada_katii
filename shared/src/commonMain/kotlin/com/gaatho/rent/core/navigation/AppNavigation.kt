@@ -68,6 +68,17 @@ fun AppNavigation() {
 
     val backStack = rememberNavBackStack(navConfig, SplashRoute)
 
+    fun popBackStack() {
+        if (backStack.size > 1) {
+            backStack.removeLastOrNull()
+        }
+    }
+
+    fun resetBackStack(vararg routes: Route) {
+        backStack.clear()
+        backStack.addAll(routes)
+    }
+
     var showGuestLoginDialog by remember { mutableStateOf(false) }
 
     // Guests can only browse the empty app shell — they cannot create or edit any
@@ -89,8 +100,7 @@ fun AppNavigation() {
             dismissText = stringResource(Res.string.common_not_now),
             onConfirm = {
                 showGuestLoginDialog = false
-                backStack.clear()
-                backStack.add(LoginRoute)
+                resetBackStack(LoginRoute)
             },
             onDismiss = {
                 showGuestLoginDialog = false
@@ -101,7 +111,7 @@ fun AppNavigation() {
     Box(modifier = Modifier.fillMaxSize().imePadding()) {
         NavDisplay(
             backStack = backStack,
-            onBack = { backStack.removeLastOrNull() },
+            onBack = { popBackStack() },
         entryDecorators = listOf(
             rememberViewModelStoreNavEntryDecorator()
         ),
@@ -112,12 +122,10 @@ fun AppNavigation() {
             entry<SplashRoute> {
                 SplashScreen(
                     onNavigateToHome = {
-                        backStack.clear()
-                        backStack.add(MainDashboardRoute)
+                        resetBackStack(MainDashboardRoute)
                     },
                     onNavigateToLogin = {
-                        backStack.clear()
-                        backStack.add(LoginRoute)
+                        resetBackStack(LoginRoute)
                     }
                 )
             }
@@ -146,8 +154,7 @@ fun AppNavigation() {
                         backStack.add(PaymentListRoute)
                     },
                     onNavigateToLogin = {
-                        backStack.clear()
-                        backStack.add(LoginRoute)
+                        resetBackStack(LoginRoute)
                     }
                 )
             }
@@ -166,10 +173,9 @@ fun AppNavigation() {
             entry<PropertyDetailRoute> { route ->
                 PropertyDetailsScreen(
                     propertyId = route.propertyId,
-                    onNavigateBack = { backStack.removeLastOrNull() },
+                    onNavigateBack = { popBackStack() },
                     onNavigateToPropertyList = {
-                        backStack.clear()
-                        backStack.add(MainDashboardRoute)
+                        resetBackStack(MainDashboardRoute)
                     },
                     onNavigateToEdit = { propertyId ->
                         navigateRequiringAuth { backStack.add(EditPropertyRoute(propertyId)) }
@@ -182,17 +188,16 @@ fun AppNavigation() {
 
             entry<AddPropertyRoute> {
                 AddPropertyScreen(
-                    onNavigateBack = { backStack.removeLastOrNull() }
+                    onNavigateBack = { popBackStack() }
                 )
             }
 
             entry<EditPropertyRoute> { route ->
                 EditPropertyScreen(
                     propertyId = route.propertyId,
-                    onNavigateBack = { backStack.removeLastOrNull() },
+                    onNavigateBack = { popBackStack() },
                     onNavigateToPropertyList = {
-                        backStack.clear()
-                        backStack.add(MainDashboardRoute)
+                        resetBackStack(MainDashboardRoute)
                     }
                 )
             }
@@ -203,9 +208,9 @@ fun AppNavigation() {
 
             entry<PaywallRoute> {
                 PaywallScreen(
-                    onDismiss = { backStack.removeLastOrNull() },
+                    onDismiss = { popBackStack() },
                     onPurchaseSuccess = {
-                        backStack.removeLastOrNull() // pop paywall
+                        popBackStack() // pop paywall
                     }
                 )
             }
@@ -213,8 +218,7 @@ fun AppNavigation() {
             entry<LoginRoute> {
                 LoginScreen(
                     onNavigateToHome = {
-                        backStack.clear()
-                        backStack.add(MainDashboardRoute)
+                        resetBackStack(MainDashboardRoute)
                     }
                 )
             }
@@ -230,18 +234,16 @@ fun AppNavigation() {
                     onNavigateToAddPayment = { tenantId, propertyId ->
                         navigateRequiringAuth { backStack.add(AddPaymentRoute(tenantId, propertyId)) }
                     },
-                    onNavigateBack = { backStack.removeLastOrNull() }
+                    onNavigateBack = { popBackStack() }
                 )
             }
 
             entry<TenantDetailRoute> { route ->
                 com.gaatho.rent.features.tenant.presentation.details.TenantDetailsScreen(
                     tenantId = route.tenantId,
-                    onNavigateBack = { backStack.removeLastOrNull() },
+                    onNavigateBack = { popBackStack() },
                     onNavigateToTenantList = {
-                        backStack.clear()
-                        backStack.add(MainDashboardRoute)
-                        backStack.add(TenantListRoute) // Dashboard might not have tenant list directly, or it does
+                        resetBackStack(MainDashboardRoute, TenantListRoute)
                     },
                     onNavigateToEdit = { tenantId ->
                         navigateRequiringAuth { backStack.add(EditTenantRoute(tenantId)) }
@@ -251,18 +253,16 @@ fun AppNavigation() {
 
             entry<AddTenantRoute> {
                 AddTenantScreen(
-                    onNavigateBack = { backStack.removeLastOrNull() }
+                    onNavigateBack = { popBackStack() }
                 )
             }
 
             entry<EditTenantRoute> { route ->
                 EditTenantScreen(
                     tenantId = route.tenantId,
-                    onNavigateBack = { backStack.removeLastOrNull() },
+                    onNavigateBack = { popBackStack() },
                     onNavigateToTenantList = {
-                        backStack.clear()
-                        backStack.add(MainDashboardRoute)
-                        backStack.add(TenantListRoute)
+                        resetBackStack(MainDashboardRoute, TenantListRoute)
                     }
                 )
             }
@@ -271,18 +271,16 @@ fun AppNavigation() {
                 com.gaatho.rent.features.payment.presentation.add.AddPaymentScreen(
                     tenantIdArg = route.tenantId,
                     propertyIdArg = route.propertyId,
-                    onNavigateBack = { backStack.removeLastOrNull() }
+                    onNavigateBack = { popBackStack() }
                 )
             }
 
             entry<PaymentDetailRoute> { route ->
                 PaymentDetailsScreen(
                     paymentId = route.paymentId,
-                    onNavigateBack = { backStack.removeLastOrNull() },
+                    onNavigateBack = { popBackStack() },
                     onNavigateToPaymentList = {
-                        backStack.clear()
-                        backStack.add(MainDashboardRoute)
-                        backStack.add(PaymentListRoute)
+                        resetBackStack(MainDashboardRoute, PaymentListRoute)
                     },
                     onNavigateToEdit = { paymentId ->
                         navigateRequiringAuth { backStack.add(EditPaymentRoute(paymentId)) }
@@ -293,18 +291,16 @@ fun AppNavigation() {
             entry<EditPaymentRoute> { route ->
                 EditPaymentScreen(
                     paymentId = route.paymentId,
-                    onNavigateBack = { backStack.removeLastOrNull() },
+                    onNavigateBack = { popBackStack() },
                     onNavigateToPaymentList = {
-                        backStack.clear()
-                        backStack.add(MainDashboardRoute)
-                        backStack.add(PaymentListRoute)
+                        resetBackStack(MainDashboardRoute, PaymentListRoute)
                     }
                 )
             }
             
             entry<PaymentListRoute> {
                 PaymentListScreen(
-                    onNavigateBack = { backStack.removeLastOrNull() },
+                    onNavigateBack = { popBackStack() },
                     onNavigateToPaymentDetails = { paymentId ->
                         backStack.add(PaymentDetailRoute(paymentId))
                     }

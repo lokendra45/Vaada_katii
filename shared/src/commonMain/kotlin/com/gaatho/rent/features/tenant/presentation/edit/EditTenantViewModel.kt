@@ -10,6 +10,7 @@ import com.gaatho.rent.core.utils.UuidUtil
 import com.gaatho.rent.core.utils.ValidationUtil
 import com.gaatho.rent.core.utils.compressImage
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
+import com.gaatho.rent.features.tenant.data.repository.TenantRepository
 import com.gaatho.rent.features.tenant.domain.usecase.DeleteTenantUseCase
 import com.gaatho.rent.features.tenant.domain.usecase.ObserveTenantUseCase
 import com.gaatho.rent.features.tenant.domain.usecase.SaveTenantUseCase
@@ -20,6 +21,7 @@ import org.orbitmvi.orbit.viewmodel.orbitContainer
 
 class EditTenantViewModel(
     private val tenantId: String,
+    private val tenantRepository: TenantRepository,
     private val observeTenant: ObserveTenantUseCase,
     private val saveTenant: SaveTenantUseCase,
     private val deleteTenant: DeleteTenantUseCase,
@@ -278,10 +280,42 @@ class EditTenantViewModel(
             return@intent
         }
 
+        reduce { state.copy(isSaving = true) }
+
+        // Backend uniqueness validation
+        if (email.isNotBlank() || phone.isNotBlank()) {
+            val excludeId = if (tenantId == "new") null else tenantId
+            val duplicateTenant = try {
+                tenantRepository.findDuplicateContact(ownerId, email, phone, excludeId)
+            } catch (e: CancellationException) {
+                reduce { state.copy(isSaving = false) }
+                throw e
+            } catch (e: Exception) {
+                null // network failure — let the save proceed rather than block
+            }
+            if (duplicateTenant != null) {
+                var dupEmailErr: String? = null
+                var dupPhoneErr: String? = null
+                if (!duplicateTenant.email.isNullOrBlank() && (duplicateTenant.email.equals(email, ignoreCase = true) || duplicateTenant.email.lowercase().contains(email.lowercase()))) {
+                    dupEmailErr = "Email is already in use by another tenant"
+                }
+                val dupPhoneDigits = duplicateTenant.phone?.filter { it.isDigit() } ?: ""
+                val currentPhoneDigits = phone.filter { it.isDigit() }
+                if (dupPhoneDigits.isNotBlank() && (dupPhoneDigits == currentPhoneDigits || dupPhoneDigits.endsWith(currentPhoneDigits) || currentPhoneDigits.endsWith(dupPhoneDigits))) {
+                    dupPhoneErr = "Phone number is already in use by another tenant"
+                }
+                if (dupEmailErr == null && dupPhoneErr == null) {
+                    if (email.isNotBlank()) dupEmailErr = "Email is already in use by another tenant"
+                    else dupPhoneErr = "Phone number is already in use by another tenant"
+                }
+                reduce { state.copy(isSaving = false, emailError = dupEmailErr, phoneError = dupPhoneErr) }
+                postSideEffect(EditTenantSideEffect.ShowSnackbar("A tenant with this email or phone number already exists."))
+                return@intent
+            }
+        }
+
         val propertyName = currentState.propertyOptions
             .find { it.id == currentState.propertyId }?.name ?: ""
-
-        reduce { state.copy(isSaving = true) }
 
         // Upload profile image if staged
         val finalProfileUrl: String = if (currentState.pendingProfileBytes != null) {

@@ -17,6 +17,10 @@ interface PaymentRepository {
     ): Flow<PagingData<Payment>>
     fun getPaymentsByTenant(tenantId: String): Flow<List<Payment>>
     fun getPaymentById(paymentId: String): Flow<Payment?>
+    
+    /** Returns true if a payment already exists for this tenant in the specified year and month. */
+    suspend fun checkDuplicatePaymentForMonth(tenantId: String, year: Int, month: Int, excludePaymentId: String? = null): Boolean
+    
     suspend fun createPayment(payment: Payment): ApiResponse<Unit>
     suspend fun updatePayment(payment: Payment): ApiResponse<Unit>
     suspend fun deletePayment(paymentId: String): ApiResponse<Unit>

@@ -88,7 +88,7 @@ fun <T> AppSelectionBottomSheet(
 
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = Spacing.ScreenPadding),
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                color = MaterialTheme.colorScheme.outlineVariant
             )
 
             // Optional search bar
@@ -184,7 +184,7 @@ private fun <T> SelectionItemRow(
         onClick = { pressed = true; onSelected() },
         shape = RoundedCornerShape(Radius.Md),
         color = if (isSelected)
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+            MaterialTheme.colorScheme.primaryContainer
         else
             Color.Transparent,
         modifier = Modifier
@@ -203,7 +203,7 @@ private fun <T> SelectionItemRow(
                     text = item.title,
                     fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                     color = if (isSelected)
-                        MaterialTheme.colorScheme.primary
+                        MaterialTheme.colorScheme.onPrimaryContainer
                     else
                         MaterialTheme.colorScheme.onSurface
                 )

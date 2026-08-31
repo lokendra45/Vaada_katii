@@ -52,6 +52,19 @@ data class EditTenantState(
     
     val availableLeaseDurations: List<String> get() = listOf("1 Year", "2 Years", "3 Years", "5 Years")
     val availableDocumentTypes: List<String> get() = listOf("Citizenship", "Passport", "Driving License", "National ID")
+
+    val isFormValid: Boolean get() {
+        val isNameValid = name.text.isNotBlank()
+        val isPhoneValid = phone.text.isNotBlank() && com.gaatho.rent.core.utils.ValidationUtil.isValidNepaliPhone(phone.text)
+        val isEmailValid = email.text.isBlank() || com.gaatho.rent.core.utils.ValidationUtil.isValidEmail(email.text)
+        val isPropertyValid = !propertyId.isNullOrBlank()
+        val isUnitValid = unitNumber.text.isNotBlank()
+        val isRentValid = rentAmount.text.isNotBlank() && (rentAmount.text.toLongOrNull() ?: 0L) > 0L
+        val isMoveInValid = moveInDate.isNotBlank()
+        val isLeaseValid = leaseDuration.isNotBlank()
+
+        return isNameValid && isPhoneValid && isEmailValid && isPropertyValid && isUnitValid && isRentValid && isMoveInValid && isLeaseValid
+    }
 }
 
 data class PropertyUnitOption(

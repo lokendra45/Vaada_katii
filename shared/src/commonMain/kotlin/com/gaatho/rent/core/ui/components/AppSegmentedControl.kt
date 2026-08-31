@@ -51,19 +51,19 @@ fun AppSegmentedControl(
                         onOptionSelected(index)
                     },
                 shape = shape,
-                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                 border = null
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
                         text = option,
-                        style = MaterialTheme.typography.labelLarge.copy(
+                        style = MaterialTheme.typography.labelMedium.copy(
                             fontWeight = FontWeight.SemiBold
                         ),
                         color = if (isSelected) {
                             MaterialTheme.colorScheme.onPrimary
                         } else {
-                            MaterialTheme.colorScheme.primary
+                            MaterialTheme.colorScheme.onSurfaceVariant
                         }
                     )
                 }
@@ -96,7 +96,7 @@ fun AppFilterChips(
                         indication = null
                     ) { onOptionSelected(index) },
                 shape = RoundedCornerShape(100.dp),
-                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                 border = null
             ) {
                 Box(
@@ -104,14 +104,14 @@ fun AppFilterChips(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = option.uppercase(),
-                        style = MaterialTheme.typography.labelMedium.copy(
+                        text = option,
+                        style = MaterialTheme.typography.labelLarge.copy(
                             fontWeight = FontWeight.SemiBold
                         ),
                         color = if (isSelected) {
                             MaterialTheme.colorScheme.onPrimary
                         } else {
-                            MaterialTheme.colorScheme.primary
+                            MaterialTheme.colorScheme.onSurfaceVariant
                         }
                     )
                 }

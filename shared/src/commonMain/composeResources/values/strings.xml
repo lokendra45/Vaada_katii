@@ -172,9 +172,9 @@
     <string name="payment_method_esewa">eSewa</string>
     <string name="payment_method_khalti">Khalti</string>
     
-    <string name="tenant_name_label">Full Name</string>
-    <string name="tenant_phone_label">Phone Number</string>
-    <string name="tenant_email_label">Email Address</string>
+    <string name="tenant_name_label">Full Name *</string>
+    <string name="tenant_phone_label">Phone Number *</string>
+    <string name="tenant_email_label">Email Address (Optional)</string>
     <string name="tenant_address_label">Permanent Address</string>
     <string name="tenant_occupation_label">Occupation</string>
     <string name="tenant_room_label">Select Room/Unit</string>
@@ -258,26 +258,30 @@
     <!-- Add Tenant Screen -->
     <string name="add_tenant_screen_title">Add New Tenant</string>
     <string name="add_tenant_btn">Add Tenant</string>
-    <string name="tenant_full_name_label">Tenant Full Name</string>
+    <string name="tenant_full_name_label">Tenant Full Name *</string>
     <string name="tenant_full_name_placeholder">e.g. Suman Maharjan</string>
     <string name="tenant_phone_placeholder">e.g. 9841XXXXXX</string>
     <string name="tenant_email_placeholder">e.g. name@domain.com</string>
-    <string name="assign_property_label">Assign Property</string>
+    <string name="assign_property_label">Assign Property *</string>
     <string name="assign_property_placeholder">Select Property</string>
-    <string name="unit_number_label">Unit Number</string>
+    <string name="unit_number_label">Unit Number *</string>
     <string name="unit_number_placeholder">e.g. Unit 2B</string>
-    <string name="rent_amount_label">Rent Amount (NPR)</string>
+    <string name="rent_amount_label">Rent Amount (NPR) *</string>
     <string name="rent_amount_placeholder">e.g. 25,000</string>
-    <string name="move_in_date_label">Move-In Date</string>
+    <string name="move_in_date_label">Move-In Date *</string>
     <string name="move_in_date_placeholder">Select date</string>
-    <string name="lease_duration_label">Lease Duration</string>
+    <string name="lease_duration_label">Lease Duration *</string>
     <string name="lease_duration_placeholder">1 Year</string>
-    <string name="security_deposit_label">Security Deposit (NPR)</string>
+    <string name="security_deposit_label">Security Deposit (NPR) (Optional)</string>
     <string name="security_deposit_placeholder">e.g. 50,000</string>
-    <string name="id_proof_upload_label">ID Proof Upload (Nagarikta / Passport)</string>
+    <string name="id_proof_upload_label">ID Proof Upload (Optional)</string>
     <string name="tenant_success_title">Success!</string>
     <string name="tenant_saved_body">Tenant has been saved successfully.</string>
     <!-- Newly Extracted Strings -->
+    <string name="section_personal_info">Personal Information *</string>
+    <string name="section_lease_property">Lease &amp; Property Details *</string>
+    <string name="section_deposit_utilities">Deposit &amp; Utilities (Optional)</string>
+    <string name="section_documents">Identification &amp; Documents (Optional)</string>
     <string name="remove_tenant_title">Remove Tenant?</string>
     <string name="remove_tenant_desc">This will permanently remove this tenant. This action cannot be undone.</string>
     <string name="remove_action">Remove</string>
@@ -319,8 +323,8 @@
     <string name="property_waste_charge_label">Waste</string>
     <string name="property_waste_charge_placeholder">e.g. 200</string>
     <string name="add_photo_label">Add Photo</string>
-    <string name="utilities_included_label">Utilities Included</string>
-    <string name="document_type_label">Document Type</string>
+    <string name="utilities_included_label">Utilities Included (Optional)</string>
+    <string name="document_type_label">Document Type (Optional)</string>
     <string name="document_type_placeholder">Select Type</string>
     <string name="no_properties_empty_title">No Properties Yet</string>
     <string name="no_properties_empty_body">You need to add at least one property before you can add a tenant. Go to the Properties tab and add your first property.</string>
@@ -449,12 +453,12 @@
     <string name="property_image_desc">Property Photo</string>
 
     <!-- Tenant form (remaining literals) -->
-    <string name="tenant_move_in_date_label">Move-In Date</string>
+    <string name="tenant_move_in_date_label">Move-In Date *</string>
     <string name="tenant_move_in_date_placeholder">Select date</string>
     <string name="tenant_unit_number_placeholder">e.g. Unit 2B</string>
-    <string name="tenant_rent_amount_label">Rent Amount (NPR)</string>
+    <string name="tenant_rent_amount_label">Rent Amount (NPR) *</string>
     <string name="tenant_rent_amount_placeholder">e.g. 25,000</string>
-    <string name="tenant_security_deposit_npr_label">Security Deposit (NPR)</string>
+    <string name="tenant_security_deposit_npr_label">Security Deposit (NPR) (Optional)</string>
     <string name="tenant_security_deposit_placeholder">e.g. 50,000</string>
     <string name="currency_npr">NPR</string>
     <string name="tenant_add_title">Add Tenant</string>

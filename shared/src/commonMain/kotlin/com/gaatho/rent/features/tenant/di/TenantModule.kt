@@ -30,5 +30,5 @@ val tenantModule = module {
     viewModel { params -> TenantProfileViewModel(tenantId = params.get<String>(), get(), get()) }
     viewModel { params -> TenantLeaseViewModel(tenantId = params.get<String>(), get()) }
     viewModel { params -> TenantTransactionsViewModel(tenantId = params.get<String>(), get()) }
-    viewModel { params -> EditTenantViewModel(tenantId = params.get<String>(), get(), get(), get(), get(), get(), get()) }
+    viewModel { params -> EditTenantViewModel(tenantId = params.get<String>(), get(), get(), get(), get(), get(), get(), get()) }
 }

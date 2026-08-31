@@ -1,11 +1,17 @@
 package com.gaatho.rent.features.tenant.data.repository
 
+/**
+ * Supabase-backed [TenantRepository]. All reads go straight to PostgREST; the
+ * local Room layer no longer backs tenant data.
+ */
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
+import com.gaatho.rent.core.cache.DataStoreCache
 import com.gaatho.rent.core.network.runSupabaseWriteUnit
 import com.gaatho.rent.core.network.safeSupabaseRead
+import com.gaatho.rent.core.network.safeSupabaseReadWithCache
 import com.gaatho.rent.features.tenant.data.dto.TenantDto
 import com.gaatho.rent.features.tenant.data.dto.toDomain
 import com.gaatho.rent.features.tenant.data.dto.toDto
@@ -18,13 +24,6 @@ import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
-
-/**
- * Supabase-backed [TenantRepository]. All reads go straight to PostgREST; the
- * local Room layer no longer backs tenant data.
- */
-import com.gaatho.rent.core.cache.DataStoreCache
-import com.gaatho.rent.core.network.safeSupabaseReadWithCache
 
 class CloudTenantRepository(
     private val supabase: SupabaseClient,
@@ -137,6 +136,47 @@ class CloudTenantRepository(
                     eq("id", tenantId)
                 }
             }
+        }
+
+    override suspend fun findDuplicateContact(ownerId: String, email: String, phone: String, excludeTenantId: String?): Tenant? {
+        if (email.isBlank() && phone.isBlank()) return null
+
+        return try {
+            // Single query checking email OR phone using Supabase's OR operator
+            // This avoids two separate API calls while preserving the "check email first, then phone" semantics
+            val dto = supabase.postgrest["tenant"].select {
+                filter {
+                    eq("owner_id", ownerId)
+                    or {
+                        if (email.isNotBlank()) ilike("email", email)
+                        if (phone.isNotBlank()) eq("phone", phone)
+                    }
+                    if (excludeTenantId != null) neq("id", excludeTenantId)
+                }
+                limit(1)
+            }.decodeSingleOrNull<TenantDto>()
+
+            dto?.toDomain()
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    /**
+     * Returns tenants that are inactive and older than 30 days.
+     * Used by [GetArchivedTenantsUseCase] to avoid fetching all tenants.
+     */
+    override fun getInactiveTenantsOlderThan30Days(ownerId: String): Flow<List<Tenant>> =
+        safeSupabaseRead(emptyList(), "CloudTenantRepository.getInactiveTenantsOlderThan30Days") {
+            val dtos = supabase.postgrest["tenant"]
+                .select(Columns.raw("*, property(name)")) {
+                    filter {
+                        eq("owner_id", ownerId)
+                        eq("status", "Inactive")
+                    }
+                }
+                .decodeList<TenantDto>()
+            dtos.map { it.toDomain() }
         }
 
     private companion object {

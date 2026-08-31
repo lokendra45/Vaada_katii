@@ -18,10 +18,14 @@ object ValidationUtil {
     }
 
     /**
-     * Checks if the given phone string is a valid 10-digit Nepalese mobile number (`98xxxx` / `97xxxx`).
+     * Checks if the given phone string is a valid 10-digit Nepalese mobile number (`98xxxx` / `97xxxx` / `96xxxx`).
+     * Handles optional country code (`+977` or `977`).
      */
     fun isValidNepaliPhone(phone: String): Boolean {
-        val cleaned = phone.filter { it.isDigit() }
+        var cleaned = phone.filter { it.isDigit() }
+        if (cleaned.length == 13 && cleaned.startsWith("977")) {
+            cleaned = cleaned.substring(3)
+        }
         return NEPALI_PHONE_REGEX.matches(cleaned)
     }
 

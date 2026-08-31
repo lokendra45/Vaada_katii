@@ -110,6 +110,31 @@ class CloudPaymentRepository(
             dto?.toDomain()
         }
 
+    override suspend fun checkDuplicatePaymentForMonth(tenantId: String, year: Int, month: Int, excludePaymentId: String?): Boolean {
+        return try {
+            val monthPadded = month.toString().padStart(2, '0')
+            val startDate = "$year-$monthPadded-01"
+            // Use day 28 as safe end — avoids month-length edge cases; any real day in the month works
+            val nextMonth = if (month == 12) 1 else month + 1
+            val nextYear = if (month == 12) year + 1 else year
+            val endDate = "$nextYear-${nextMonth.toString().padStart(2, '0')}-01"
+            val dtos = supabase.postgrest[TABLE].select {
+                filter {
+                    eq("tenant_id", tenantId)
+                    gte("date", startDate)
+                    lt("date", endDate)
+                    if (excludePaymentId != null) {
+                        neq("id", excludePaymentId)
+                    }
+                }
+                limit(1)
+            }.decodeList<PaymentDto>()
+            dtos.isNotEmpty()
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     override suspend fun createPayment(payment: Payment): ApiResponse<Unit> =
         runSupabaseWriteUnit("CloudPaymentRepository.createPayment") {
             // Idempotency: if the caller didn't provide a key, generate one so the

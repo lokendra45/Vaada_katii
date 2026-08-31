@@ -130,9 +130,21 @@ class EditPaymentViewModel(
             updatedAt = com.gaatho.rent.core.utils.DateTimeUtil.nowIsoString()
         )
 
+        val dateParts = s.paymentDate.split("-")
+        val isDuplicate = if (dateParts.size >= 2) {
+            val year = dateParts[0].toIntOrNull() ?: 0
+            val month = dateParts[1].toIntOrNull() ?: 0
+            if (year > 0 && month > 0) {
+                paymentRepository.checkDuplicatePaymentForMonth(current.tenantId, year, month, paymentId)
+            } else false
+        } else false
+
         when (val result = paymentRepository.updatePayment(updated)) {
             is ApiResponse.Success -> {
                 reduce { state.copy(isSaving = false, showSuccessDialog = true) }
+                if (isDuplicate) {
+                    postSideEffect(EditPaymentSideEffect.ShowSnackbar("Warning: Multiple payments now exist for this month."))
+                }
             }
             is ApiResponse.Failure.Error -> {
                 reduce { state.copy(isSaving = false) }

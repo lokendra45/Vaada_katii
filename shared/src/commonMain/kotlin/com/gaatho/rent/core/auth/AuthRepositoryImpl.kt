@@ -114,14 +114,16 @@ class AuthRepositoryImpl(
         }
 
     override suspend fun ensureUserRole(role: UserRole) {
-        val user = supabase.auth.currentUserOrNull() ?: return
-        val currentRole = user.userMetadata?.get("role")?.jsonPrimitive?.content
-        if (currentRole.isNullOrBlank()) {
-            AppLogger.auth.i { "Stamping role metadata: $role" }
-            supabase.auth.updateUser {
-                data = buildJsonObject {
-                    put("role", role.name)
-                    put("current_active_role", role.name)
+        authMutex.withLock {
+            val user = supabase.auth.currentUserOrNull() ?: return
+            val currentRole = user.userMetadata?.get("role")?.jsonPrimitive?.content
+            if (currentRole.isNullOrBlank()) {
+                AppLogger.auth.i { "Stamping role metadata: $role" }
+                supabase.auth.updateUser {
+                    data = buildJsonObject {
+                        put("role", role.name)
+                        put("current_active_role", role.name)
+                    }
                 }
             }
         }

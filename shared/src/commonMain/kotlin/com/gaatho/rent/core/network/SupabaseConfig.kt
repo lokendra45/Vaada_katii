@@ -22,5 +22,10 @@ data class SupabaseConfig(
     /** Supabase S3 compatibility credentials for advanced storage operations. */
     val s3SecretKey: String = "",
     val s3AccessKeyId: String = "",
-    val s3Endpoint: String = ""
+    val s3Endpoint: String = "",
+    /**
+     * Set to true in debug builds only. When false (production), HTTP logging is disabled
+     * to prevent JWT tokens from leaking into device logs.
+     */
+    val isDebug: Boolean = false
 )

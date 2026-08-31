@@ -24,10 +24,8 @@ class CloudDashboardRepository(
             cacheKey = "dashboard_summary_$ownerId",
             serializer = DashboardSummaryDto.serializer()
         ) {
-            val params = buildJsonObject {
-                put("p_owner_id", ownerId)
-            }
-            val result = supabase.postgrest.rpc("get_dashboard_summary", params)
+            // No parameters needed — the function uses auth.uid() internally (IDOR-safe)
+            val result = supabase.postgrest.rpc("get_dashboard_summary")
             json.decodeFromString(DashboardSummaryDto.serializer(), result.data)
         }
 }

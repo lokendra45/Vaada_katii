@@ -34,7 +34,8 @@ fun <T> safeSupabaseRead(
 
 /**
  * Runs a suspend Supabase read. On success, writes the result to the cache.
- * On failure, emits the cached value if available, else the default.
+ * On failure, emits the cached value (regardless of age) for offline resilience.
+ * TTL is respected only as a note — callers can extend with [maxAgeMs] if needed.
  */
 fun <T> safeSupabaseReadWithCache(
     default: T,
@@ -49,7 +50,8 @@ fun <T> safeSupabaseReadWithCache(
     emit(result)
 }.catch { e ->
     AppLogger.network.e(e) { "$tag failed; trying cache" }
-    val cached = cache.get(cacheKey, serializer)
+    // On network failure, serve any cached data regardless of TTL (offline resilience)
+    val cached = cache.get(cacheKey, serializer, maxAgeMs = Long.MAX_VALUE)
     if (cached != null) {
         AppLogger.network.i { "$tag offline fallback to cached data" }
         emit(cached)

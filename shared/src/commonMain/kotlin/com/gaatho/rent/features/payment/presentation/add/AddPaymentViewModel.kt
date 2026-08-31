@@ -192,13 +192,26 @@ class AddPaymentViewModel(
                     updatedAt = DateTimeUtil.nowIsoString()
                 )
 
+                val dateParts = state.paymentDate.split("-")
+                val isDuplicate = if (dateParts.size >= 2) {
+                    val year = dateParts[0].toIntOrNull() ?: 0
+                    val month = dateParts[1].toIntOrNull() ?: 0
+                    if (year > 0 && month > 0) {
+                        paymentRepository.checkDuplicatePaymentForMonth(state.selectedTenantId!!, year, month)
+                    } else false
+                } else false
+                
                 val result = paymentRepository.createPayment(payment)
 
                 reduce { state.copy(isSaving = false) }
 
                 if (result is com.skydoves.sandwich.ApiResponse.Success) {
                     reduce { state.copy(isSuccess = true) }
-                    postSideEffect(AddPaymentEffect.ShowSnackbar("Payment recorded successfully!"))
+                    if (isDuplicate) {
+                        postSideEffect(AddPaymentEffect.ShowSnackbar("Warning: A payment for this month was already recorded. This new payment has also been saved."))
+                    } else {
+                        postSideEffect(AddPaymentEffect.ShowSnackbar("Payment recorded successfully!"))
+                    }
                     postSideEffect(AddPaymentEffect.NavigateBack)
                 } else {
                     postSideEffect(AddPaymentEffect.ShowSnackbar("Failed to record payment. Please try again.", isError = true))

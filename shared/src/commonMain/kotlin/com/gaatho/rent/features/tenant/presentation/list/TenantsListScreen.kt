@@ -397,7 +397,7 @@ private fun TenantRowItem(
         shape = RoundedCornerShape(20.dp),
         useCardShadow = false,
         containerColor = MaterialTheme.colorScheme.surface,
-        borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        borderColor = MaterialTheme.colorScheme.outlineVariant
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(16.dp)
@@ -408,23 +408,27 @@ private fun TenantRowItem(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 // Avatar with Glow/Border
+                val avatarBgColor = Color(tenant.avatarBgColorHex)
+                val avatarOuterBgColor = avatarBgColor.copy(alpha = 0.2f)
+                val avatarTextColor = Color(tenant.avatarTextColorHex)
+                
                 Box(
                     modifier = Modifier
                         .size(56.dp)
                         .clip(CircleShape)
-                        .background(Color(tenant.avatarBgColorHex).copy(alpha = 0.2f))
+                        .background(avatarOuterBgColor)
                         .padding(4.dp) // creates the glowing border effect
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .clip(CircleShape)
-                            .background(Color(tenant.avatarBgColorHex)),
+                            .background(avatarBgColor),
                         contentAlignment = Alignment.Center
                     ) {
                         LabelText(
                             text = tenant.initials,
-                            color = Color(tenant.avatarTextColorHex)
+                            color = avatarTextColor
                         )
                     }
                 }
@@ -474,21 +478,35 @@ private fun TenantRowItem(
                 }
                 
                 // Quick Action: Record Payment
-                androidx.compose.material3.IconButton(
-                    onClick = onRecordPayment,
-                    modifier = Modifier.size(40.dp)
+                androidx.compose.material3.Surface(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(100.dp))
+                        .clickable(onClick = onRecordPayment),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.AttachMoney,
-                        contentDescription = stringResource(Res.string.payment_record_button),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = stringResource(Res.string.add_payment),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = stringResource(Res.string.add_payment),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
             }
 
             androidx.compose.material3.HorizontalDivider(
                 modifier = Modifier.padding(vertical = 16.dp),
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                color = MaterialTheme.colorScheme.outlineVariant
             )
 
             // --- Bottom Section: Monthly Rent & Status ---

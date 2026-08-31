@@ -173,23 +173,25 @@ private fun AppSnackbarContent(
     actionLabel: String?,
     onDismiss: () -> Unit
 ) {
+    val isDarkTheme = com.gaatho.rent.core.environment.LocalAppTheme.current
+
     val (backgroundColor, contentColor, iconColor, icon) = when (variant) {
         AppSnackbarVariant.SUCCESS -> SnackbarColors(
-            bg = com.gaatho.rent.core.designsystem.AppColors.SuccessContainer,
-            content = com.gaatho.rent.core.designsystem.AppColors.OnSuccess,
-            iconColor = com.gaatho.rent.core.designsystem.AppColors.Success,
+            bg = if (isDarkTheme) com.gaatho.rent.core.designsystem.AppColors.Success.copy(alpha = 0.2f) else com.gaatho.rent.core.designsystem.AppColors.SuccessContainer,
+            content = if (isDarkTheme) com.gaatho.rent.core.designsystem.AppColors.Success.copy(alpha = 0.9f) else com.gaatho.rent.core.designsystem.AppColors.Success,
+            iconColor = if (isDarkTheme) com.gaatho.rent.core.designsystem.AppColors.Success.copy(alpha = 0.9f) else com.gaatho.rent.core.designsystem.AppColors.Success,
             icon = Icons.Default.CheckCircle
         )
         AppSnackbarVariant.ERROR -> SnackbarColors(
-            bg = com.gaatho.rent.core.designsystem.AppColors.ErrorContainer,
-            content = com.gaatho.rent.core.designsystem.AppColors.OnError,
-            iconColor = com.gaatho.rent.core.designsystem.AppColors.Error,
+            bg = if (isDarkTheme) com.gaatho.rent.core.designsystem.AppColors.Error.copy(alpha = 0.2f) else com.gaatho.rent.core.designsystem.AppColors.ErrorContainer,
+            content = if (isDarkTheme) com.gaatho.rent.core.designsystem.AppColors.Error.copy(alpha = 0.9f) else com.gaatho.rent.core.designsystem.AppColors.Error,
+            iconColor = if (isDarkTheme) com.gaatho.rent.core.designsystem.AppColors.Error.copy(alpha = 0.9f) else com.gaatho.rent.core.designsystem.AppColors.Error,
             icon = Icons.Default.Error
         )
         AppSnackbarVariant.WARNING -> SnackbarColors(
-            bg = com.gaatho.rent.core.designsystem.AppColors.WarningContainer,
-            content = com.gaatho.rent.core.designsystem.AppColors.OnWarning,
-            iconColor = com.gaatho.rent.core.designsystem.AppColors.Warning,
+            bg = if (isDarkTheme) com.gaatho.rent.core.designsystem.AppColors.Warning.copy(alpha = 0.2f) else com.gaatho.rent.core.designsystem.AppColors.WarningContainer,
+            content = if (isDarkTheme) com.gaatho.rent.core.designsystem.AppColors.Warning.copy(alpha = 0.9f) else com.gaatho.rent.core.designsystem.AppColors.Warning,
+            iconColor = if (isDarkTheme) com.gaatho.rent.core.designsystem.AppColors.Warning.copy(alpha = 0.9f) else com.gaatho.rent.core.designsystem.AppColors.Warning,
             icon = Icons.Default.Warning
         )
         AppSnackbarVariant.INFO -> SnackbarColors(
@@ -214,7 +216,7 @@ private fun AppSnackbarContent(
             // Icon badge
             Surface(
                 shape = CircleShape,
-                color = iconColor.copy(alpha = 0.15f),
+                color = Color.Transparent,
                 modifier = Modifier.size(36.dp)
             ) {
                 Icon(
@@ -253,13 +255,13 @@ private fun AppSnackbarContent(
             Surface(
                 onClick = onDismiss,
                 shape = CircleShape,
-                color = contentColor.copy(alpha = 0.1f),
+                color = Color.Transparent,
                 modifier = Modifier.size(28.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = stringResource(Res.string.dismiss),
-                    tint = contentColor.copy(alpha = 0.7f),
+                    tint = contentColor,
                     modifier = Modifier.padding(6.dp)
                 )
             }

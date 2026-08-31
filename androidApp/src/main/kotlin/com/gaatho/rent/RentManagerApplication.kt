@@ -20,7 +20,8 @@ class RentManagerApplication : Application() {
                 googleClientId = BuildConfig.GOOGLE_CLIENT_ID,
                 s3SecretKey = BuildConfig.SUPABASE_S3_SECRET_KEY,
                 s3AccessKeyId = BuildConfig.SUPABASE_S3_ACCESS_KEY_ID,
-                s3Endpoint = BuildConfig.SUPABASE_S3_ENDPOINT
+                s3Endpoint = BuildConfig.SUPABASE_S3_ENDPOINT,
+                isDebug = BuildConfig.DEBUG
             )
         ) {
             androidLogger()
