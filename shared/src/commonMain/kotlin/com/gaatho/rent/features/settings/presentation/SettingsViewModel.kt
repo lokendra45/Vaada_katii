@@ -15,13 +15,16 @@ import com.skydoves.sandwich.ApiResponse
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.jsonPrimitive
 import org.orbitmvi.orbit.viewmodel.orbitContainer
+import io.github.jan.supabase.auth.auth
 
 class SettingsViewModel(
     private val authRepository: AuthRepository,
     private val sessionManager: SessionManager,
     private val dataStore: DataStore<Preferences>,
     private val authenticator: BiometricAuthenticator,
+    private val supabase: io.github.jan.supabase.SupabaseClient
 ) : MviViewModel<SettingsState, SettingsSideEffect, SettingsAction>() {
 
     private val KEY_NOTIFICATIONS = booleanPreferencesKey("pref_notifications")
@@ -48,8 +51,10 @@ class SettingsViewModel(
                 }
                 
                 val email = user?.email ?: ""
-                val displayName = user?.displayName
-                    ?: email.substringBefore("@").replaceFirstChar { it.uppercaseChar() }
+                val supabaseUser = supabase.auth.currentUserOrNull()
+                val metadataName = supabaseUser?.userMetadata?.get("full_name")?.jsonPrimitive?.content
+                val displayName = metadataName ?: user?.displayName ?: email.substringBefore("@").replaceFirstChar { it.uppercaseChar() }
+                val phone = supabaseUser?.userMetadata?.get("phone")?.jsonPrimitive?.content ?: ""
 
                 // Only consider as guest if the user is explicitly anonymous
                 val isGuest = currentAuthState is com.gaatho.rent.core.auth.AuthState.Anonymous
@@ -58,6 +63,7 @@ class SettingsViewModel(
                     state.copy(
                         userEmail = email,
                         userName = displayName,
+                        userPhone = phone,
                         isGuest = isGuest,
                     )
                 }
@@ -109,6 +115,20 @@ class SettingsViewModel(
             SettingsAction.OnDeleteAccountDismissed ->
                 intent { reduce { state.copy(showDeleteConfirm = false) } }
             SettingsAction.OnDeleteAccountConfirmed -> handleSignOut()
+            
+            SettingsAction.OnEditProfileClicked -> intent { reduce { state.copy(showEditProfileDialog = true) } }
+            SettingsAction.OnEditProfileDismissed -> intent { reduce { state.copy(showEditProfileDialog = false) } }
+            is SettingsAction.OnSaveProfile -> handleSaveProfile(action.name, action.phone)
+        }
+    }
+
+    private fun handleSaveProfile(name: String, phone: String) = intent {
+        reduce { state.copy(isLoading = true, showEditProfileDialog = false) }
+        val result = authRepository.updateProfile(name, phone)
+        reduce { state.copy(isLoading = false) }
+        when (result) {
+            is ApiResponse.Success -> postSideEffect(SettingsSideEffect.ShowSnackbar("Profile updated successfully"))
+            is ApiResponse.Failure.Error, is ApiResponse.Failure.Exception -> postSideEffect(SettingsSideEffect.ShowSnackbar("Failed to update profile"))
         }
     }
 

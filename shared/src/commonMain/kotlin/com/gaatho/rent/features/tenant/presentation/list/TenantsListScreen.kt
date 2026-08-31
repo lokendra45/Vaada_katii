@@ -28,7 +28,10 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
@@ -86,6 +89,7 @@ import rentmanagerapp.shared.generated.resources.tenant_failed_load
 fun TenantsListScreen(
     onNavigateToDetails: (String) -> Unit,
     onNavigateToAddTenant: () -> Unit,
+    onNavigateToAddPayment: (tenantId: String, propertyId: String?) -> Unit,
     onNavigateBack: (() -> Unit)? = null
 ) {
     val viewModel: TenantsListViewModel = koinViewModel()
@@ -103,6 +107,8 @@ fun TenantsListScreen(
         when (sideEffect) {
             is TenantsListSideEffect.NavigateToTenantDetails ->
                 onNavigateToDetails(sideEffect.tenantId)
+            is TenantsListSideEffect.NavigateToAddPayment ->
+                onNavigateToAddPayment(sideEffect.tenantId, sideEffect.propertyId)
             is TenantsListSideEffect.ShowError ->
                 snackbarHostState.showSnackbar(sideEffect.message)
             is TenantsListSideEffect.ShowMessage ->
@@ -266,11 +272,19 @@ fun TenantsListContent(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    TenantsFilterStrip(
-                        state = state,
-                        pagedTenants = pagedTenants,
-                        onAction = onAction,
-                        modifier = Modifier.fillMaxWidth()
+                    val tabs = listOf("All statuses" to "All", "Active" to "Active", "Inactive" to "Inactive", "Pending" to "Pending")
+                    val optionsList = tabs.map { (value, label) -> 
+                        if (value == "All statuses") "All (${pagedTenants.itemCount})" else label 
+                    }
+                    val selectedIndex = tabs.indexOfFirst { it.first == state.selectedStatus }.takeIf { it >= 0 } ?: 0
+
+                    com.gaatho.rent.core.ui.components.AppFilterChips(
+                        options = optionsList,
+                        selectedIndex = selectedIndex,
+                        onOptionSelected = { index -> 
+                            onAction(TenantsListAction.OnStatusFilterChanged(tabs[index].first))
+                        },
+                        modifier = Modifier.padding(horizontal = 20.dp)
                     )
                 }
 
@@ -342,6 +356,7 @@ fun TenantsListContent(
                                                 TenantRowItem(
                                                     tenant = tenant,
                                                     onClick = { onAction(TenantsListAction.OnTenantClicked(tenant.id)) },
+                                                    onRecordPayment = { onAction(TenantsListAction.OnRecordPaymentClicked(tenant.id, tenant.propertyId)) },
                                                     modifier = Modifier.animateItem()
                                                 )
                                             }
@@ -368,52 +383,18 @@ fun TenantsListContent(
     }
 }
 
-@Composable
-private fun TenantsFilterStrip(
-    state: TenantsListState,
-    pagedTenants: LazyPagingItems<TenantDisplayModel>,
-    onAction: (TenantsListAction) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val tabs = listOf("All statuses" to "All", "Active" to "Active", "Inactive" to "Inactive", "Pending" to "Pending")
-
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        tabs.forEach { (value, label) ->
-            val selected = state.selectedStatus == value
-            val displayLabel = if (value == "All statuses") {
-                "All (${pagedTenants.itemCount})"
-            } else label
-
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(100.dp))
-                    .background(
-                        if (selected) AppColors.EmeraldAccent else MaterialTheme.colorScheme.surface
-                    )
-                    .clickable { onAction(TenantsListAction.OnStatusFilterChanged(value)) }
-                    .padding(horizontal = 18.dp, vertical = 8.dp)
-            ) {
-                LabelText(
-                    text = displayLabel
-                )
-            }
-        }
-    }
-}
 
 @Composable
 private fun TenantRowItem(
     tenant: TenantDisplayModel,
     onClick: () -> Unit,
+    onRecordPayment: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     AppCard(
         modifier = modifier.fillMaxWidth(),
         onClick = onClick,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         useCardShadow = false,
         containerColor = MaterialTheme.colorScheme.surface,
         borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
@@ -421,27 +402,36 @@ private fun TenantRowItem(
         Column(
             modifier = Modifier.fillMaxWidth().padding(16.dp)
         ) {
-            // --- Top Row: Avatar & Name/Status & Quick Actions ---
+            // --- Top Section: Avatar & Info ---
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Avatar
+                // Avatar with Glow/Border
                 Box(
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(56.dp)
                         .clip(CircleShape)
-                        .background(Color(tenant.avatarBgColorHex)),
-                    contentAlignment = Alignment.Center
+                        .background(Color(tenant.avatarBgColorHex).copy(alpha = 0.2f))
+                        .padding(4.dp) // creates the glowing border effect
                 ) {
-                    LabelText(
-                        text = tenant.initials
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                            .background(Color(tenant.avatarBgColorHex)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        LabelText(
+                            text = tenant.initials,
+                            color = Color(tenant.avatarTextColorHex)
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(16.dp))
 
-                // Name & Status
+                // Name & Subtitle & Phone
                 Column(modifier = Modifier.weight(1f)) {
                     CardTitle(
                         text = tenant.name,
@@ -449,129 +439,84 @@ private fun TenantRowItem(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    AppBadge(
-                        text = tenant.status,
-                        type = if (tenant.isActive) AppBadgeType.SUCCESS 
-                               else if (tenant.status.equals("Pending", ignoreCase = true)) AppBadgeType.WARNING 
-                               else AppBadgeType.NEUTRAL
+                    Spacer(modifier = Modifier.height(2.dp))
+                    
+                    val subtitleText = if (tenant.propertyName.isNullOrBlank()) {
+                        "Unassigned"
+                    } else {
+                        tenant.propertyName + if (!tenant.roomNumber.isNullOrBlank()) " · ${tenant.roomNumber}" else ""
+                    }
+                    
+                    BodySmallText(
+                        text = subtitleText,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
-                }
-
-                // Quick Actions (Icon Buttons)
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowRight,
-                    contentDescription = "View Details",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // --- Bottom Section: Property & Rent Info ---
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.surfaceContainerLowest)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                    .padding(12.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Property Info
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        CaptionText(
-                            text = stringResource(Res.string.property_details_title),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        if (tenant.propertyName.isNullOrBlank()) {
-                            Box(
-                                modifier = Modifier
-                                    .padding(top = 4.dp)
-                                    .clip(RoundedCornerShape(100.dp))
-                                    .background(MaterialTheme.colorScheme.primaryContainer)
-                                    .clickable { /* TODO: Trigger assign action */ }
-                                    .padding(horizontal = 12.dp, vertical = 6.dp)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Add,
-                                        contentDescription = "Assign",
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                    MicroText(
-                                        text = stringResource(Res.string.tenant_assign_button),
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
-                                }
-                            }
-                        } else {
-                            LabelText(
-                                text = tenant.propertyName,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                    
+                    if (!tenant.phone.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Phone,
+                                contentDescription = "Phone",
+                                modifier = Modifier.size(12.dp),
+                                tint = MaterialTheme.colorScheme.primary
                             )
-                            if (!tenant.roomNumber.isNullOrBlank()) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.LocationOn,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(12.dp)
-                                    )
-                                    CaptionText(
-                                        text = stringResource(Res.string.tenant_unit_format, tenant.roomNumber),
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-                            }
+                            Spacer(modifier = Modifier.width(4.dp))
+                            BodySmallText(
+                                text = tenant.phone,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.SemiBold
+                            )
                         }
                     }
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    // Rent Info
-                    Column(
-                        horizontalAlignment = Alignment.End,
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        CaptionText(
-                            text = stringResource(Res.string.tenant_rent_label),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        AmountText(
-                            text = CurrencyUtil.formatNprLabel(tenant.rentAmount),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        CaptionText(
-                            text = stringResource(Res.string.tenant_per_month_suffix),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
                 }
+                
+                // Quick Action: Record Payment
+                androidx.compose.material3.IconButton(
+                    onClick = onRecordPayment,
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AttachMoney,
+                        contentDescription = stringResource(Res.string.payment_record_button),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            androidx.compose.material3.HorizontalDivider(
+                modifier = Modifier.padding(vertical = 16.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            )
+
+            // --- Bottom Section: Monthly Rent & Status ---
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    MicroText(
+                        text = stringResource(Res.string.tenant_rent_label).uppercase(),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = com.gaatho.rent.core.utils.MoneyUtil.format(tenant.rentAmount),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                
+                AppBadge(
+                    text = tenant.status,
+                    type = if (tenant.isActive) AppBadgeType.SUCCESS 
+                           else if (tenant.status.equals("Pending", ignoreCase = true)) AppBadgeType.WARNING 
+                           else AppBadgeType.NEUTRAL
+                )
             }
         }
     }
@@ -588,21 +533,21 @@ fun TenantsListScreenPreview() {
                 id = "1", name = "Suman Maharjan", initials = "SM",
                 subtitle = "Sundar Niwas • Unit 2A", status = "Active", isActive = true,
                 avatarBgColorHex = 0xFFE2DFFF, avatarTextColorHex = 0xFF3323CC,
-                propertyName = "Sundar Niwas", roomNumber = "Unit 2A",
+                propertyName = "Sundar Niwas", propertyId = "p1", roomNumber = "Unit 2A",
                 email = null, phone = null, rentAmount = 25000
             ),
             TenantDisplayModel(
                 id = "2", name = "Anita Shrestha", initials = "AS",
                 subtitle = "Krishna Bhawan • Unit 1B", status = "Active", isActive = true,
                 avatarBgColorHex = 0xFFF0FDF4, avatarTextColorHex = 0xFF15803D,
-                propertyName = "Krishna Bhawan", roomNumber = "Unit 1B",
+                propertyName = "Krishna Bhawan", propertyId = "p2", roomNumber = "Unit 1B",
                 email = null, phone = null, rentAmount = 18000
             ),
             TenantDisplayModel(
                 id = "3", name = "Bikash Thapa", initials = "BT",
                 subtitle = "Baluwatar House • Unit 3C", status = "Pending", isActive = false,
                 avatarBgColorHex = 0xFFE0F2FE, avatarTextColorHex = 0xFF0369A1,
-                propertyName = "Baluwatar House", roomNumber = "Unit 3C",
+                propertyName = "Baluwatar House", propertyId = "p3", roomNumber = "Unit 3C",
                 email = null, phone = null, rentAmount = 30000
             )
         )

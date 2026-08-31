@@ -69,6 +69,7 @@ import org.koin.core.parameter.parametersOf
 fun TenantDetailsScreen(
     tenantId: String,
     onNavigateBack: () -> Unit,
+    onNavigateToTenantList: () -> Unit,
     onNavigateToEdit: (String) -> Unit = {},
     viewModel: TenantDetailsViewModel = koinViewModel(parameters = { parametersOf(tenantId) })
 ) {
@@ -83,7 +84,8 @@ fun TenantDetailsScreen(
     TenantDetailsContent(
         tenantId = tenantId,
         onAction = viewModel::onAction,
-        onNavigateToEdit = onNavigateToEdit
+        onNavigateToEdit = onNavigateToEdit,
+        onNavigateToTenantList = onNavigateToTenantList
     )
 }
 
@@ -95,7 +97,8 @@ fun TenantDetailsScreen(
 private fun TenantDetailsContent(
     tenantId: String,
     onAction: (TenantDetailsAction) -> Unit,
-    onNavigateToEdit: (String) -> Unit
+    onNavigateToEdit: (String) -> Unit,
+    onNavigateToTenantList: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -131,7 +134,7 @@ private fun TenantDetailsContent(
             )
             Spacer(Modifier.height(20.dp))
             
-            ProfileSection(tenantId = tenantId, onNavigateToEdit = onNavigateToEdit)
+            ProfileSection(tenantId = tenantId, onNavigateToEdit = onNavigateToEdit, onNavigateToTenantList = onNavigateToTenantList)
 
             Spacer(Modifier.height(24.dp))
             
@@ -149,7 +152,8 @@ private fun TenantDetailsContent(
 @Composable
 private fun ProfileSection(
     tenantId: String,
-    onNavigateToEdit: (String) -> Unit
+    onNavigateToEdit: (String) -> Unit,
+    onNavigateToTenantList: () -> Unit
 ) {
     val viewModelStoreOwner = rememberViewModelStoreOwner()
     val viewModel = koinViewModel<TenantProfileViewModel>(
@@ -165,6 +169,7 @@ private fun ProfileSection(
             when (effect) {
                 is TenantProfileEffect.NavigateToEdit -> onNavigateToEdit(effect.tenantId)
                 is TenantProfileEffect.NavigateBack -> {} // Handle back if deleted
+                is TenantProfileEffect.NavigateToTenantList -> onNavigateToTenantList()
                 is TenantProfileEffect.OpenEmailApp -> {
                     try { uriHandler.openUri("mailto:${effect.email}") } catch (e: Exception) {}
                 }
@@ -271,32 +276,15 @@ private fun ProfileCard(
             modifier = Modifier.padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val initials = TenantUtils.getInitials(profile.name)
-
-            if (profile.avatarUrl != null) {
-                com.gaatho.rent.core.ui.components.AppAsyncImage(
-                    model = profile.avatarUrl,
-                    contentDescription = "Profile Photo",
-                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                    modifier = Modifier
-                        .size(72.dp)
-                        .clip(CircleShape)
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(72.dp)
-                        .clip(CircleShape)
-                        .background(AppColors.EmeraldAccentLight),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CardTitle(
-                        text = initials,
-                        fontWeight = FontWeight.Bold,
-                        color = AppColors.EmeraldAccent
-                    )
-                }
-            }
+            com.gaatho.rent.core.ui.components.AppAsyncImage(
+                model = profile.avatarUrl,
+                contentDescription = "Profile Photo",
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                modifier = Modifier
+                    .size(72.dp)
+                    .clip(CircleShape),
+                placeholderType = com.gaatho.rent.core.ui.components.PlaceholderType.AVATAR
+            )
 
             Spacer(Modifier.height(12.dp))
 
@@ -521,8 +509,8 @@ private fun HistoryRow(tx: TenantTransactionDisplayModel, onClick: () -> Unit) {
 
             AppStatusBadge(
                 label = tx.status,
-                containerColor = if (tx.isPaid) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else Color(0xFFF59E0B).copy(alpha = 0.15f),
-                contentColor = if (tx.isPaid) MaterialTheme.colorScheme.primary else Color(0xFFF59E0B),
+                containerColor = if (tx.isPaid) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else com.gaatho.rent.core.designsystem.AppColors.Warning.copy(alpha = 0.15f),
+                contentColor = if (tx.isPaid) MaterialTheme.colorScheme.primary else com.gaatho.rent.core.designsystem.AppColors.Warning,
                 horizontalPadding = 12.dp,
                 verticalPadding = 5.dp
             )
@@ -542,7 +530,7 @@ private fun HistoryRow(tx: TenantTransactionDisplayModel, onClick: () -> Unit) {
 @Composable
 private fun PreviewLight() {
     RentManagerTheme(darkTheme = false) {
-        TenantDetailsContent(tenantId = "1", onAction = {}, onNavigateToEdit = {})
+        TenantDetailsContent(tenantId = "1", onAction = {}, onNavigateToEdit = {}, onNavigateToTenantList = {})
     }
 }
 
@@ -550,7 +538,7 @@ private fun PreviewLight() {
 @Composable
 private fun PreviewDark() {
     RentManagerTheme(darkTheme = true) {
-        TenantDetailsContent(tenantId = "1", onAction = {}, onNavigateToEdit = {})
+        TenantDetailsContent(tenantId = "1", onAction = {}, onNavigateToEdit = {}, onNavigateToTenantList = {})
     }
 }
 
@@ -586,7 +574,7 @@ fun FullScreenImageViewer(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.9f))
+                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.9f))
                 .clickable { onDismiss() }
         ) {
             com.gaatho.rent.core.ui.components.AppAsyncImage(
@@ -601,12 +589,12 @@ fun FullScreenImageViewer(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(16.dp)
-                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.5f), CircleShape)
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Close",
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }

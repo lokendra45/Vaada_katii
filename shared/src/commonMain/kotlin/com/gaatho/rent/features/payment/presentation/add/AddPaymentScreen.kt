@@ -81,9 +81,11 @@ import rentmanagerapp.shared.generated.resources.unit_number_label
 
 @Composable
 fun AddPaymentScreen(
+    tenantIdArg: String? = null,
+    propertyIdArg: String? = null,
     onNavigateBack: () -> Unit
 ) {
-    val viewModel: AddPaymentViewModel = koinViewModel()
+    val viewModel: AddPaymentViewModel = koinViewModel(parameters = { org.koin.core.parameter.parametersOf(tenantIdArg, propertyIdArg) })
     val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
     val snackbarState = rememberAppSnackbarState()
 

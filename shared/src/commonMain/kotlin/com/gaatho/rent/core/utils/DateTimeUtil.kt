@@ -87,6 +87,16 @@ object DateTimeUtil {
     }
 
     /**
+     * Formats current date for the dashboard header: e.g. "TUESDAY, 24 JUNE 2025"
+     */
+    fun formatDashboardHeaderDate(): String {
+        val date = nowInstant().toLocalDateTime(TimeZone.currentSystemDefault()).date
+        val dayOfWeek = date.dayOfWeek.name
+        val month = date.month.name
+        return "$dayOfWeek, ${date.dayOfMonth} $month ${date.year}".uppercase()
+    }
+
+    /**
      * Formats an ISO date (`2023-10-18`) in the Figma style: `Oct 18, 2023`.
      * Returns the input unchanged when it cannot be parsed.
      */

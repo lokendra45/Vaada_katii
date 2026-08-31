@@ -11,7 +11,8 @@ val settingsModule = module {
             authRepository = get(),
             sessionManager = get(),
             dataStore = get(),
-            authenticator = get()
+            authenticator = get(),
+            supabase = get()
         )
     }
     viewModel {

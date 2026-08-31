@@ -31,4 +31,5 @@ sealed interface TenantProfileEffect {
     data class ShowToast(val message: String) : TenantProfileEffect
     data class ShowError(val message: String) : TenantProfileEffect
     data object NavigateBack : TenantProfileEffect
+    data object NavigateToTenantList : TenantProfileEffect
 }

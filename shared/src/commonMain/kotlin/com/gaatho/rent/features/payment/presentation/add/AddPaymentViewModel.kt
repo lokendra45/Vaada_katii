@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.combine
 import org.orbitmvi.orbit.viewmodel.orbitContainer
 
 class AddPaymentViewModel(
+    private val tenantIdArg: String?,
+    private val propertyIdArg: String?,
     private val sessionManager: SessionManager,
     private val tenantRepository: TenantRepository,
     private val propertyRepository: PropertyRepository,
@@ -53,9 +55,22 @@ class AddPaymentViewModel(
             tenantModels to propertyModels
         }.collectLatest { (tenantModels, propertyModels) ->
             val currentPropertyId = state.selectedPropertyId
+                ?: propertyIdArg
                 ?: if (propertyModels.size == 1) propertyModels.first().id else null
 
             val filteredTenants = filterTenants(tenantModels, currentPropertyId)
+            
+            val newSelectedTenantId = state.selectedTenantId
+                ?: tenantIdArg
+                ?: if (filteredTenants.size == 1) filteredTenants.first().id else null
+
+            val autoTenant = tenantModels.find { it.id == newSelectedTenantId }
+            val currentAmountText = state.amount.text
+            val newAmountText = if (autoTenant != null && (currentAmountText.isBlank() || currentAmountText == "0" || newSelectedTenantId != state.selectedTenantId)) {
+                (autoTenant.rentAmount).toString()
+            } else {
+                currentAmountText
+            }
 
             reduce {
                 state.copy(
@@ -63,8 +78,9 @@ class AddPaymentViewModel(
                     tenantsState = UiState.Success(filteredTenants),
                     propertiesState = UiState.Success(propertyModels),
                     selectedPropertyId = currentPropertyId,
-                    selectedTenantId = state.selectedTenantId
-                        ?: if (filteredTenants.size == 1) filteredTenants.first().id else null
+                    selectedTenantId = newSelectedTenantId,
+                    selectedUnit = state.selectedUnit ?: autoTenant?.roomNumber,
+                    amount = state.amount.copy(text = newAmountText)
                 )
             }
 
@@ -83,14 +99,27 @@ class AddPaymentViewModel(
 
             is AddPaymentAction.OnPropertySelected -> intent {
                 val filtered = filterTenants(state.allTenants, action.id)
+                val newTenantId = if (state.allTenants.find { it.id == state.selectedTenantId }?.propertyId == action.id)
+                    state.selectedTenantId
+                else if (filtered.size == 1)
+                    filtered.first().id
+                else null
+
+                val autoTenant = state.allTenants.find { it.id == newTenantId }
+                val currentAmountText = state.amount.text
+                val newAmountText = if (autoTenant != null && (currentAmountText.isBlank() || currentAmountText == "0" || newTenantId != state.selectedTenantId)) {
+                    (autoTenant.rentAmount).toString()
+                } else {
+                    currentAmountText
+                }
+
                 reduce {
                     state.copy(
                         selectedPropertyId = action.id,
-                        selectedUnit = null,
-                        // Reset tenant if their property doesn't match new selection
-                        selectedTenantId = if (state.allTenants.find { it.id == state.selectedTenantId }?.propertyId == action.id)
-                            state.selectedTenantId else null,
-                        tenantsState = UiState.Success(filtered)
+                        selectedUnit = autoTenant?.roomNumber,
+                        selectedTenantId = newTenantId,
+                        tenantsState = UiState.Success(filtered),
+                        amount = state.amount.copy(text = newAmountText)
                     )
                 }
             }
@@ -108,10 +137,8 @@ class AddPaymentViewModel(
                         selectedPropertyId = state.selectedPropertyId ?: tenant?.propertyId,
                         // Auto-select unit from tenant
                         selectedUnit = state.selectedUnit ?: tenant?.roomNumber,
-                        // Auto-fill amount only if user hasn't typed one yet
-                        amount = if (state.amount.text.isBlank() || state.amount.text == "0")
-                            state.amount.copy(text = (tenant?.rentAmount ?: 0L).toString())
-                        else state.amount
+                        // Always fill amount with new tenant's rent
+                        amount = state.amount.copy(text = (tenant?.rentAmount ?: 0L).toString())
                     )
                 }
             }

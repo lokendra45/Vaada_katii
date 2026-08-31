@@ -35,6 +35,7 @@ data class EditPaymentData(
 
 sealed interface EditPaymentSideEffect {
     data object NavigateBack : EditPaymentSideEffect
+    data object NavigateToPaymentList : EditPaymentSideEffect
     data class ShowSnackbar(val message: String) : EditPaymentSideEffect
 }
 

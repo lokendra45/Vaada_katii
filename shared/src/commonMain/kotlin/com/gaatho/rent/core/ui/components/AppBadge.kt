@@ -20,10 +20,10 @@ fun AppBadge(
     modifier: Modifier = Modifier
 ) {
     val (containerColor, contentColor) = when (type) {
-        AppBadgeType.SUCCESS -> Color(0xFFD1FAE5) to Color(0xFF065F46)
-        AppBadgeType.WARNING -> Color(0xFFFEF3C7) to Color(0xFF92400E)
-        AppBadgeType.ERROR -> Color(0xFFFEE2E2) to Color(0xFF991B1B)
-        AppBadgeType.INFO -> Color(0xFFDBEAFE) to Color(0xFF1E40AF)
+        AppBadgeType.SUCCESS -> com.gaatho.rent.core.designsystem.AppColors.SuccessContainer to com.gaatho.rent.core.designsystem.AppColors.Success
+        AppBadgeType.WARNING -> com.gaatho.rent.core.designsystem.AppColors.WarningContainer to com.gaatho.rent.core.designsystem.AppColors.Warning
+        AppBadgeType.ERROR -> com.gaatho.rent.core.designsystem.AppColors.ErrorContainer to com.gaatho.rent.core.designsystem.AppColors.Error
+        AppBadgeType.INFO -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
         AppBadgeType.BRAND -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
         AppBadgeType.NEUTRAL -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
     }

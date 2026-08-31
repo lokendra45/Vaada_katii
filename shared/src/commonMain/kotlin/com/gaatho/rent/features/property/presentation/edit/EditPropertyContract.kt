@@ -56,6 +56,7 @@ data class EditPropertyState(
 
 sealed interface EditPropertySideEffect {
     data object NavigateBack : EditPropertySideEffect
+    data object NavigateToPropertyList : EditPropertySideEffect
     data class ShowSnackbar(val message: String) : EditPropertySideEffect
 }
 

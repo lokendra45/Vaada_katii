@@ -1,42 +1,64 @@
 package com.gaatho.rent.features.payment.presentation.receipt
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.gaatho.rent.core.designsystem.RentManagerTheme
-import com.gaatho.rent.core.ui.components.*
+import com.gaatho.rent.core.ui.components.BodySmallText
+import com.gaatho.rent.core.ui.components.BodyText
+import com.gaatho.rent.core.ui.components.CaptionText
+import com.gaatho.rent.core.ui.components.CardTitle
+import com.gaatho.rent.core.ui.components.ScreenTitle
 import org.jetbrains.compose.resources.stringResource
 import rentmanagerapp.shared.generated.resources.Res
-import rentmanagerapp.shared.generated.resources.*
+import rentmanagerapp.shared.generated.resources.currency_npr
+import rentmanagerapp.shared.generated.resources.done_action
+import rentmanagerapp.shared.generated.resources.receipt_date_label
+import rentmanagerapp.shared.generated.resources.receipt_method_label
+import rentmanagerapp.shared.generated.resources.receipt_payment_successful
+import rentmanagerapp.shared.generated.resources.receipt_property_label
+import rentmanagerapp.shared.generated.resources.receipt_tenant_label
+import rentmanagerapp.shared.generated.resources.receipt_thank_you
+import rentmanagerapp.shared.generated.resources.receipt_transaction_id_label
 import kotlin.random.Random
 
-private val PaperColor = Color(0xFFFFFDF6)
-private val InkColor = Color(0xFF2B2B2B)
-private val FadedInk = Color(0xFF2B2B2B).copy(alpha = 0.55f)
+internal val PaperColor = androidx.compose.ui.graphics.Color(0xFFFFFDF6)
+internal val InkColor = androidx.compose.ui.graphics.Color(0xFF2B2B2B)
+internal val FadedInk = androidx.compose.ui.graphics.Color(0xFF2B2B2B).copy(alpha = 0.55f)
 
 @Composable
 fun PaymentReceiptScreen(
@@ -73,7 +95,7 @@ fun PaymentReceiptScreen(
 }
 
 @Composable
-private fun ReceiptCard(
+internal fun ReceiptCard(
     amount: String,
     tenantName: String,
     propertyName: String,
@@ -95,12 +117,12 @@ private fun ReceiptCard(
             Surface(
                 modifier = Modifier.size(60.dp),
                 shape = CircleShape,
-                color = Color(0xFF22C55E).copy(alpha = 0.15f)
+                color = com.gaatho.rent.core.designsystem.AppColors.Success.copy(alpha = 0.15f)
             ) {
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = null,
-                    tint = Color(0xFF22C55E),
+                    tint = com.gaatho.rent.core.designsystem.AppColors.Success,
                     modifier = Modifier.padding(16.dp)
                 )
             }
@@ -109,7 +131,7 @@ private fun ReceiptCard(
 
             CardTitle(
                 text = stringResource(Res.string.receipt_payment_successful),
-                color = Color(0xFF22C55E),
+                color = com.gaatho.rent.core.designsystem.AppColors.Success,
                 fontWeight = FontWeight.SemiBold
             )
 
@@ -152,7 +174,7 @@ private fun ReceiptCard(
 }
 
 @Composable
-private fun ReceiptRow(label: String, value: String, isMono: Boolean = false) {
+internal fun ReceiptRow(label: String, value: String, isMono: Boolean = false) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -182,14 +204,15 @@ private fun ReceiptRow(label: String, value: String, isMono: Boolean = false) {
 
 /** A tear-line: small round "punch holes" instead of a plain dashed rule. */
 @Composable
-private fun PerforatedDivider() {
+internal fun PerforatedDivider() {
+    val holeColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)
     Canvas(modifier = Modifier.fillMaxWidth().height(4.dp)) {
         val holeRadius = 2.dp.toPx()
         val gap = 10.dp.toPx()
         var x = holeRadius
         while (x < size.width) {
             drawCircle(
-                color = Color.Black.copy(alpha = 0.18f),
+                color = holeColor,
                 radius = holeRadius,
                 center = Offset(x, size.height / 2)
             )
@@ -200,13 +223,13 @@ private fun PerforatedDivider() {
 
 /** Purely decorative barcode-style strip — not a real scannable code. */
 @Composable
-private fun BarcodeStrip(seed: String, modifier: Modifier = Modifier) {
+internal fun BarcodeStrip(seed: String, modifier: Modifier = Modifier) {
     val bars = remember(seed) {
         val random = Random(seed.hashCode())
         List(46) { random.nextFloat() * 2.4f + 0.6f }
     }
+    val totalWeight = remember(bars) { bars.sum() }
     Canvas(modifier = modifier.fillMaxWidth().height(38.dp)) {
-        val totalWeight = remember(bars) { bars.sum() }
         val unit = size.width / totalWeight
         var x = 0f
         bars.forEachIndexed { index, weight ->
@@ -227,7 +250,7 @@ private fun BarcodeStrip(seed: String, modifier: Modifier = Modifier) {
  * Receipt paper silhouette: straight sides, zigzag "torn" edges on the
  * top and bottom, like paper ripped off a printer roll.
  */
-private class TornEdgeShape(
+internal class TornEdgeShape(
     private val toothWidth: androidx.compose.ui.unit.Dp = 14.dp,
     private val toothHeight: androidx.compose.ui.unit.Dp = 7.dp
 ) : Shape {

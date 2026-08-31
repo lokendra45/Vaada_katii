@@ -11,10 +11,12 @@ data class SettingsState(
     val languageCode: String? = null,
     val userEmail: String = "",
     val userName: String = "",
+    val userPhone: String = "",
     val isPremium: Boolean = false,
     val isLoading: Boolean = false,
     val showLogoutConfirm: Boolean = false,
     val showDeleteConfirm: Boolean = false,
+    val showEditProfileDialog: Boolean = false,
     val isGuest: Boolean = false,
 )
 
@@ -37,4 +39,8 @@ sealed interface SettingsAction {
     data object OnDeleteAccountClicked : SettingsAction
     data object OnDeleteAccountConfirmed : SettingsAction
     data object OnDeleteAccountDismissed : SettingsAction
+    
+    data object OnEditProfileClicked : SettingsAction
+    data object OnEditProfileDismissed : SettingsAction
+    data class OnSaveProfile(val name: String, val phone: String) : SettingsAction
 }

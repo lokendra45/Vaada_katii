@@ -1,7 +1,5 @@
 package com.gaatho.rent.features.property.presentation.add
 
-import org.jetbrains.compose.resources.stringResource
-import rentmanagerapp.shared.generated.resources.*
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -17,9 +15,12 @@ import com.gaatho.rent.features.property.presentation.edit.EditPropertyAction
 import com.gaatho.rent.features.property.presentation.edit.EditPropertySideEffect
 import com.gaatho.rent.features.property.presentation.edit.EditPropertyViewModel
 import com.gaatho.rent.features.property.presentation.edit.PropertyFormContent
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import org.orbitmvi.orbit.compose.collectSideEffect
+import rentmanagerapp.shared.generated.resources.Res
+import rentmanagerapp.shared.generated.resources.property_add_new_title
 
 @Composable
 fun AddPropertyScreen(
@@ -34,6 +35,8 @@ fun AddPropertyScreen(
             is EditPropertySideEffect.NavigateBack -> onNavigateBack()
             is EditPropertySideEffect.ShowSnackbar ->
                 snackbarHostState.showSnackbar(effect.message)
+
+            EditPropertySideEffect.NavigateToPropertyList -> {}
         }
     }
 

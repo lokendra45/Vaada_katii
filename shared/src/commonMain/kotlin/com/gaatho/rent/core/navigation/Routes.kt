@@ -116,7 +116,7 @@ data class EditTenantRoute(val tenantId: String) : Route
 
 /** Form for adding a payment. */
 @Serializable
-data object AddPaymentRoute : Route
+data class AddPaymentRoute(val tenantId: String? = null, val propertyId: String? = null) : Route
 
 /** List of all payments. */
 @Serializable

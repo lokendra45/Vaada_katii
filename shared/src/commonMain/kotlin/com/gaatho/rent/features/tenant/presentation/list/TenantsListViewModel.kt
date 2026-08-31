@@ -120,6 +120,10 @@ class TenantsListViewModel(
                 postSideEffect(TenantsListSideEffect.NavigateToTenantDetails(action.tenantId))
             }
 
+            is TenantsListAction.OnRecordPaymentClicked -> intent {
+                postSideEffect(TenantsListSideEffect.NavigateToAddPayment(action.tenantId, action.propertyId))
+            }
+
             is TenantsListAction.OnArchivedTenantBackupCompleted -> intent(registerIdling = false) {
                 when (val result = deleteTenant(action.tenantId)) {
                     is com.skydoves.sandwich.ApiResponse.Success -> {
@@ -174,7 +178,7 @@ class TenantsListViewModel(
             id = tenant.id, name = tenant.name, initials = initials,
             subtitle = subtitle, status = tenant.status, isActive = isActive,
             avatarBgColorHex = bgColor, avatarTextColorHex = textColor,
-            propertyName = tenant.propertyName, roomNumber = tenant.roomNumber,
+            propertyName = tenant.propertyName, propertyId = tenant.propertyId, roomNumber = tenant.roomNumber,
             email = tenant.email, phone = tenant.phone,
             rentAmount = tenant.rentAmount
         )

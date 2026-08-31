@@ -61,7 +61,7 @@ class PropertyDetailsViewModel(
     private fun handleDelete() = intent {
         reduce { state.copy(isDeleting = true, showDeleteConfirm = false) }
         when (val result = propertyRepository.deleteProperty(propertyId)) {
-            is ApiResponse.Success -> postSideEffect(PropertyDetailsSideEffect.NavigateBack)
+            is ApiResponse.Success -> postSideEffect(PropertyDetailsSideEffect.NavigateToPropertyList)
             is ApiResponse.Failure.Error -> {
                 reduce { state.copy(isDeleting = false) }
                 postSideEffect(PropertyDetailsSideEffect.ShowError(

@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
@@ -90,6 +91,7 @@ import rentmanagerapp.shared.generated.resources.remove_tenant_title
 fun EditTenantScreen(
     tenantId: String,
     onNavigateBack: () -> Unit,
+    onNavigateToTenantList: () -> Unit,
     viewModel: EditTenantViewModel = koinViewModel(parameters = { parametersOf(tenantId) })
 ) {
     val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
@@ -98,6 +100,7 @@ fun EditTenantScreen(
     viewModel.collectSideEffect { effect ->
         when (effect) {
             is EditTenantSideEffect.NavigateBack -> onNavigateBack()
+            is EditTenantSideEffect.NavigateToTenantList -> onNavigateToTenantList()
             is EditTenantSideEffect.ShowSnackbar ->
                 snackbarHostState.showSnackbar(effect.message)
         }
@@ -278,39 +281,13 @@ fun EditTenantContent(
                         .clickable { showProfileSourcePicker = true },
                     contentAlignment = Alignment.Center
                 ) {
-                    when {
-                        state.pendingProfileBytes != null -> {
-                            // Show local preview before upload
-                            com.gaatho.rent.core.ui.components.AppAsyncImage(
-                                model = state.pendingProfileBytes,
-                                contentDescription = "Profile Preview",
-                                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
-                        state.profileImageUrl != null -> {
-                            com.gaatho.rent.core.ui.components.AppAsyncImage(
-                                model = state.profileImageUrl,
-                                contentDescription = "Profile Photo",
-                                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
-                        else -> {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(
-                                    imageVector = androidx.compose.material.icons.Icons.Default.Person,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                                    modifier = Modifier.size(32.dp)
-                                )
-                                CaptionText(
-                                    stringResource(Res.string.add_photo_label),
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-                    }
+                    com.gaatho.rent.core.ui.components.AppAsyncImage(
+                        model = state.pendingProfileBytes ?: state.profileImageUrl,
+                        contentDescription = "Profile Photo",
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                        placeholderType = com.gaatho.rent.core.ui.components.PlaceholderType.AVATAR
+                    )
                 }
             }
 
@@ -422,26 +399,29 @@ fun EditTenantContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                AppTextField(
-                    value = DateTimeUtil.formatDisplayDate(state.moveInDate),
-                    onValueChange = {},
-                    readOnly = true,
-                    label = stringResource(Res.string.tenant_move_in_date_label),
-                    placeholder = stringResource(Res.string.tenant_move_in_date_placeholder),
-
-
-
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    },
-                    onClick = { showDatePicker = true },
-                    modifier = Modifier.weight(1f)
-                )
+                Box(modifier = Modifier.weight(1f)) {
+                    AppTextField(
+                        value = DateTimeUtil.formatDisplayDate(state.moveInDate),
+                        onValueChange = {},
+                        readOnly = true,
+                        label = stringResource(Res.string.tenant_move_in_date_label),
+                        placeholder = stringResource(Res.string.tenant_move_in_date_placeholder),
+                        trailingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.DateRange,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clickable { showDatePicker = true }
+                    )
+                }
 
                 AppDropdown(
                     options = state.availableLeaseDurations.toPersistentList(),
@@ -482,27 +462,21 @@ fun EditTenantContent(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    val switchColors = androidx.compose.material3.SwitchDefaults.colors(
-                        uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                        uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        uncheckedBorderColor = MaterialTheme.colorScheme.outline
-                    )
-                    
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         BodyText(state.wifiLabel)
-                        androidx.compose.material3.Switch(checked = state.hasWifi, onCheckedChange = { onAction(EditTenantAction.OnWifiToggled(it)) }, colors = switchColors)
+                        androidx.compose.material3.Switch(checked = state.hasWifi, onCheckedChange = { onAction(EditTenantAction.OnWifiToggled(it)) })
                     }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         BodyText(state.waterLabel)
-                        androidx.compose.material3.Switch(checked = state.hasWater, onCheckedChange = { onAction(EditTenantAction.OnWaterToggled(it)) }, colors = switchColors)
+                        androidx.compose.material3.Switch(checked = state.hasWater, onCheckedChange = { onAction(EditTenantAction.OnWaterToggled(it)) })
                     }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         BodyText(state.electricityLabel)
-                        androidx.compose.material3.Switch(checked = state.hasElectricity, onCheckedChange = { onAction(EditTenantAction.OnElectricityToggled(it)) }, colors = switchColors)
+                        androidx.compose.material3.Switch(checked = state.hasElectricity, onCheckedChange = { onAction(EditTenantAction.OnElectricityToggled(it)) })
                     }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         BodyText(state.wasteLabel)
-                        androidx.compose.material3.Switch(checked = state.hasWaste, onCheckedChange = { onAction(EditTenantAction.OnWasteToggled(it)) }, colors = switchColors)
+                        androidx.compose.material3.Switch(checked = state.hasWaste, onCheckedChange = { onAction(EditTenantAction.OnWasteToggled(it)) })
                     }
                 }
             }

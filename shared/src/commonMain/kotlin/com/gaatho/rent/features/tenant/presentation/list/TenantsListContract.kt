@@ -20,6 +20,7 @@ data class TenantDisplayModel(
     val avatarBgColorHex: Long,
     val avatarTextColorHex: Long,
     val propertyName: String?,
+    val propertyId: String?,
     val roomNumber: String?,
     val email: String?,
     val phone: String?,
@@ -43,6 +44,7 @@ data class TenantsListState(
 
 sealed interface TenantsListSideEffect {
     data class NavigateToTenantDetails(val tenantId: String) : TenantsListSideEffect
+    data class NavigateToAddPayment(val tenantId: String, val propertyId: String?) : TenantsListSideEffect
     data class ShowError(val message: String) : TenantsListSideEffect
     data class ShowMessage(val message: String) : TenantsListSideEffect
     data class ShowArchivedPrompt(
@@ -57,6 +59,7 @@ sealed interface TenantsListAction {
     data class OnStatusFilterChanged(val status: String) : TenantsListAction
     data class OnPropertyFilterChanged(val propertyName: String) : TenantsListAction
     data class OnTenantClicked(val tenantId: String) : TenantsListAction
+    data class OnRecordPaymentClicked(val tenantId: String, val propertyId: String?) : TenantsListAction
     data class OnArchivedTenantBackupCompleted(val tenantId: String) : TenantsListAction
     data object OnRetry : TenantsListAction
 }

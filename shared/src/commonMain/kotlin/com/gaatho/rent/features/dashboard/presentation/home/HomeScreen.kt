@@ -21,9 +21,15 @@ import androidx.compose.ui.unit.dp
 import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.designsystem.Spacing
 import com.gaatho.rent.core.ui.components.OfflineBanner
+import rentmanagerapp.shared.generated.resources.Res
+import org.jetbrains.compose.resources.stringResource
+import rentmanagerapp.shared.generated.resources.dashboard_at_a_glance
+import rentmanagerapp.shared.generated.resources.dashboard_your_portfolio
+import rentmanagerapp.shared.generated.resources.dashboard_this_month
 import com.gaatho.rent.features.dashboard.presentation.components.DashboardActivityUi
 import com.gaatho.rent.features.dashboard.presentation.components.DashboardCollectionCard
 import com.gaatho.rent.features.dashboard.presentation.components.DashboardMetricsRow
+import com.gaatho.rent.features.dashboard.presentation.components.DashboardSectionHeaderNew
 import com.gaatho.rent.features.dashboard.presentation.components.DashboardQuickActions
 import com.gaatho.rent.features.dashboard.presentation.components.DashboardRecentActivity
 import com.gaatho.rent.features.dashboard.presentation.components.DashboardWelcomeHeader
@@ -88,17 +94,21 @@ fun HomeContent(
                 item { HomeSkeletonLoadingState() }
             } else {
                 item {
-                    DashboardCollectionCard(
-                        collectedRent = state.collectedRent,
-                        totalRent = state.totalRent
-                    )
-                }
-                item {
-                    DashboardMetricsRow(
-                        propertiesCount = state.propertiesCount,
-                        tenantsCount = state.tenantsCount,
-                        overdueTenantsCount = state.overdueTenantsCount
-                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        DashboardSectionHeaderNew(
+                            caption = stringResource(Res.string.dashboard_at_a_glance),
+                            title = stringResource(Res.string.dashboard_your_portfolio),
+                            trailingText = stringResource(Res.string.dashboard_this_month)
+                        )
+                        DashboardMetricsRow(
+                            propertiesCount = state.propertiesCount,
+                            tenantsCount = state.tenantsCount
+                        )
+                        DashboardCollectionCard(
+                            collectedRent = state.collectedRent,
+                            totalRent = state.totalRent
+                        )
+                    }
                 }
                 item {
                     DashboardQuickActions(

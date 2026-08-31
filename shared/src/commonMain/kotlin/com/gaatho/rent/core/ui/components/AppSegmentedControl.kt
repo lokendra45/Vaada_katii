@@ -2,6 +2,8 @@ package com.gaatho.rent.core.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -49,19 +51,19 @@ fun AppSegmentedControl(
                         onOptionSelected(index)
                     },
                 shape = shape,
-                color = if (isSelected) AppColors.EmeraldAccent else MaterialTheme.colorScheme.surface,
-                border = if (isSelected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer,
+                border = null
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
                         text = option,
                         style = MaterialTheme.typography.labelLarge.copy(
-                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
+                            fontWeight = FontWeight.SemiBold
                         ),
                         color = if (isSelected) {
                             MaterialTheme.colorScheme.onPrimary
                         } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
+                            MaterialTheme.colorScheme.primary
                         }
                     )
                 }
@@ -78,7 +80,9 @@ fun AppFilterChips(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -92,22 +96,22 @@ fun AppFilterChips(
                         indication = null
                     ) { onOptionSelected(index) },
                 shape = RoundedCornerShape(100.dp),
-                color = if (isSelected) AppColors.EmeraldAccent else MaterialTheme.colorScheme.surface,
-                border = if (isSelected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer,
+                border = null
             ) {
                 Box(
                     modifier = Modifier.padding(horizontal = 16.dp), // More horizontal breathing room
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = option,
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
+                        text = option.uppercase(),
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.SemiBold
                         ),
                         color = if (isSelected) {
                             MaterialTheme.colorScheme.onPrimary
                         } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
+                            MaterialTheme.colorScheme.primary
                         }
                     )
                 }

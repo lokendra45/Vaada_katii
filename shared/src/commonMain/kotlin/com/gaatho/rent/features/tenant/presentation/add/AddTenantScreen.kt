@@ -109,6 +109,7 @@ fun AddTenantScreen(
     viewModel.collectSideEffect { effect ->
         when (effect) {
             is EditTenantSideEffect.NavigateBack -> onNavigateBack()
+            is EditTenantSideEffect.NavigateToTenantList -> onNavigateBack()
             is EditTenantSideEffect.ShowSnackbar ->
                 snackbarHostState.showSnackbar(effect.message)
         }

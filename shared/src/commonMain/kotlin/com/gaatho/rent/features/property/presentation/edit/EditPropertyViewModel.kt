@@ -193,7 +193,7 @@ class EditPropertyViewModel(
         when (result) {
             is ApiResponse.Success -> {
                 reduce { state.copy(isSaving = false) }
-                postSideEffect(EditPropertySideEffect.NavigateBack)
+                postSideEffect(EditPropertySideEffect.NavigateToPropertyList)
             }
             is ApiResponse.Failure.Error -> {
                 reduce { state.copy(isSaving = false) }

@@ -248,10 +248,10 @@ fun LoginContent(
                             enabled = state.authUiState !is UiState.Loading,
                             shape = androidx.compose.foundation.shape.RoundedCornerShape(26.dp), // Pill shaped as per modern Google UI
                             colors = ButtonDefaults.outlinedButtonColors(
-                                containerColor = Color.White,
-                                contentColor = Color(0xFF1F1F1F) // Google's standard dark grey text
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                contentColor = MaterialTheme.colorScheme.onSurface
                             ),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF747775)) // Google's standard border color
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,

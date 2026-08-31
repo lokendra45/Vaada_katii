@@ -53,7 +53,8 @@ data class OnUnitClicked(val unitNumber: String) : PropertyDetailsAction
 
 sealed interface PropertyDetailsSideEffect {
     data object NavigateBack : PropertyDetailsSideEffect
-data class NavigateToEdit(val propertyId: String) : PropertyDetailsSideEffect
+    data object NavigateToPropertyList : PropertyDetailsSideEffect
+    data class NavigateToEdit(val propertyId: String) : PropertyDetailsSideEffect
     data object NavigateToAddTenant : PropertyDetailsSideEffect
-data class ShowError(val message: String) : PropertyDetailsSideEffect
+    data class ShowError(val message: String) : PropertyDetailsSideEffect
 }

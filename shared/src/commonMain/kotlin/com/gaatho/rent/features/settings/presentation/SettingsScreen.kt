@@ -145,6 +145,16 @@ fun SettingsScreen(
         )
     }
 
+    if (state.showEditProfileDialog) {
+        EditProfileDialog(
+            initialName = state.userName,
+            initialPhone = state.userPhone,
+            initialEmail = state.userEmail,
+            onDismiss = { viewModel.onAction(SettingsAction.OnEditProfileDismissed) },
+            onSave = { name, phone -> viewModel.onAction(SettingsAction.OnSaveProfile(name, phone)) }
+        )
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow
@@ -202,14 +212,8 @@ private fun SettingsContent(
             SettingsNavRow(
                 leading = { SettingsIcon(icon = Icons.Outlined.Person) },
                 title = stringResource(Res.string.edit_profile),
-                showDivider = true,
-                onClick = {}
-            )
-            SettingsNavRow(
-                leading = { SettingsIcon(icon = Icons.Outlined.Lock) },
-                title = stringResource(Res.string.change_password),
                 showDivider = false,
-                onClick = {}
+                onClick = { onAction(SettingsAction.OnEditProfileClicked) }
             )
         }
 
@@ -273,15 +277,8 @@ private fun SettingsContent(
                 icon = Icons.Outlined.Fingerprint,
                 title = stringResource(Res.string.biometric_lock),
                 checked = state.biometricsEnabled,
-                showDivider = true,
-                onCheckedChange = { onAction(SettingsAction.OnBiometricsToggled(it)) }
-            )
-            SettingsToggleRow(
-                icon = Icons.Outlined.Key,
-                title = stringResource(Res.string.pin_lock),
-                checked = state.pinLockEnabled,
                 showDivider = false,
-                onCheckedChange = { onAction(SettingsAction.OnPinLockToggled(it)) }
+                onCheckedChange = { onAction(SettingsAction.OnBiometricsToggled(it)) }
             )
         }
 
@@ -290,6 +287,12 @@ private fun SettingsContent(
             SettingsNavRow(
                 leading = { SettingsIcon(icon = Icons.AutoMirrored.Outlined.HelpOutline) },
                 title = stringResource(Res.string.help_center),
+                showDivider = true,
+                onClick = {}
+            )
+            SettingsNavRow(
+                leading = { SettingsIcon(icon = Icons.Outlined.Lock) },
+                title = "Privacy Policy",
                 showDivider = true,
                 onClick = {}
             )
@@ -510,19 +513,13 @@ private fun ProfileAvatar(
             .background(MaterialTheme.colorScheme.surfaceContainerHighest, CircleShape),
         contentAlignment = Alignment.Center
     ) {
-        if (!imageUrl.isNullOrEmpty()) {
-            com.gaatho.rent.core.ui.components.AppAsyncImage(
-                model = imageUrl,
-                contentDescription = "Avatar",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-        } else {
-            LabelText(
-                text = displayName.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        com.gaatho.rent.core.ui.components.AppAsyncImage(
+            model = imageUrl,
+            contentDescription = "Avatar",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
+            placeholderType = com.gaatho.rent.core.ui.components.PlaceholderType.AVATAR
+        )
     }
 }
 

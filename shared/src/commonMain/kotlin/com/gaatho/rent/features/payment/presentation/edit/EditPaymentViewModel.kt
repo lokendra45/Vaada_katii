@@ -154,7 +154,7 @@ class EditPaymentViewModel(
         when (val result = paymentRepository.deletePayment(paymentId)) {
             is ApiResponse.Success -> {
                 reduce { state.copy(isSaving = false) }
-                postSideEffect(EditPaymentSideEffect.NavigateBack)
+                postSideEffect(EditPaymentSideEffect.NavigateToPaymentList)
             }
             is ApiResponse.Failure.Error -> {
                 reduce { state.copy(isSaving = false) }

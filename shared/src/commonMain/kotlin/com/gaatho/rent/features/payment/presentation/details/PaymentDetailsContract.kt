@@ -22,6 +22,7 @@ sealed interface PaymentDetailsSideEffect {
     data object NavigateBack : PaymentDetailsSideEffect
     data class ShowError(val message: String) : PaymentDetailsSideEffect
     data class ShowMessage(val message: String) : PaymentDetailsSideEffect
+    data object NavigateToPaymentList : PaymentDetailsSideEffect
 }
 
 sealed interface PaymentDetailsAction {

@@ -87,7 +87,7 @@ class TenantProfileViewModel(
     private fun handleDelete() = intent {
         reduce { state.copy(isDeleting = true, showDeleteConfirm = false) }
         when (val result = deleteTenant(tenantId)) {
-            is ApiResponse.Success -> postSideEffect(TenantProfileEffect.NavigateBack)
+            is ApiResponse.Success -> postSideEffect(TenantProfileEffect.NavigateToTenantList)
             is ApiResponse.Failure.Error -> {
                 reduce { state.copy(isDeleting = false) }
                 postSideEffect(TenantProfileEffect.ShowError(

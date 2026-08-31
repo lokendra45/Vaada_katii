@@ -113,30 +113,31 @@ fun AppDatePickerDialog(
     title: String = "Select date"
 ) {
     val state = rememberDatePickerState(initialSelectedDateMillis = selectedDate.toEpochMillisOrToday())
-    DatePickerDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(onClick = {
-                val millis = state.selectedDateMillis
-                if (millis != null) {
-                    onDateSelected(millis.toIsoDateString())
-                }
-                onDismiss()
-            }) {
-                Text(stringResource(Res.string.common_ok))
+    com.gaatho.rent.core.ui.components.AppDialog(
+        icon = Icons.Default.CalendarToday,
+        title = title,
+        confirmText = stringResource(Res.string.common_ok),
+        dismissText = stringResource(Res.string.cancel),
+        onConfirm = {
+            val millis = state.selectedDateMillis
+            if (millis != null) {
+                onDateSelected(millis.toIsoDateString())
             }
+            onDismiss()
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(Res.string.cancel))
-            }
+        onDismiss = onDismiss,
+        bodyContent = {
+            DatePicker(
+                state = state,
+                title = null,
+                showModeToggle = false,
+                colors = androidx.compose.material3.DatePickerDefaults.colors(
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent
+                ),
+                modifier = Modifier.padding(top = 16.dp)
+            )
         }
-    ) {
-        DatePicker(
-            state = state,
-            title = { CardTitle(text = title) }
-        )
-    }
+    )
 }
 
 private fun localDateToMillis(date: LocalDate): Long =

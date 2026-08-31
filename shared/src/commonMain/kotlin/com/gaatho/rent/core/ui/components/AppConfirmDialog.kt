@@ -224,7 +224,7 @@ internal fun AppDialogContent(
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = colors.buttonColor,
-                            contentColor   = Color.White
+                            contentColor   = MaterialTheme.colorScheme.surface
                         )
                     ) {
                         Text(
@@ -259,7 +259,7 @@ internal fun AppDialogContent(
                             shape = RoundedCornerShape(10.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = colors.buttonColor,
-                                contentColor   = Color.White
+                                contentColor   = MaterialTheme.colorScheme.surface
                             )
                         ) {
                             Text(confirmText, fontWeight = FontWeight.SemiBold)
@@ -276,7 +276,7 @@ internal fun AppDialogContent(
                             shape = RoundedCornerShape(10.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = colors.buttonColor,
-                                contentColor   = Color.White
+                                contentColor   = MaterialTheme.colorScheme.surface
                             )
                         ) {
                             Text(confirmText, fontWeight = FontWeight.SemiBold)
@@ -418,13 +418,13 @@ object AppDialog {
             buttonColor = MaterialTheme.colorScheme.primary,
         )
         Variant.Success -> VariantColors(
-            iconBg      = Color(0xFFDCFCE7),
-            iconTint    = Color(0xFF166534),
+            iconBg      = com.gaatho.rent.core.designsystem.AppColors.SuccessContainer,
+            iconTint    = com.gaatho.rent.core.designsystem.AppColors.Success,
             buttonColor = MaterialTheme.colorScheme.primary,
         )
         Variant.Warning -> VariantColors(
-            iconBg      = Color(0xFFFFEDD5),
-            iconTint    = Color(0xFF9A3412),
+            iconBg      = com.gaatho.rent.core.designsystem.AppColors.WarningContainer,
+            iconTint    = com.gaatho.rent.core.designsystem.AppColors.Warning,
             buttonColor = MaterialTheme.colorScheme.primary,
         )
         Variant.Destructive -> VariantColors(

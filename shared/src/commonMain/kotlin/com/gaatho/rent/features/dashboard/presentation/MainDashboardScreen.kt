@@ -28,7 +28,7 @@ fun MainDashboardScreen(
     onNavigateToAddProperty: () -> Unit,
     onNavigateToTenantDetails: (String) -> Unit = {},
     onNavigateToAddTenant: () -> Unit = {},
-    onNavigateToAddPayment: () -> Unit = {},
+    onNavigateToAddPayment: (String?, String?) -> Unit = { _, _ -> },
     onNavigateToPaymentDetails: (String) -> Unit = {},
     onNavigateToPaymentList: () -> Unit = {},
     onNavigateToLogin: () -> Unit = {}
@@ -58,7 +58,7 @@ fun MainDashboardContent(
     onNavigateToAddProperty: () -> Unit,
     onNavigateToTenantDetails: (String) -> Unit = {},
     onNavigateToAddTenant: () -> Unit,
-    onNavigateToAddPayment: () -> Unit,
+    onNavigateToAddPayment: (String?, String?) -> Unit,
     onNavigateToPaymentDetails: (String) -> Unit,
     onNavigateToPaymentList: () -> Unit = {},
     onNavigateToLogin: () -> Unit = {},
@@ -108,7 +108,7 @@ fun MainDashboardScreenPreview() {
             onNavigateToAddProperty = {},
             onNavigateToTenantDetails = {},
             onNavigateToAddTenant = {},
-            onNavigateToAddPayment = {},
+            onNavigateToAddPayment = { _, _ -> },
             onNavigateToPaymentDetails = {},
             onNavigateToLogin = {},
             tabContent = { tab ->
@@ -129,7 +129,7 @@ fun MainDashboardScreenDarkPreview() {
             onNavigateToAddProperty = {},
             onNavigateToTenantDetails = {},
             onNavigateToAddTenant = {},
-            onNavigateToAddPayment = {},
+            onNavigateToAddPayment = { _, _ -> },
             onNavigateToPaymentDetails = {},
             onNavigateToLogin = {},
             tabContent = {

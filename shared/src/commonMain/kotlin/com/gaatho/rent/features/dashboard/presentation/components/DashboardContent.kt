@@ -35,7 +35,7 @@ fun DashboardContent(
     onNavigateToAddProperty: () -> Unit,
     onNavigateToTenantDetails: (String) -> Unit = {},
     onNavigateToAddTenant: () -> Unit = {},
-    onNavigateToAddPayment: () -> Unit = {},
+    onNavigateToAddPayment: (String?, String?) -> Unit = { _, _ -> },
     onNavigateToPaymentDetails: (String) -> Unit = {},
     onNavigateToPayments: () -> Unit = {},
     onNavigateToLogin: () -> Unit = {},
@@ -77,7 +77,7 @@ private fun DefaultDashboardTabContent(
     onNavigateToAddProperty: () -> Unit,
     onNavigateToTenantDetails: (String) -> Unit,
     onNavigateToAddTenant: () -> Unit,
-    onNavigateToAddPayment: () -> Unit,
+    onNavigateToAddPayment: (String?, String?) -> Unit,
     onNavigateToPaymentDetails: (String) -> Unit,
     onNavigateToPayments: () -> Unit = {},
     onNavigateToLogin: () -> Unit
@@ -86,7 +86,7 @@ private fun DefaultDashboardTabContent(
         DashboardTab.HOME -> HomeScreen(
             onNavigateToAddTenant = onNavigateToAddTenant,
             onNavigateToAddProperty = onNavigateToAddProperty,
-            onNavigateToAddPayment = onNavigateToAddPayment,
+            onNavigateToAddPayment = { onNavigateToAddPayment(null, null) },
             onNavigateToPayments = onNavigateToPayments,
             onNavigateToTenantDetails = onNavigateToTenantDetails
         )
@@ -95,12 +95,13 @@ private fun DefaultDashboardTabContent(
             onNavigateToAddProperty = onNavigateToAddProperty
         )
         DashboardTab.PAYMENTS -> PaymentListScreen(
-            onNavigateToAddPayment = onNavigateToAddPayment,
+            onNavigateToAddPayment = { onNavigateToAddPayment(null, null) },
             onNavigateToPaymentDetails = onNavigateToPaymentDetails
         )
         DashboardTab.TENANTS -> TenantsListScreen(
             onNavigateToDetails = onNavigateToTenantDetails,
-            onNavigateToAddTenant = onNavigateToAddTenant
+            onNavigateToAddTenant = onNavigateToAddTenant,
+            onNavigateToAddPayment = onNavigateToAddPayment
         )
         DashboardTab.SETTINGS -> SettingsScreen(
             onNavigateToLogin = onNavigateToLogin

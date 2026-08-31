@@ -71,17 +71,20 @@ import rentmanagerapp.shared.generated.resources.delete_payment_title
 @Composable
 fun EditPaymentScreen(
     paymentId: String,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToPaymentList: () -> Unit,
+    viewModel: EditPaymentViewModel = koinViewModel(parameters = { parametersOf(paymentId) })
 ) {
-    val viewModel: EditPaymentViewModel = koinViewModel(parameters = { parametersOf(paymentId) })
     val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
     viewModel.collectSideEffect { effect ->
         when (effect) {
             is EditPaymentSideEffect.NavigateBack -> onNavigateBack()
-            is EditPaymentSideEffect.ShowSnackbar ->
+            is EditPaymentSideEffect.NavigateToPaymentList -> onNavigateToPaymentList()
+            is EditPaymentSideEffect.ShowSnackbar -> {
                 snackbarHostState.showSnackbar(effect.message)
+            }
         }
     }
 

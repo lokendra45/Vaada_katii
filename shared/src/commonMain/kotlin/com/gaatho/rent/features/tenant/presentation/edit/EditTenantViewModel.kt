@@ -114,17 +114,23 @@ class EditTenantViewModel(
     override fun onAction(action: EditTenantAction) {
         when (action) {
             is EditTenantAction.OnNameChanged -> intent {
-                reduce { state.copy(name = action.value, nameError = null) }
+                val err = if (action.value.text.isBlank()) "Name cannot be empty" else null
+                reduce { state.copy(name = action.value, nameError = err) }
             }
             is EditTenantAction.OnPhoneChanged -> intent {
-                reduce { state.copy(phone = action.value, phoneError = null) }
+                val phone = action.value.text.trim()
+                val err = if (phone.isBlank()) "Phone number is required" else if (!ValidationUtil.isValidNepaliPhone(phone)) "Enter a valid 10-digit Nepali phone number" else null
+                reduce { state.copy(phone = action.value, phoneError = err) }
             }
             is EditTenantAction.OnEmailChanged -> intent {
-                reduce { state.copy(email = action.value, emailError = null) }
+                val email = action.value.text.trim()
+                val err = if (email.isNotBlank() && !ValidationUtil.isValidEmail(email)) "Enter a valid email address" else null
+                reduce { state.copy(email = action.value, emailError = err) }
             }
             is EditTenantAction.OnRentChanged -> intent {
                 val digits = action.value.text.filter { it.isDigit() }
-                reduce { state.copy(rentAmount = action.value.copy(text = digits), rentError = null) }
+                val err = if (digits.isBlank()) "Rent cannot be empty" else null
+                reduce { state.copy(rentAmount = action.value.copy(text = digits), rentError = err) }
             }
             is EditTenantAction.OnUnitNumberChanged -> intent {
                 reduce { state.copy(unitNumber = action.value) }
@@ -218,7 +224,7 @@ class EditTenantViewModel(
         when (val response = deleteTenant(tenantId)) {
             is ApiResponse.Success -> {
                 reduce { state.copy(isSaving = false) }
-                postSideEffect(EditTenantSideEffect.NavigateBack)
+                postSideEffect(EditTenantSideEffect.NavigateToTenantList)
             }
             is ApiResponse.Failure.Error -> {
                 reduce { state.copy(isSaving = false) }

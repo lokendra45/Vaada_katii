@@ -66,14 +66,13 @@ import rentmanagerapp.shared.generated.resources.edit_property_btn
 import rentmanagerapp.shared.generated.resources.no_units_desc
 import rentmanagerapp.shared.generated.resources.no_units_title
 import rentmanagerapp.shared.generated.resources.occupied
-import rentmanagerapp.shared.generated.resources.occupied_label
+
 import rentmanagerapp.shared.generated.resources.overdue_label
 import rentmanagerapp.shared.generated.resources.paid_label
 import rentmanagerapp.shared.generated.resources.property_details
 import rentmanagerapp.shared.generated.resources.this_month_collection
 import rentmanagerapp.shared.generated.resources.total_units_label
 import rentmanagerapp.shared.generated.resources.unit_assignments_title
-import rentmanagerapp.shared.generated.resources.vacant_label
 import rentmanagerapp.shared.generated.resources.vacant_label_short
 
 // ─── Entry point ──────────────────────────────────────────────────────────────
@@ -82,6 +81,7 @@ import rentmanagerapp.shared.generated.resources.vacant_label_short
 fun PropertyDetailsScreen(
     propertyId: String,
     onNavigateBack: () -> Unit,
+    onNavigateToPropertyList: () -> Unit,
     onNavigateToEdit: (String) -> Unit = {},
     onNavigateToAddTenant: () -> Unit = {},
     viewModel: PropertyDetailsViewModel = koinViewModel(parameters = { parametersOf(propertyId) })
@@ -89,6 +89,7 @@ fun PropertyDetailsScreen(
     viewModel.collectSideEffect { effect ->
         when (effect) {
             is PropertyDetailsSideEffect.NavigateBack -> onNavigateBack()
+            is PropertyDetailsSideEffect.NavigateToPropertyList -> onNavigateToPropertyList()
             is PropertyDetailsSideEffect.NavigateToEdit -> onNavigateToEdit(effect.propertyId)
             PropertyDetailsSideEffect.NavigateToAddTenant -> onNavigateToAddTenant()
             is PropertyDetailsSideEffect.ShowError -> {}
@@ -363,13 +364,13 @@ private fun StatsRow(totalUnits: Int, occupiedUnits: Int, vacantUnits: Int) {
         )
         AppSummaryCard(
             label = stringResource(Res.string.occupied),
-            value = stringResource(Res.string.occupied_label, occupiedUnits),
+            value = occupiedUnits.toString(),
             valueColor = MaterialTheme.colorScheme.primary,
             modifier = Modifier.weight(1f)
         )
         AppSummaryCard(
             label = stringResource(Res.string.vacant_label_short),
-            value = stringResource(Res.string.vacant_label, vacantUnits),
+            value = vacantUnits.toString(),
             valueColor = AppColors.Error,
             modifier = Modifier.weight(1f)
         )
@@ -406,15 +407,18 @@ private fun CollectionSummaryCard(collected: Long, expected: Long, percent: Int)
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 CardTitle(
-                    text = stringResource(Res.string.this_month_collection)
+                    text = stringResource(Res.string.this_month_collection),
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
                 CardTitle(
-                    text = "$percent%"
+                    text = "$percent%",
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
             CardTitle(
                 text = stringResource(Res.string.currency_npr) + " " + CurrencyUtil.formatNpr(collected.toDouble(), includeSymbol = false) + " / " +
-                    "NPR ${CurrencyUtil.formatNpr(expected.toDouble(), includeSymbol = false)}"
+                    "NPR ${CurrencyUtil.formatNpr(expected.toDouble(), includeSymbol = false)}",
+                color = MaterialTheme.colorScheme.onPrimary
             )
         }
     }

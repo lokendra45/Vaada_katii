@@ -49,7 +49,7 @@ class PaymentDetailsViewModel(
     private fun handleDelete() = intent {
         reduce { state.copy(isDeleting = true, showDeleteConfirm = false) }
         when (val result = paymentRepository.deletePayment(paymentId)) {
-            is ApiResponse.Success -> postSideEffect(PaymentDetailsSideEffect.NavigateBack)
+            is ApiResponse.Success -> postSideEffect(PaymentDetailsSideEffect.NavigateToPaymentList)
             is ApiResponse.Failure.Error -> {
                 reduce { state.copy(isDeleting = false) }
                 postSideEffect(PaymentDetailsSideEffect.ShowError(

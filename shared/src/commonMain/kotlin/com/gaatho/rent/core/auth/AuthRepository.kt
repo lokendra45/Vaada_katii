@@ -53,4 +53,9 @@ interface AuthRepository {
         idToken: String? = null,
         nonce: String? = null
     ): ApiResponse<Unit>
+
+    /**
+     * Updates the user's profile information (name, phone).
+     */
+    suspend fun updateProfile(name: String, phone: String): ApiResponse<Unit>
 }

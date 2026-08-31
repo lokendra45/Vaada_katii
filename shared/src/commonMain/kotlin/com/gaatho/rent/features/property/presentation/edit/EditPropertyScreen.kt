@@ -98,6 +98,7 @@ import rentmanagerapp.shared.generated.resources.property_waste_charge_placehold
 fun EditPropertyScreen(
     propertyId: String,
     onNavigateBack: () -> Unit,
+    onNavigateToPropertyList: () -> Unit,
     viewModel: EditPropertyViewModel = koinViewModel(parameters = { parametersOf(propertyId) })
 ) {
     val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
@@ -106,6 +107,7 @@ fun EditPropertyScreen(
     viewModel.collectSideEffect { effect ->
         when (effect) {
             is EditPropertySideEffect.NavigateBack -> onNavigateBack()
+            is EditPropertySideEffect.NavigateToPropertyList -> onNavigateToPropertyList()
             is EditPropertySideEffect.ShowSnackbar ->
                 snackbarHostState.showSnackbar(effect.message)
         }
@@ -450,11 +452,11 @@ private fun PropertyPhotoSection(
                         modifier = Modifier
                             .fillMaxWidth()
                             .align(Alignment.BottomCenter)
-                            .background(Color.Black.copy(alpha = 0.35f))
+                            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.35f))
                             .padding(vertical = 6.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        CaptionText(stringResource(Res.string.property_tap_to_change_photo), color = Color.White)
+                        CaptionText(stringResource(Res.string.property_tap_to_change_photo), color = MaterialTheme.colorScheme.onPrimary)
                     }
                 }
                 imageUrl != null -> {
@@ -468,11 +470,11 @@ private fun PropertyPhotoSection(
                         modifier = Modifier
                             .fillMaxWidth()
                             .align(Alignment.BottomCenter)
-                            .background(Color.Black.copy(alpha = 0.35f))
+                            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.35f))
                             .padding(vertical = 6.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        CaptionText(stringResource(Res.string.property_tap_to_change_photo), color = Color.White)
+                        CaptionText(stringResource(Res.string.property_tap_to_change_photo), color = MaterialTheme.colorScheme.onPrimary)
                     }
                 }
                 else -> {
@@ -496,7 +498,7 @@ private fun PropertyPhotoSection(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.6f)),
+                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f)),
                     contentAlignment = Alignment.Center
                 ) {
                     androidx.compose.material3.CircularProgressIndicator(

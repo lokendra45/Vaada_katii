@@ -214,10 +214,6 @@ private fun PaymentListContent(
                         text = stringResource(Res.string.payments_title),
                         modifier = Modifier.weight(1f)
                     )
-                    MonthFilterPill(
-                        selectedMonth = state.selectedMonth,
-                        onMonthSelected = { onAction(PaymentListAction.OnMonthFilterChanged(it)) }
-                    )
                 }
 
                 Spacer(Modifier.height(16.dp))
@@ -232,6 +228,29 @@ private fun PaymentListContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp)
+                )
+
+                val filterOptions = listOf(
+                    PaymentListFilters.ThisMonth,
+                    PaymentListFilters.LastMonth,
+                    PaymentListFilters.AllMonths
+                )
+                val displayLabels = listOf(
+                    stringResource(Res.string.payment_filter_this_month),
+                    stringResource(Res.string.payment_filter_last_month),
+                    stringResource(Res.string.filter_all_months)
+                )
+                val selectedIndex = filterOptions.indexOf(state.selectedMonth).coerceAtLeast(0)
+
+                com.gaatho.rent.core.ui.components.AppFilterChips(
+                    options = displayLabels,
+                    selectedIndex = selectedIndex,
+                    onOptionSelected = { index ->
+                        onAction(PaymentListAction.OnMonthFilterChanged(filterOptions[index]))
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 12.dp)
                 )
 
                 Spacer(Modifier.height(4.dp))
@@ -335,71 +354,6 @@ private fun PaymentListContent(
     }
 }
 
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun MonthFilterPill(
-    selectedMonth: String,
-    onMonthSelected: (String) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val options = listOf(
-        PaymentListFilters.ThisMonth,
-        PaymentListFilters.LastMonth,
-        PaymentListFilters.AllMonths
-    )
-    val label = when (selectedMonth) {
-        PaymentListFilters.ThisMonth -> stringResource(Res.string.payment_filter_this_month)
-        PaymentListFilters.LastMonth -> stringResource(Res.string.payment_filter_last_month)
-        else -> currentMonthLabel()
-    }
-
-    Box {
-        Surface(
-            onClick = { expanded = true },
-            shape = RoundedCornerShape(50),
-            color = MaterialTheme.colorScheme.surface,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-        ) {
-            Row(
-                modifier = Modifier.padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                LabelText(
-                    text = label,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(Modifier.width(4.dp))
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-        }
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            options.forEach { option ->
-                val optionLabel = when (option) {
-                    PaymentListFilters.ThisMonth -> stringResource(Res.string.payment_filter_this_month)
-                    PaymentListFilters.LastMonth -> stringResource(Res.string.payment_filter_last_month)
-                    else -> stringResource(Res.string.filter_all_months)
-                }
-                DropdownMenuItem(
-                    text = { Text(optionLabel) },
-                    onClick = {
-                        onMonthSelected(option)
-                        expanded = false
-                    }
-                )
-            }
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

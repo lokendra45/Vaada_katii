@@ -144,4 +144,19 @@ class AuthRepositoryImpl(
             AppLogger.auth.i { "Anonymous session cleared." }
         }
     }
+
+    override suspend fun updateProfile(name: String, phone: String): com.skydoves.sandwich.ApiResponse<Unit> =
+        com.skydoves.sandwich.ApiResponse.suspendOf {
+            authMutex.withLock {
+                val user = supabase.auth.currentUserOrNull() ?: return@withLock
+                val existingData = user.userMetadata ?: buildJsonObject {}
+                supabase.auth.updateUser {
+                    data = buildJsonObject {
+                        existingData.forEach { (k, v) -> put(k, v) }
+                        put("full_name", name)
+                        put("phone", phone)
+                    }
+                }
+            }
+        }
 }

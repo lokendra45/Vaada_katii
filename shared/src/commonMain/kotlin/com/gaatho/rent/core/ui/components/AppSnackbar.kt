@@ -175,27 +175,27 @@ private fun AppSnackbarContent(
 ) {
     val (backgroundColor, contentColor, iconColor, icon) = when (variant) {
         AppSnackbarVariant.SUCCESS -> SnackbarColors(
-            bg = Color(0xFF1A3C2F),
-            content = Color(0xFFE6F4EE),
-            iconColor = Color(0xFF4CAF82),
+            bg = com.gaatho.rent.core.designsystem.AppColors.SuccessContainer,
+            content = com.gaatho.rent.core.designsystem.AppColors.OnSuccess,
+            iconColor = com.gaatho.rent.core.designsystem.AppColors.Success,
             icon = Icons.Default.CheckCircle
         )
         AppSnackbarVariant.ERROR -> SnackbarColors(
-            bg = Color(0xFF3C1A1A),
-            content = Color(0xFFF4E6E6),
-            iconColor = Color(0xFFEF5350),
+            bg = com.gaatho.rent.core.designsystem.AppColors.ErrorContainer,
+            content = com.gaatho.rent.core.designsystem.AppColors.OnError,
+            iconColor = com.gaatho.rent.core.designsystem.AppColors.Error,
             icon = Icons.Default.Error
         )
         AppSnackbarVariant.WARNING -> SnackbarColors(
-            bg = Color(0xFF3C2E1A),
-            content = Color(0xFFF4EEE6),
-            iconColor = Color(0xFFFFA726),
+            bg = com.gaatho.rent.core.designsystem.AppColors.WarningContainer,
+            content = com.gaatho.rent.core.designsystem.AppColors.OnWarning,
+            iconColor = com.gaatho.rent.core.designsystem.AppColors.Warning,
             icon = Icons.Default.Warning
         )
         AppSnackbarVariant.INFO -> SnackbarColors(
-            bg = Color(0xFF1A2C3C),
-            content = Color(0xFFE6EEF4),
-            iconColor = Color(0xFF42A5F5),
+            bg = MaterialTheme.colorScheme.primaryContainer,
+            content = MaterialTheme.colorScheme.onPrimaryContainer,
+            iconColor = MaterialTheme.colorScheme.primary,
             icon = Icons.Default.Info
         )
     }
