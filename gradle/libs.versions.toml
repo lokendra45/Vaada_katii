@@ -1,10 +1,12 @@
 [versions]
 agp = "9.3.1"
+google-services = "4.5.0"
+firebase-bom = "34.18.0"
 android-compileSdk = "37"
 android-minSdk = "28"
 android-targetSdk = "37"
 androidx-activity = "1.13.0"
-androidx-appcompat = "1.7.1"
+androidx-appcompat = "1.8.0"
 androidx-core = "1.19.0"
 androidx-espresso = "3.7.0"
 androidx-lifecycle = "2.11.0"
@@ -22,6 +24,7 @@ ktor = "3.5.2"
 kotlinx-serialization = "1.11.0"
 kotlinx-datetime = "0.8.0"
 coil = "3.6.0"
+krop = "0.3.0-alpha01"
 
 orbit = "12.0.0"
 sandwich = "2.4.0"
@@ -104,6 +107,10 @@ coil-network = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "
 filekit-dialogs = { module = "io.github.vinceglb:filekit-dialogs", version.ref = "filekit" }
 filekit-dialogs-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekit" }
 
+# Krop
+krop-ui = { module = "com.attafitamim.krop:ui", version.ref = "krop" }
+krop-extensions-filekit = { module = "com.attafitamim.krop:extensions-filekit", version.ref = "krop" }
+
 # Orbit MVI
 orbit-core = { module = "org.orbit-mvi:orbit-core", version.ref = "orbit" }
 orbit-viewmodel = { module = "org.orbit-mvi:orbit-viewmodel", version.ref = "orbit" }
@@ -126,7 +133,12 @@ androidx-datastore-preferences = { module = "androidx.datastore:datastore-prefer
 # Biometric
 androidx-biometric = { module = "androidx.biometric:biometric", version = "1.2.0-alpha05" }
 
+# Firebase
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
+firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
+
 [plugins]
+googleServices = { id = "com.google.gms.google-services", version.ref = "google-services" }
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }

@@ -49,14 +49,16 @@ data class AddPaymentState(
     val propertyItems: ImmutableList<PropertySelectionModel> get() = (propertiesState as? UiState.Success)?.data ?: kotlinx.collections.immutable.persistentListOf()
     val tenantItems: ImmutableList<TenantSelectionModel> get() = (tenantsState as? UiState.Success)?.data ?: kotlinx.collections.immutable.persistentListOf()
     
-    val selectedTenant: TenantSelectionModel? get() = tenantItems.find { it.id == selectedTenantId }
+    val selectedTenant: TenantSelectionModel? get() = allTenants.find { it.id == selectedTenantId }
     val selectedProperty: PropertySelectionModel? get() = propertyItems.find { it.id == selectedPropertyId }
     
-    val unitOptions: ImmutableList<String> get() = if (selectedProperty != null && selectedProperty!!.totalUnits > 0) {
-        (1..selectedProperty!!.totalUnits).map { "Unit $it" }.let { kotlinx.collections.immutable.persistentListOf(*it.toTypedArray()) }
-    } else {
-        kotlinx.collections.immutable.persistentListOf()
-    }
+    val unitOptions: ImmutableList<String> get() = selectedProperty?.let { prop ->
+        if (prop.totalUnits > 0) {
+            (1..prop.totalUnits).map { "Unit $it" }.let { kotlinx.collections.immutable.persistentListOf(*it.toTypedArray()) }
+        } else {
+            kotlinx.collections.immutable.persistentListOf()
+        }
+    } ?: kotlinx.collections.immutable.persistentListOf()
 }
 
 data class TenantSelectionModel(

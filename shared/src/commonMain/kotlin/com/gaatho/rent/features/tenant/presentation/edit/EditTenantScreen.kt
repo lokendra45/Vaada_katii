@@ -78,7 +78,7 @@ import com.gaatho.rent.core.ui.components.AppDatePickerDialog
 import com.gaatho.rent.core.ui.components.AppDialog
 import com.gaatho.rent.core.ui.components.AppDocumentPicker
 import com.gaatho.rent.core.ui.components.AppDropdown
-import com.gaatho.rent.core.ui.components.AppImageSourcePicker
+import com.gaatho.rent.core.ui.components.AppImagePicker
 import com.gaatho.rent.core.ui.components.AppTextField
 import com.gaatho.rent.core.ui.components.AppTopBar
 import com.gaatho.rent.core.ui.components.BodyText
@@ -87,11 +87,7 @@ import com.gaatho.rent.core.ui.components.PlaceholderType
 import com.gaatho.rent.core.ui.components.SectionTitle
 import com.gaatho.rent.core.utils.DateTimeUtil
 import com.gaatho.rent.core.utils.ValidationUtil
-import io.github.vinceglb.filekit.dialogs.FileKitType
-import io.github.vinceglb.filekit.dialogs.compose.rememberCameraPickerLauncher
-import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.name
-import io.github.vinceglb.filekit.readBytes
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -115,6 +111,8 @@ import rentmanagerapp.shared.generated.resources.remove_action
 import rentmanagerapp.shared.generated.resources.remove_tenant_desc
 import rentmanagerapp.shared.generated.resources.remove_tenant_title
 import rentmanagerapp.shared.generated.resources.section_deposit_utilities
+import rentmanagerapp.shared.generated.resources.document_title
+import rentmanagerapp.shared.generated.resources.profile_picture_title
 import rentmanagerapp.shared.generated.resources.section_documents
 import rentmanagerapp.shared.generated.resources.section_lease_property
 import rentmanagerapp.shared.generated.resources.section_personal_info
@@ -255,66 +253,23 @@ fun EditTenantContent(
         )
     }
 
-    val scope = rememberCoroutineScope()
+    AppImagePicker(
+        show = showProfileSourcePicker,
+        onDismiss = { showProfileSourcePicker = false },
+        onImageCropped = { fileName, bytes ->
+            onAction(EditTenantAction.OnProfileImagePicked(fileName, bytes))
+        },
+        title = stringResource(Res.string.profile_picture_title)
+    )
 
-    // --- Gallery Launchers ---
-    val documentGalleryLauncher = rememberFilePickerLauncher(
-        type = FileKitType.Image
-    ) { file ->
-        if (file != null) {
-            scope.launch {
-                val bytes = file.readBytes()
-                onAction(EditTenantAction.OnDocumentPicked(file.name, bytes))
-            }
-        }
-    }
-
-    val profileGalleryLauncher = rememberFilePickerLauncher(
-        type = FileKitType.Image
-    ) { file ->
-        if (file != null) {
-            scope.launch {
-                val bytes = file.readBytes()
-                onAction(EditTenantAction.OnProfileImagePicked(file.name, bytes))
-            }
-        }
-    }
-
-    // --- Camera Launchers ---
-    val documentCameraLauncher = rememberCameraPickerLauncher { file ->
-        if (file != null) {
-            scope.launch {
-                val bytes = file.readBytes()
-                onAction(EditTenantAction.OnDocumentPicked(file.name, bytes))
-            }
-        }
-    }
-
-    val profileCameraLauncher = rememberCameraPickerLauncher { file ->
-        if (file != null) {
-            scope.launch {
-                val bytes = file.readBytes()
-                onAction(EditTenantAction.OnProfileImagePicked(file.name, bytes))
-            }
-        }
-    }
-
-    // --- Source Pickers ---
-    if (showProfileSourcePicker) {
-        AppImageSourcePicker(
-            onDismissRequest = { showProfileSourcePicker = false },
-            onGalleryClick = { profileGalleryLauncher.launch() },
-            onCameraClick = { profileCameraLauncher.launch() }
-        )
-    }
-
-    if (showDocumentSourcePicker) {
-        AppImageSourcePicker(
-            onDismissRequest = { showDocumentSourcePicker = false },
-            onGalleryClick = { documentGalleryLauncher.launch() },
-            onCameraClick = { documentCameraLauncher.launch() }
-        )
-    }
+    AppImagePicker(
+        show = showDocumentSourcePicker,
+        onDismiss = { showDocumentSourcePicker = false },
+        onImageCropped = { fileName, bytes ->
+            onAction(EditTenantAction.OnDocumentPicked(fileName, bytes))
+        },
+        title = stringResource(Res.string.document_title)
+    )
 
     Column(
         modifier = modifier
@@ -909,3 +864,5 @@ private fun NoPropertiesEmptyState(modifier: Modifier = Modifier) {
         )
     }
 }
+
+

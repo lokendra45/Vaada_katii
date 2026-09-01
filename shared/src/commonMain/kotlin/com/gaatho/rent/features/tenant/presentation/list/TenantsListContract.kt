@@ -17,6 +17,7 @@ data class TenantDisplayModel(
     val subtitle: String,
     val status: String,
     val isActive: Boolean,
+    val profileImageUrl: String?,
     val avatarBgColorHex: Long,
     val avatarTextColorHex: Long,
     val propertyName: String?,

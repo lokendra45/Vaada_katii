@@ -93,6 +93,8 @@ class EditTenantViewModel(
                             hasWater = tenant.hasWater,
                             hasElectricity = tenant.hasElectricity,
                             hasWaste = tenant.hasWaste,
+                            moveInDate = tenant.moveInDate ?: "",
+                            leaseDuration = tenant.leaseDuration ?: "1 Year",
                             paymentDueDate = tenant.paymentDueDate ?: "",
                             securityDeposit = TextFieldValue(tenant.securityDeposit.toString()),
                             uploadedDocumentName = tenant.documentUrl?.substringAfterLast("/"),

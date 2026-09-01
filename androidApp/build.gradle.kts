@@ -5,11 +5,18 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.googleServices)
 }
 
 // Read Supabase credentials from local.properties (excluded from version control)
 val localProps = Properties().apply {
     val file = rootProject.file("local.properties")
+    if (file.exists()) load(file.inputStream())
+}
+
+// Read Keystore properties for release signing (excluded from version control)
+val keystoreProps = Properties().apply {
+    val file = rootProject.file("keystore.properties")
     if (file.exists()) load(file.inputStream())
 }
 
@@ -22,6 +29,15 @@ kotlin {
 android {
     namespace = "com.gaatho.rent"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
+
+    signingConfigs {
+        create("release") {
+            storeFile = keystoreProps.getProperty("storeFile")?.let { file(it) }
+            storePassword = keystoreProps.getProperty("storePassword")
+            keyAlias = keystoreProps.getProperty("keyAlias")
+            keyPassword = keystoreProps.getProperty("keyPassword")
+        }
+    }
 
     defaultConfig {
         applicationId = "com.gaatho.rent"
@@ -77,7 +93,6 @@ android {
     buildTypes {
         getByName("debug") {
             isMinifyEnabled = false
-            applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
         }
         getByName("release") {
@@ -87,6 +102,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -108,6 +124,9 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services)
     implementation(libs.googleid)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
 
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)

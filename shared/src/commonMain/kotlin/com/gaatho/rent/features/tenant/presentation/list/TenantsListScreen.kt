@@ -5,6 +5,8 @@ import com.gaatho.rent.core.ui.components.*
 import org.jetbrains.compose.resources.stringResource
 import rentmanagerapp.shared.generated.resources.*
 import androidx.compose.animation.AnimatedVisibility
+import coil3.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
@@ -419,17 +421,26 @@ private fun TenantRowItem(
                         .background(avatarOuterBgColor)
                         .padding(4.dp) // creates the glowing border effect
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(CircleShape)
-                            .background(avatarBgColor),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        LabelText(
-                            text = tenant.initials,
-                            color = avatarTextColor
+                    if (!tenant.profileImageUrl.isNullOrBlank()) {
+                        AsyncImage(
+                            model = tenant.profileImageUrl,
+                            contentDescription = tenant.name,
+                            modifier = Modifier.fillMaxSize().clip(CircleShape),
+                            contentScale = ContentScale.Crop
                         )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(CircleShape)
+                                .background(avatarBgColor),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            LabelText(
+                                text = tenant.initials,
+                                color = avatarTextColor
+                            )
+                        }
                     }
                 }
 
@@ -550,6 +561,7 @@ fun TenantsListScreenPreview() {
             TenantDisplayModel(
                 id = "1", name = "Suman Maharjan", initials = "SM",
                 subtitle = "Sundar Niwas • Unit 2A", status = "Active", isActive = true,
+                profileImageUrl = null,
                 avatarBgColorHex = 0xFFE2DFFF, avatarTextColorHex = 0xFF3323CC,
                 propertyName = "Sundar Niwas", propertyId = "p1", roomNumber = "Unit 2A",
                 email = null, phone = null, rentAmount = 25000
@@ -557,6 +569,7 @@ fun TenantsListScreenPreview() {
             TenantDisplayModel(
                 id = "2", name = "Anita Shrestha", initials = "AS",
                 subtitle = "Krishna Bhawan • Unit 1B", status = "Active", isActive = true,
+                profileImageUrl = null,
                 avatarBgColorHex = 0xFFF0FDF4, avatarTextColorHex = 0xFF15803D,
                 propertyName = "Krishna Bhawan", propertyId = "p2", roomNumber = "Unit 1B",
                 email = null, phone = null, rentAmount = 18000
@@ -564,6 +577,7 @@ fun TenantsListScreenPreview() {
             TenantDisplayModel(
                 id = "3", name = "Bikash Thapa", initials = "BT",
                 subtitle = "Baluwatar House • Unit 3C", status = "Pending", isActive = false,
+                profileImageUrl = null,
                 avatarBgColorHex = 0xFFE0F2FE, avatarTextColorHex = 0xFF0369A1,
                 propertyName = "Baluwatar House", propertyId = "p3", roomNumber = "Unit 3C",
                 email = null, phone = null, rentAmount = 30000

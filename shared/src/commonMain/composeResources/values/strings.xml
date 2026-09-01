@@ -282,6 +282,8 @@
     <string name="section_lease_property">Lease &amp; Property Details *</string>
     <string name="section_deposit_utilities">Deposit &amp; Utilities (Optional)</string>
     <string name="section_documents">Identification &amp; Documents (Optional)</string>
+    <string name="profile_picture_title">Profile Picture</string>
+    <string name="document_title">Document</string>
     <string name="remove_tenant_title">Remove Tenant?</string>
     <string name="remove_tenant_desc">This will permanently remove this tenant. This action cannot be undone.</string>
     <string name="remove_action">Remove</string>

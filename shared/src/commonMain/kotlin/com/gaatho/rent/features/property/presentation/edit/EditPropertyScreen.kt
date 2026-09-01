@@ -57,15 +57,9 @@ import com.gaatho.rent.core.ui.components.AppCard
 import com.gaatho.rent.core.ui.components.*
 import com.gaatho.rent.core.ui.components.AppDialog
 import com.gaatho.rent.core.ui.components.AppDropdown
-import com.gaatho.rent.core.ui.components.AppImageSourcePicker
+import com.gaatho.rent.core.ui.components.AppImagePicker
 import com.gaatho.rent.core.ui.components.AppTextField
 import com.gaatho.rent.core.ui.components.AppTopBar
-import io.github.vinceglb.filekit.dialogs.FileKitMode
-import io.github.vinceglb.filekit.dialogs.FileKitType
-import io.github.vinceglb.filekit.dialogs.compose.rememberCameraPickerLauncher
-import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
-import io.github.vinceglb.filekit.name
-import io.github.vinceglb.filekit.readBytes
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -406,21 +400,12 @@ private fun PropertyPhotoSection(
     previewBytes: ByteArray? = null,
     isCompressing: Boolean = false
 ) {
-    val scope = rememberCoroutineScope()
-    val galleryLauncher = rememberFilePickerLauncher(type = FileKitType.Image, mode = FileKitMode.Single) { file ->
-        if (file != null) scope.launch { onImagePicked(file.name, file.readBytes()) }
-    }
-    val cameraLauncher = rememberCameraPickerLauncher { file ->
-        if (file != null) scope.launch { onImagePicked(file.name, file.readBytes()) }
-    }
-
-    if (showSourcePicker) {
-        AppImageSourcePicker(
-            onDismissRequest = { onShowSourcePickerChange(false) },
-            onGalleryClick = { galleryLauncher.launch() },
-            onCameraClick = { cameraLauncher.launch() }
-        )
-    }
+    AppImagePicker(
+        show = showSourcePicker,
+        onDismiss = { onShowSourcePickerChange(false) },
+        onImageCropped = onImagePicked,
+        title = stringResource(Res.string.property_photo_label)
+    )
 
     val shape = RoundedCornerShape(12.dp)
     Column(modifier = Modifier.fillMaxWidth()) {

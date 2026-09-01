@@ -43,3 +43,8 @@ xcuserdata
 # Node (Supabase edge functions)
 node_modules/
 .env
+
+# Keystore
+keystore.properties
+*.jks
+*.keystore

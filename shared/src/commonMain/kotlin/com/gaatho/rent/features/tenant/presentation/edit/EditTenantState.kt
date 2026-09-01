@@ -45,10 +45,10 @@ data class EditTenantState(
     val selectedProperty: PropertyOption? get() = propertyOptions.find { it.id == propertyId }
     val unitOptions: List<String> get() = selectedProperty?.units?.map { it.name } ?: emptyList()
     
-    val wifiLabel: String get() = if (selectedProperty != null && selectedProperty!!.wifiCharge > 0) "WiFi (NPR ${selectedProperty!!.wifiCharge})" else "WiFi"
-    val waterLabel: String get() = if (selectedProperty != null && selectedProperty!!.waterCharge > 0) "Water (NPR ${selectedProperty!!.waterCharge})" else "Water"
-    val electricityLabel: String get() = if (selectedProperty != null && selectedProperty!!.electricityCharge > 0) "Electricity (NPR ${selectedProperty!!.electricityCharge})" else "Electricity"
-    val wasteLabel: String get() = if (selectedProperty != null && selectedProperty!!.wasteCharge > 0) "Waste (NPR ${selectedProperty!!.wasteCharge})" else "Waste"
+    val wifiLabel: String get() = selectedProperty?.let { if (it.wifiCharge > 0) "WiFi (NPR ${it.wifiCharge})" else "WiFi" } ?: "WiFi"
+    val waterLabel: String get() = selectedProperty?.let { if (it.waterCharge > 0) "Water (NPR ${it.waterCharge})" else "Water" } ?: "Water"
+    val electricityLabel: String get() = selectedProperty?.let { if (it.electricityCharge > 0) "Electricity (NPR ${it.electricityCharge})" else "Electricity" } ?: "Electricity"
+    val wasteLabel: String get() = selectedProperty?.let { if (it.wasteCharge > 0) "Waste (NPR ${it.wasteCharge})" else "Waste" } ?: "Waste"
     
     val availableLeaseDurations: List<String> get() = listOf("1 Year", "2 Years", "3 Years", "5 Years")
     val availableDocumentTypes: List<String> get() = listOf("Citizenship", "Passport", "Driving License", "National ID")

@@ -173,20 +173,6 @@ fun AddPaymentContent(
         ) {
             Spacer(Modifier.height(16.dp))
 
-            // Select Tenant
-            AppDropdown(
-                options = state.allTenants,
-                selectedItem = state.selectedTenant,
-                itemLabel = { it.name },
-                onItemSelected = { onAction(AddPaymentAction.OnTenantSelected(it.id)) },
-                label = stringResource(Res.string.payment_tenant_label),
-                placeholder = stringResource(Res.string.payment_tenant_placeholder),
-                shape = fieldShape,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(Modifier.height(16.dp))
-
             // Property (required)
             AppDropdown(
                 options = state.propertyItems,
@@ -196,6 +182,22 @@ fun AddPaymentContent(
                 label = stringResource(Res.string.assign_property_label),
                 placeholder = stringResource(Res.string.payment_property_unit_placeholder),
                 shape = fieldShape,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            // Select Tenant (enabled only after property selection)
+            AppDropdown(
+                options = state.tenantItems,
+                selectedItem = state.selectedTenant,
+                itemLabel = { it.name },
+                onItemSelected = { onAction(AddPaymentAction.OnTenantSelected(it.id)) },
+                label = stringResource(Res.string.payment_tenant_label),
+                placeholder = if (state.selectedProperty == null) 
+                    stringResource(Res.string.payment_select_property_first) else stringResource(Res.string.payment_tenant_placeholder),
+                shape = fieldShape,
+                enabled = state.selectedProperty != null,
                 modifier = Modifier.fillMaxWidth()
             )
 

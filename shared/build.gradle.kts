@@ -86,6 +86,10 @@ kotlin {
             implementation(libs.filekit.dialogs)
             implementation(libs.filekit.dialogs.compose)
 
+            // Krop (Image Cropping)
+            implementation(libs.krop.ui)
+            implementation(libs.krop.extensions.filekit)
+
             // Ktor & Logging
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.contentnegotiation)

@@ -177,6 +177,7 @@ class TenantsListViewModel(
         return TenantDisplayModel(
             id = tenant.id, name = tenant.name, initials = initials,
             subtitle = subtitle, status = tenant.status, isActive = isActive,
+            profileImageUrl = tenant.profileImageUrl,
             avatarBgColorHex = bgColor, avatarTextColorHex = textColor,
             propertyName = tenant.propertyName, propertyId = tenant.propertyId, roomNumber = tenant.roomNumber,
             email = tenant.email, phone = tenant.phone,
