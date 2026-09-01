@@ -5,7 +5,6 @@ import com.gaatho.rent.core.ui.components.*
 import org.jetbrains.compose.resources.stringResource
 import rentmanagerapp.shared.generated.resources.*
 import androidx.compose.animation.AnimatedVisibility
-import coil3.compose.AsyncImage
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -37,6 +36,8 @@ import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.WifiOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -80,7 +81,6 @@ import com.gaatho.rent.core.utils.CurrencyUtil
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.orbitmvi.orbit.compose.collectSideEffect
 import rentmanagerapp.shared.generated.resources.Res
@@ -227,7 +227,7 @@ fun TenantsListContent(
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
             AnimatedVisibility(
-                visible = isFabVisible,
+                visible = isFabVisible && state.isOnline,
                 enter = slideInVertically(initialOffsetY = { it * 2 }),
                 exit = slideOutVertically(targetOffsetY = { it * 2 })
             ) {
@@ -248,15 +248,17 @@ fun TenantsListContent(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .widthIn(max = 800.dp)
-                    .align(Alignment.CenterHorizontally)
-            ) {
+            if (!state.isOnline && pagedTenants.itemCount == 0) {
+                Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
+                    com.gaatho.rent.core.ui.components.AppEmptyState(
+                        icon = Icons.Outlined.WifiOff,
+                        title = "No Internet Connection",
+                        description = "Please check your network settings and try again."
+                    )
+                }
+            } else {
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth()
                         .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -329,8 +331,8 @@ fun TenantsListContent(
                                                 .weight(1f)
                                                 .padding(32.dp)
                                         ) {
-                                            com.gaatho.rent.core.ui.components.AppIllustratedEmptyState(
-                                                icon = Icons.Default.Person,
+                                            com.gaatho.rent.core.ui.components.AppEmptyState(
+                                                icon = null,
                                                 title = stringResource(Res.string.tenant_no_tenants_title),
                                                 description = "Add your first tenant to start tracking rent"
                                             )
@@ -422,11 +424,12 @@ private fun TenantRowItem(
                         .padding(4.dp) // creates the glowing border effect
                 ) {
                     if (!tenant.profileImageUrl.isNullOrBlank()) {
-                        AsyncImage(
+                        AppAsyncImage(
                             model = tenant.profileImageUrl,
                             contentDescription = tenant.name,
                             modifier = Modifier.fillMaxSize().clip(CircleShape),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.Crop,
+                            placeholderType = PlaceholderType.AVATAR
                         )
                     } else {
                         Box(

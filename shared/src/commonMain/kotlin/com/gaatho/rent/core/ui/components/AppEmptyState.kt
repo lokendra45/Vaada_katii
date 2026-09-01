@@ -33,8 +33,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
 @Composable
-fun AppIllustratedEmptyState(
-    icon: ImageVector,
+fun AppEmptyState(
+    icon: ImageVector? = null,
     title: String,
     description: String,
     buttonText: String? = null,
@@ -60,9 +60,26 @@ fun AppIllustratedEmptyState(
                 .padding(horizontal = 24.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-        PeekingGhostIllustration(modifier = Modifier.padding(bottom = 16.dp))
-        
-        Spacer(modifier = Modifier.height(24.dp))
+        if (icon != null) {
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        } else {
+            PeekingGhostIllustration(modifier = Modifier.padding(bottom = 16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+        }
         
         CardTitle(
             text = title,

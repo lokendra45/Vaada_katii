@@ -10,7 +10,7 @@ import org.koin.dsl.module
 
 val propertyModule = module {
     single<PropertyRepository> { CloudPropertyRepository(get(), get()) }
-    viewModel { PropertyListViewModel(get(), get(), get()) }
+    viewModel { PropertyListViewModel(get(), get(), get(), get()) }
     viewModel { params ->
         PropertyDetailsViewModel(
             propertyId = params.get(),

@@ -355,11 +355,22 @@
     <string name="dashboard_namaste">Namaste, 🙏</string>
     <string name="dashboard_default_name">Ramesh ji</string>
     <string name="dashboard_this_month_badge">THIS MONTH</string>
-    <string name="dashboard_reminder">Reminder</string>
-    <string name="dashboard_recent_activity">Recent Activity</string>
+    <string name="dashboard_reminder">Send Reminder</string>
+    <string name="dashboard_recent_activity">RECENT ACTIVITY</string>
     <string name="dashboard_paid">PAID</string>
     <string name="dashboard_no_recent_payments">No recent payments</string>
     <string name="dashboard_no_recent_payments_subtitle">New rent activity will appear here</string>
+    <string name="dashboard_home_title">Home</string>
+    <string name="dashboard_last_month">Last Month</string>
+    <string name="dashboard_collection">COLLECTION</string>
+    <string name="dashboard_rent_collected">Rent collected</string>
+    <string name="dashboard_collected_pending_subtitle">Collected this month • NPR %1$s pending</string>
+    <string name="dashboard_properties_section">PROPERTIES</string>
+    <string name="dashboard_property_let_count">%1$d/%2$d let</string>
+    <string name="dashboard_quick_actions">QUICK ACTIONS</string>
+    <string name="dashboard_footer_text">Rent is collected via eSewa and Khalti with automatic verification.</string>
+    <string name="dashboard_activity_paid">Paid, %1$s</string>
+    <string name="dashboard_activity_due">Due, %1$s</string>
 
     <string name="payment_no_active_tenants">No Active Tenants</string>
     <string name="payment_no_active_tenants_subtitle">You need at least one active tenant to record a payment. Go to the Tenants tab and add your first tenant.</string>

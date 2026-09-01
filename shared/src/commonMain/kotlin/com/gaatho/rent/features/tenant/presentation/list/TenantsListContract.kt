@@ -40,7 +40,8 @@ data class TenantsListState(
     val selectedProperty: String = "All properties",
     @Transient
     val propertiesState: UiState<ImmutableList<Property>> = UiState.Idle,
-    val debouncedQuery: String = ""
+    val debouncedQuery: String = "",
+    val isOnline: Boolean = true
 )
 
 sealed interface TenantsListSideEffect {

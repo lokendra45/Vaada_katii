@@ -58,4 +58,9 @@ interface AuthRepository {
      * Updates the user's profile information (name, phone).
      */
     suspend fun updateProfile(name: String, phone: String): ApiResponse<Unit>
+
+    /**
+     * Updates the user's avatar URL.
+     */
+    suspend fun updateAvatarUrl(url: String): ApiResponse<Unit>
 }

@@ -6,7 +6,7 @@ import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.network.StorageRepository
 import com.gaatho.rent.core.ui.ErrorMessageExtractor
 import com.gaatho.rent.core.utils.UuidUtil
-import com.gaatho.rent.core.utils.compressImage
+
 import com.gaatho.rent.core.utils.DateTimeUtil
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
 import com.gaatho.rent.features.property.domain.model.Property
@@ -141,12 +141,11 @@ class EditPropertyViewModel(
             }
             is EditPropertyAction.OnImagePicked -> intent {
                 reduce { state.copy(isCompressingImage = true) }
-                // Just store the bytes locally – we upload when the user hits Save
-                val compressedBytes = compressImage(action.bytes, action.name)
+                // Just store the bytes locally – we upload when the user hits Save. It's already compressed by AppImagePicker.
                 reduce {
                     state.copy(
                         isCompressingImage = false,
-                        pendingImageBytes = compressedBytes,
+                        pendingImageBytes = action.bytes,
                         pendingImageName = action.name,
                         uploadedImageName = action.name   // show filename in UI immediately
                     )

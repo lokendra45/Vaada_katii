@@ -16,7 +16,7 @@ val LightPrimaryContainer   = Color(0xFFEAF2FF)
 val LightOnPrimaryContainer = Color(0xFF006FFD) 
 val LightInversePrimary     = Color(0xFF6FBAFF) 
 
-val LightBackground         = Color(0xFFF8F9FE) 
+val LightBackground         = Color(0xFFF2F2F7) 
 val LightOnBackground       = Color(0xFF1F2024)
 
 val LightSurface            = Color(0xFFFFFFFF) 
@@ -106,7 +106,7 @@ object AppColors {
     // ── Surfaces ─────────────────────────────────────────────────────────────
     val CardBorder          = Color(0xFFC5C6CC)
     val ProgressTrack       = Color(0xFFE8E9F1)
-    val DashboardBackground = Color(0xFFF8F9FE)
+    val DashboardBackground = Color(0xFFF2F2F7)
     val ShadowAmbient       = Color(0x14000000)
     val ShadowSpot          = Color(0x05000000)
 

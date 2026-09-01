@@ -10,6 +10,7 @@ import com.gaatho.rent.core.logging.AppLogger
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.ui.UiState
 import com.gaatho.rent.core.utils.TenantUtils
+import com.gaatho.rent.core.network.connectivity.ConnectivityObserver
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
 import com.gaatho.rent.features.tenant.domain.model.Tenant
 import com.gaatho.rent.features.tenant.domain.usecase.GetArchivedTenantsUseCase
@@ -35,6 +36,7 @@ class TenantsListViewModel(
     private val sessionManager: SessionManager,
     private val getArchivedTenants: GetArchivedTenantsUseCase,
     private val deleteTenant: com.gaatho.rent.features.tenant.domain.usecase.DeleteTenantUseCase,
+    private val connectivityObserver: ConnectivityObserver,
     savedStateHandle: SavedStateHandle
 ) : MviViewModel<TenantsListState, TenantsListSideEffect, TenantsListAction>() {
 
@@ -56,6 +58,7 @@ class TenantsListViewModel(
         savedStateHandle = savedStateHandle,
         serializer = TenantsListState.serializer()
     ) {
+        observeNetwork()
         observeProperties()
         checkArchivedTenants()
     }
@@ -163,6 +166,12 @@ class TenantsListViewModel(
             val profileInfo = "Name: ${tenant.name}\nPhone: ${tenant.phone ?: "N/A"}\nEmail: ${tenant.email ?: "N/A"}\nMoved In: ${tenant.moveInDate ?: "N/A"}"
             val rentInfo = "Rent Amount: ${tenant.rentAmount}\nSecurity Deposit: ${tenant.securityDeposit}\nProperty: ${tenant.propertyName ?: "N/A"}\nUnit: ${tenant.roomNumber ?: "N/A"}"
             postSideEffect(TenantsListSideEffect.ShowArchivedPrompt(tenant.id, tenant.name, profileInfo, rentInfo))
+        }
+    }
+
+    private fun observeNetwork() = intent(registerIdling = false) {
+        connectivityObserver.isConnected.collect { isOnline ->
+            reduce { state.copy(isOnline = isOnline) }
         }
     }
 

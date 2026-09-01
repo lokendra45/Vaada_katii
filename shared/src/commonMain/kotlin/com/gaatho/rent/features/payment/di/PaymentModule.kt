@@ -13,7 +13,7 @@ val paymentModule = module {
     single<PaymentRepository> { CloudPaymentRepository(get(), get(), get()) }
 
     viewModel { parameters -> AddPaymentViewModel(parameters[0], parameters[1], get(), get(), get(), get()) }
-    viewModel { PaymentListViewModel(get(), get()) }
+    viewModel { PaymentListViewModel(get(), get(), get()) }
     viewModel { parameters -> PaymentDetailsViewModel(parameters.get(), get(), get(), get(), get()) }
     viewModel { parameters -> EditPaymentViewModel(parameters.get(), get(), get(), get(), get()) }
 }

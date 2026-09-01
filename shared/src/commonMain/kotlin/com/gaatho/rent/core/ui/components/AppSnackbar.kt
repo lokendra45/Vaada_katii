@@ -125,36 +125,58 @@ fun rememberAppSnackbarState(): AppSnackbarState = remember { AppSnackbarState()
 @Composable
 fun AppSnackbarHost(
     state: AppSnackbarState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    alignment: Alignment = Alignment.BottomCenter
 ) {
     Box(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
             .padding(horizontal = 16.dp, vertical = 12.dp),
-        contentAlignment = Alignment.BottomCenter
+        contentAlignment = alignment
     ) {
         AnimatedVisibility(
             visible = state.isVisible,
-            enter = slideInVertically(
-                initialOffsetY = { it },
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMediumLow
+            enter = if (alignment == Alignment.TopCenter) {
+                slideInVertically(
+                    initialOffsetY = { -it },
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMediumLow
+                    )
+                ) + fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMedium)) + scaleIn(
+                    initialScale = 0.85f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMediumLow
+                    )
                 )
-            ) + fadeIn(
-                animationSpec = spring(stiffness = Spring.StiffnessMedium)
-            ) + scaleIn(
-                initialScale = 0.85f,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMediumLow
+            } else {
+                slideInVertically(
+                    initialOffsetY = { it },
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMediumLow
+                    )
+                ) + fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMedium)) + scaleIn(
+                    initialScale = 0.85f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMediumLow
+                    )
                 )
-            ),
-            exit = slideOutVertically(
-                targetOffsetY = { it / 2 },
-                animationSpec = spring(stiffness = Spring.StiffnessMedium)
-            ) + fadeOut() + scaleOut(targetScale = 0.9f)
+            },
+            exit = if (alignment == Alignment.TopCenter) {
+                slideOutVertically(
+                    targetOffsetY = { -it / 2 },
+                    animationSpec = spring(stiffness = Spring.StiffnessMedium)
+                ) + fadeOut() + scaleOut(targetScale = 0.9f)
+            } else {
+                slideOutVertically(
+                    targetOffsetY = { it / 2 },
+                    animationSpec = spring(stiffness = Spring.StiffnessMedium)
+                ) + fadeOut() + scaleOut(targetScale = 0.9f)
+            }
         ) {
             AppSnackbarContent(
                 message = state.message,

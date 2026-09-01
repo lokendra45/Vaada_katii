@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "815782173750",
+    "project_id": "kothaa-b3bdf",
+    "storage_bucket": "kothaa-b3bdf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:815782173750:android:4cfc4106254eaec26d8c97",
+        "android_client_info": {
+          "package_name": "com.gaatho.rent"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDFe2AVS3T3hMCjuZCOaoknhfW4GInmw4k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:815782173750:android:4cfc4106254eaec26d8c97",
+        "android_client_info": {
+          "package_name": "com.gaatho.rent.debug"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDFe2AVS3T3hMCjuZCOaoknhfW4GInmw4k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -8,7 +8,7 @@ import com.gaatho.rent.core.network.StorageRepository
 import com.gaatho.rent.core.ui.ErrorMessageExtractor
 import com.gaatho.rent.core.utils.UuidUtil
 import com.gaatho.rent.core.utils.ValidationUtil
-import com.gaatho.rent.core.utils.compressImage
+
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
 import com.gaatho.rent.features.tenant.data.repository.TenantRepository
 import com.gaatho.rent.features.tenant.domain.usecase.DeleteTenantUseCase
@@ -176,10 +176,9 @@ class EditTenantViewModel(
             }
             is EditTenantAction.OnProfileImagePicked -> intent {
                 // Store bytes locally — upload on Save
-                val compressedBytes = compressImage(action.bytes, action.name)
                 reduce {
                     state.copy(
-                        pendingProfileBytes = compressedBytes,
+                        pendingProfileBytes = action.bytes,
                         pendingProfileName = action.name
                     )
                 }
@@ -196,11 +195,10 @@ class EditTenantViewModel(
             is EditTenantAction.OnWasteToggled -> handleUtilityToggle(action.enabled, "waste")
             is EditTenantAction.OnDocumentPicked -> intent {
                 // Store bytes locally — upload on Save
-                val compressedBytes = compressImage(action.bytes, action.name)
                 reduce {
                     state.copy(
                         uploadedDocumentName = action.name,
-                        pendingDocBytes = compressedBytes,
+                        pendingDocBytes = action.bytes,
                         pendingDocName = action.name
                     )
                 }

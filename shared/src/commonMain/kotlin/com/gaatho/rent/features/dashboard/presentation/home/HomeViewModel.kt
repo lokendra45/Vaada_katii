@@ -17,6 +17,9 @@ import com.gaatho.rent.core.notifications.NotificationService
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
+import androidx.lifecycle.viewModelScope
 
 class HomeViewModel(
     private val sessionManager: SessionManager,
@@ -31,6 +34,8 @@ class HomeViewModel(
     override val container = orbitContainer<HomeState, HomeSideEffect>(HomeState()) {
         observeData()
     }
+
+    private var dataFetchJob: kotlinx.coroutines.Job? = null
 
     private fun observeData() {
         // Reactively observe user info to update name
@@ -53,62 +58,101 @@ class HomeViewModel(
             }
         }
 
-        // Fetch dashboard data
+        // Fetch dashboard data reactively based on period changes
         intent {
-            // Compute greeting based on local time
-            val hour = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).hour
-            val greetingText = when (hour) {
-                in 5..11 -> "Good morning"
-                in 12..16 -> "Good afternoon"
-                else -> "Good evening"
-            }
-
-            reduce { state.copy(greeting = greetingText) }
-
-            val ownerId = (sessionManager.currentUserId() ?: "")
-
-            dashboardRepository.getDashboardSummary(ownerId).collectLatest { summary ->
-            val recentPayments = summary.recentPayments
-                .map { payment ->
-                    RecentPaymentItem(
-                        tenantId = payment.tenantId.orEmpty(),
-                        tenantName = payment.tenantName ?: "Unknown Tenant",
-                        propertyName = payment.unitNumber ?: "Unknown Unit",
-                        dateLabel = DateTimeUtil.formatReadableDate(payment.date),
-                        amount = payment.amount,
-                        isPaid = payment.isPaid
-                    )
-                }.toImmutableList()
-                
-            val overdueCount = summary.overdueTenantsCount.toInt()
-            
-            if (overdueCount > 0 && !hasShownOverdueNotification) {
-                val prefs = dataStore.data.first()
-                val notificationsEnabled = prefs[KEY_NOTIFICATIONS] ?: true
-                if (notificationsEnabled) {
-                    notificationService.showNotification(
-                        title = "Rent Overdue",
-                        message = "You have $overdueCount tenant(s) with overdue rent."
-                    )
-                    hasShownOverdueNotification = true
+            container.stateFlow
+                .map { it.selectedPeriod }
+                .distinctUntilChanged()
+                .collectLatest { period ->
+                    fetchDashboardData(period)
                 }
-            }
-
-            reduce {
-                state.copy(
-                    isLoading = false,
-                    greeting = greetingText,
-                    collectedRent = summary.collectedRent,
-                    totalRent = summary.totalRent,
-                    outstandingRent = summary.outstandingRent,
-                    propertiesCount = summary.propertiesCount.toInt(),
-                    tenantsCount = summary.tenantsCount.toInt(),
-                    overdueTenantsCount = overdueCount,
-                    recentPayments = recentPayments
-                )
-            }
         }
     }
+
+    private fun fetchDashboardData(period: DashboardPeriod) = intent {
+        // Compute greeting based on local time
+        val greetingText = DateTimeUtil.getGreeting()
+        reduce { 
+            state.copy(
+                greeting = greetingText, 
+                isLoading = state.chartData.isEmpty() && state.collectedRent == 0L,
+                isRefreshing = state.chartData.isNotEmpty() || state.collectedRent != 0L
+            ) 
+        }
+
+        val ownerId = (sessionManager.currentUserId() ?: "")
+        if (ownerId.isBlank()) return@intent
+
+        val monthsAgo = if (period == DashboardPeriod.THIS_MONTH) 0 else 1
+        val (start, end) = DateTimeUtil.getMonthsAgoDates(monthsAgo)
+        val (prevStart, prevEnd) = DateTimeUtil.getMonthsAgoDates(monthsAgo + 1)
+
+        dataFetchJob?.cancel()
+        dataFetchJob = viewModelScope.launch {
+            dashboardRepository.getDashboardSummary(
+                ownerId = ownerId,
+                startDate = start,
+                endDate = end,
+                prevStartDate = prevStart,
+                prevEndDate = prevEnd
+            ).collectLatest { summary ->
+                val recentPayments = summary.recentPayments
+                    .map { payment ->
+                        RecentPaymentItem(
+                            tenantId = payment.tenantId.orEmpty(),
+                            tenantName = payment.tenantName ?: "Unknown Tenant",
+                            propertyName = payment.unitNumber ?: "Unknown Unit",
+                            dateLabel = DateTimeUtil.formatReadableDate(payment.date),
+                            amount = payment.amount,
+                            isPaid = payment.isPaid
+                        )
+                    }.toImmutableList()
+                    
+                val properties = summary.recentProperties
+                    .map { prop ->
+                        DashboardPropertyItem(
+                            id = prop.id,
+                            name = prop.name,
+                            location = prop.location,
+                            imageUrl = prop.imageUrl,
+                            totalUnits = prop.totalUnits,
+                            occupiedUnits = prop.occupiedUnits
+                        )
+                    }.toImmutableList()
+                    
+                val overdueCount = summary.overdueTenantsCount.toInt()
+                
+                if (overdueCount > 0 && !hasShownOverdueNotification) {
+                    val prefs = dataStore.data.first()
+                    val notificationsEnabled = prefs[KEY_NOTIFICATIONS] ?: true
+                    if (notificationsEnabled) {
+                        notificationService.showNotification(
+                            title = "Rent Overdue",
+                            message = "You have $overdueCount tenant(s) with overdue rent."
+                        )
+                        hasShownOverdueNotification = true
+                    }
+                }
+
+                reduce {
+                    state.copy(
+                        isLoading = false,
+                        isRefreshing = false,
+                        greeting = greetingText,
+                        collectedRent = summary.collectedRent,
+                        previousCollectedRent = summary.previousCollectedRent,
+                        totalRent = summary.totalRent,
+                        outstandingRent = summary.outstandingRent,
+                        propertiesCount = summary.propertiesCount.toInt(),
+                        tenantsCount = summary.tenantsCount.toInt(),
+                        overdueTenantsCount = overdueCount,
+                        chartData = summary.chartData.toImmutableList(),
+                        properties = properties,
+                        recentPayments = recentPayments
+                    )
+                }
+            }
+        }
     }
 
     override fun onAction(action: HomeAction) {
@@ -116,10 +160,12 @@ class HomeViewModel(
             when (action) {
                 is HomeAction.OnAddTenantClicked -> postSideEffect(HomeSideEffect.NavigateToAddTenant)
                 is HomeAction.OnAddPropertyClicked -> postSideEffect(HomeSideEffect.NavigateToAddProperty)
+                is HomeAction.OnSeeAllPropertiesClicked -> postSideEffect(HomeSideEffect.NavigateToProperties)
                 is HomeAction.OnRecordPaymentClicked -> postSideEffect(HomeSideEffect.NavigateToAddPayment)
                 is HomeAction.OnExpenseClicked -> postSideEffect(HomeSideEffect.NavigateToExpenses)
                 is HomeAction.OnSeeAllPaymentsClicked -> postSideEffect(HomeSideEffect.NavigateToPayments)
                 is HomeAction.OnRecentPaymentClicked -> postSideEffect(HomeSideEffect.NavigateToTenantDetails(action.tenantId))
+                is HomeAction.OnPeriodChanged -> reduce { state.copy(selectedPeriod = action.period) }
             }
         }
     }

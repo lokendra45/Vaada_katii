@@ -11,6 +11,7 @@ import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.utils.MoneyUtil
 import com.gaatho.rent.features.property.data.repository.PropertyRepository
 import com.gaatho.rent.features.property.domain.model.Property
+import com.gaatho.rent.core.network.connectivity.ConnectivityObserver
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +31,7 @@ import kotlin.time.Duration.Companion.milliseconds
 class PropertyListViewModel(
     private val repository: PropertyRepository,
     private val sessionManager: SessionManager,
+    private val connectivityObserver: ConnectivityObserver,
     savedStateHandle: SavedStateHandle
 ) : MviViewModel<PropertyListState, PropertyListSideEffect, PropertyListAction>() {
 
@@ -50,7 +52,15 @@ class PropertyListViewModel(
         initialState = PropertyListState(),
         savedStateHandle = savedStateHandle,
         serializer = PropertyListState.serializer()
-    ) {}
+    ) {
+        observeNetwork()
+    }
+    
+    private fun observeNetwork() = intent(registerIdling = false) {
+        connectivityObserver.isConnected.collect { isOnline ->
+            reduce { state.copy(isOnline = isOnline) }
+        }
+    }
 
     /**
      * Paginated property list. Occupancy counts and pending dues come directly

@@ -30,10 +30,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Payments
@@ -51,7 +54,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,7 +76,9 @@ import com.gaatho.rent.core.designsystem.components.RentManagerOutlinedButton
 import com.gaatho.rent.core.designsystem.components.RentManagerPrimaryButton
 import com.gaatho.rent.core.ui.components.AppAsyncImage
 import com.gaatho.rent.core.ui.components.AppCard
+import com.gaatho.rent.core.ui.components.AppDateField
 import com.gaatho.rent.core.ui.components.AppDatePickerDialog
+import com.gaatho.rent.core.ui.components.AppDateField
 import com.gaatho.rent.core.ui.components.AppDialog
 import com.gaatho.rent.core.ui.components.AppDocumentPicker
 import com.gaatho.rent.core.ui.components.AppDropdown
@@ -85,11 +89,8 @@ import com.gaatho.rent.core.ui.components.BodyText
 import com.gaatho.rent.core.ui.components.CardTitle
 import com.gaatho.rent.core.ui.components.PlaceholderType
 import com.gaatho.rent.core.ui.components.SectionTitle
-import com.gaatho.rent.core.utils.DateTimeUtil
 import com.gaatho.rent.core.utils.ValidationUtil
-import io.github.vinceglb.filekit.name
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -100,6 +101,7 @@ import rentmanagerapp.shared.generated.resources.assign_property_placeholder
 import rentmanagerapp.shared.generated.resources.cancel_action
 import rentmanagerapp.shared.generated.resources.common_ok
 import rentmanagerapp.shared.generated.resources.currency_npr
+import rentmanagerapp.shared.generated.resources.document_title
 import rentmanagerapp.shared.generated.resources.document_type_label
 import rentmanagerapp.shared.generated.resources.document_type_placeholder
 import rentmanagerapp.shared.generated.resources.id_proof_upload_label
@@ -107,12 +109,11 @@ import rentmanagerapp.shared.generated.resources.lease_duration_label
 import rentmanagerapp.shared.generated.resources.lease_duration_placeholder
 import rentmanagerapp.shared.generated.resources.no_properties_empty_body
 import rentmanagerapp.shared.generated.resources.no_properties_empty_title
+import rentmanagerapp.shared.generated.resources.profile_picture_title
 import rentmanagerapp.shared.generated.resources.remove_action
 import rentmanagerapp.shared.generated.resources.remove_tenant_desc
 import rentmanagerapp.shared.generated.resources.remove_tenant_title
 import rentmanagerapp.shared.generated.resources.section_deposit_utilities
-import rentmanagerapp.shared.generated.resources.document_title
-import rentmanagerapp.shared.generated.resources.profile_picture_title
 import rentmanagerapp.shared.generated.resources.section_documents
 import rentmanagerapp.shared.generated.resources.section_lease_property
 import rentmanagerapp.shared.generated.resources.section_personal_info
@@ -326,6 +327,25 @@ fun EditTenantContent(
                                 modifier = Modifier.fillMaxSize(),
                                 placeholderType = PlaceholderType.AVATAR
                             )
+                            if (state.pendingProfileBytes == null && state.profileImageUrl == null) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.padding(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.AddPhotoAlternate,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    Text(
+                                        text = "Tap to add",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                    )
+                                }
+                            }
                         }
                     }
 
@@ -437,26 +457,12 @@ fun EditTenantContent(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Box(modifier = Modifier.weight(1f)) {
-                            AppTextField(
-                                value = DateTimeUtil.formatDisplayDate(state.moveInDate),
-                                onValueChange = {},
-                                readOnly = true,
+                            AppDateField(
+                                value = state.moveInDate,
+                                onClick = { showDatePicker = true },
                                 label = stringResource(Res.string.tenant_move_in_date_label),
                                 placeholder = stringResource(Res.string.tenant_move_in_date_placeholder),
-                                trailingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.DateRange,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                },
                                 modifier = Modifier.fillMaxWidth()
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .matchParentSize()
-                                    .clickable { showDatePicker = true }
                             )
                         }
 
@@ -588,7 +594,7 @@ fun EditTenantContent(
                 // ── Total Monthly Rent Summary ──────────────────────────────
                 AppCard(
                     modifier = Modifier.fillMaxWidth(),
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Box(modifier = Modifier.padding(16.dp)) {
                         AnimatedPriceLabel(
@@ -658,8 +664,8 @@ private fun FormSectionCard(
                             .size(36.dp)
                             .clip(CircleShape)
                             .background(
-                                if (isCompleted && !isExpanded) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
-                                else MaterialTheme.colorScheme.surfaceContainerHigh
+                                if (isCompleted && !isExpanded) MaterialTheme.colorScheme.primaryContainer
+                                else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
                             ),
                         contentAlignment = Alignment.Center
                     ) {
@@ -686,7 +692,7 @@ private fun FormSectionCard(
                                 Icon(
                                     imageVector = icon,
                                     contentDescription = null,
-                                    tint = if (isExpanded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    tint = if (isExpanded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
@@ -769,12 +775,12 @@ private fun AnimatedPriceLabel(
     ) {
         CardTitle(
             text = label,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
             CardTitle(
                 text = stringResource(Res.string.currency_npr) + " ",
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             AnimatedContent(
                 targetState = priceText,
@@ -793,7 +799,7 @@ private fun AnimatedPriceLabel(
             ) { targetText ->
                 SectionTitle(
                     text = targetText,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
         }

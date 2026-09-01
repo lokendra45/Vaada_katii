@@ -161,4 +161,18 @@ class AuthRepositoryImpl(
                 }
             }
         }
+
+    override suspend fun updateAvatarUrl(url: String): com.skydoves.sandwich.ApiResponse<Unit> =
+        com.skydoves.sandwich.ApiResponse.suspendOf {
+            authMutex.withLock {
+                val user = supabase.auth.currentUserOrNull() ?: return@withLock
+                val existingData = user.userMetadata ?: buildJsonObject {}
+                supabase.auth.updateUser {
+                    data = buildJsonObject {
+                        existingData.forEach { (k, v) -> put(k, v) }
+                        put("avatar_url", url)
+                    }
+                }
+            }
+        }
 }

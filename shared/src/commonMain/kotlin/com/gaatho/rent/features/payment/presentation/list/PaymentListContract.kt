@@ -23,7 +23,8 @@ data class PaymentDisplayModel(
 data class PaymentListState(
     val selectedStatus: String = PaymentListFilters.AllStatuses,
     val selectedMonth: String = PaymentListFilters.AllMonths,
-    val debouncedQuery: String = ""
+    val debouncedQuery: String = "",
+    val isOnline: Boolean = true
 )
 
 object PaymentListFilters {

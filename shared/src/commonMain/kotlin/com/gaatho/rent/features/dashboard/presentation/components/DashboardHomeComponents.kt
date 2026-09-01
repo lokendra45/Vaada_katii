@@ -1,7 +1,6 @@
 package com.gaatho.rent.features.dashboard.presentation.components
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,55 +33,55 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.AppShadow.figmaButtonShadow
 import com.gaatho.rent.core.designsystem.AppShadow.figmaHeroShadow
 import com.gaatho.rent.core.ui.components.AmountText
+import com.gaatho.rent.core.ui.components.AppLineChart
 import com.gaatho.rent.core.ui.components.AppListItemSurface
 import com.gaatho.rent.core.ui.components.CaptionText
-import com.gaatho.rent.core.ui.components.SectionTitle
+import com.gaatho.rent.core.ui.components.LineChartData
 import com.gaatho.rent.core.utils.TenantUtils
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import rentmanagerapp.shared.generated.resources.Res
-import rentmanagerapp.shared.generated.resources.add_tenant
+import rentmanagerapp.shared.generated.resources.add_property_action
+import rentmanagerapp.shared.generated.resources.add_tenant_action
 import rentmanagerapp.shared.generated.resources.currency_npr
-import rentmanagerapp.shared.generated.resources.dashboard_alert_circle
-import rentmanagerapp.shared.generated.resources.dashboard_avatar
+import rentmanagerapp.shared.generated.resources.dashboard_activity_due
+import rentmanagerapp.shared.generated.resources.dashboard_activity_paid
 import rentmanagerapp.shared.generated.resources.dashboard_bell
 import rentmanagerapp.shared.generated.resources.dashboard_building
+import rentmanagerapp.shared.generated.resources.dashboard_collected_pending_subtitle
+import rentmanagerapp.shared.generated.resources.dashboard_collection
 import rentmanagerapp.shared.generated.resources.dashboard_credit_card
 import rentmanagerapp.shared.generated.resources.dashboard_default_name
+import rentmanagerapp.shared.generated.resources.dashboard_home_title
+import rentmanagerapp.shared.generated.resources.dashboard_last_month
 import rentmanagerapp.shared.generated.resources.dashboard_namaste
 import rentmanagerapp.shared.generated.resources.dashboard_no_recent_payments
 import rentmanagerapp.shared.generated.resources.dashboard_no_recent_payments_subtitle
 import rentmanagerapp.shared.generated.resources.dashboard_paid
-import rentmanagerapp.shared.generated.resources.dashboard_plus
+import rentmanagerapp.shared.generated.resources.dashboard_payments_to_follow_up
+import rentmanagerapp.shared.generated.resources.dashboard_pending_rent
+import rentmanagerapp.shared.generated.resources.dashboard_properties_section
+import rentmanagerapp.shared.generated.resources.dashboard_property_let_count
+import rentmanagerapp.shared.generated.resources.dashboard_quick_actions
 import rentmanagerapp.shared.generated.resources.dashboard_recent_activity
 import rentmanagerapp.shared.generated.resources.dashboard_reminder
 import rentmanagerapp.shared.generated.resources.dashboard_reminder_bell
-import rentmanagerapp.shared.generated.resources.dashboard_target_prefix
-import rentmanagerapp.shared.generated.resources.dashboard_this_month_badge
-import rentmanagerapp.shared.generated.resources.dashboard_users
+import rentmanagerapp.shared.generated.resources.dashboard_rent_collected
 import rentmanagerapp.shared.generated.resources.dashboard_rental_overview
-import rentmanagerapp.shared.generated.resources.dashboard_pending_rent
-import rentmanagerapp.shared.generated.resources.dashboard_payments_to_follow_up
 import rentmanagerapp.shared.generated.resources.dashboard_shortcuts
-import rentmanagerapp.shared.generated.resources.add_property_action
-import rentmanagerapp.shared.generated.resources.dashboard_target_prefix
-import rentmanagerapp.shared.generated.resources.dashboard_this_month_badge
+import rentmanagerapp.shared.generated.resources.dashboard_this_month
 import rentmanagerapp.shared.generated.resources.dashboard_users
-import rentmanagerapp.shared.generated.resources.payment_status_overdue
 import rentmanagerapp.shared.generated.resources.properties_label
 import rentmanagerapp.shared.generated.resources.quick_actions
 import rentmanagerapp.shared.generated.resources.record_pay_action
 import rentmanagerapp.shared.generated.resources.see_all_action
 import rentmanagerapp.shared.generated.resources.tenants_label
-import kotlin.math.roundToInt
 
 data class DashboardMetricUi(
     val icon: DrawableResource,
@@ -200,13 +202,13 @@ fun DashboardCollectionCard(
             Surface(
                 modifier = Modifier.size(56.dp),
                 shape = iconShape,
-                color = AppColors.AvatarNeutral,
+                color = MaterialTheme.colorScheme.surfaceVariant,
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Outlined.AccountBalanceWallet,
                         contentDescription = null,
-                        tint = AppColors.AvatarWarm,
+                        tint = MaterialTheme.colorScheme.tertiaryContainer,
                         modifier = Modifier.size(28.dp)
                     )
                 }
@@ -231,7 +233,7 @@ fun DashboardMetricsRow(
                 icon = Res.drawable.dashboard_building,
                 value = propertiesCount.toString(),
                 label = stringResource(Res.string.properties_label),
-                iconColor = AppColors.EmeraldAccent
+                iconColor = MaterialTheme.colorScheme.primary
             )
         )
         DashboardMetricCard(
@@ -240,7 +242,7 @@ fun DashboardMetricsRow(
                 icon = Res.drawable.dashboard_users,
                 value = tenantsCount.toString(),
                 label = stringResource(Res.string.tenants_label),
-                iconColor = AppColors.EmeraldAccent
+                iconColor = MaterialTheme.colorScheme.primary
             )
         )
     }
@@ -271,7 +273,7 @@ fun DashboardQuickActions(
                 icon = Res.drawable.dashboard_building,
                 containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.onSurface,
-                iconColor = AppColors.EmeraldAccent,
+                iconColor = MaterialTheme.colorScheme.primary,
                 onClick = onAddTenant // Will route to correct one from MainDashboardScreen
             )
             DashboardActionButton(
@@ -280,7 +282,7 @@ fun DashboardQuickActions(
                 icon = Res.drawable.dashboard_credit_card,
                 containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.onSurface,
-                iconColor = AppColors.EmeraldAccent,
+                iconColor = MaterialTheme.colorScheme.primary,
                 onClick = onRecordPayment
             )
             DashboardActionButton(
@@ -289,7 +291,7 @@ fun DashboardQuickActions(
                 icon = Res.drawable.dashboard_reminder_bell,
                 containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.onSurface,
-                iconColor = AppColors.EmeraldAccent,
+                iconColor = MaterialTheme.colorScheme.primary,
                 onClick = onReminder
             )
         }
@@ -317,7 +319,7 @@ fun DashboardRecentActivity(
                 text = stringResource(Res.string.see_all_action),
                 modifier = Modifier.clickable(onClick = onSeeAll),
                 style = MaterialTheme.typography.labelLarge,
-                color = AppColors.EmeraldAccent
+                color = MaterialTheme.colorScheme.primary
             )
         }
 
@@ -329,9 +331,9 @@ fun DashboardRecentActivity(
                     DashboardActivityCard(
                         item = item,
                         avatarColor = when (index % 3) {
-                            0 -> AppColors.AvatarNeutral
-                            1 -> AppColors.AvatarSuccess
-                            else -> AppColors.AvatarError
+                            0 -> MaterialTheme.colorScheme.surfaceVariant
+                            1 -> MaterialTheme.colorScheme.secondaryContainer
+                            else -> MaterialTheme.colorScheme.errorContainer
                         },
                         onClick = { onActivityClick(index) }
                     )
@@ -388,20 +390,22 @@ fun DashboardSectionHeader(title: String) {
 private fun DashboardPillBadge(text: String) {
     Surface(
         shape = RoundedCornerShape(100.dp),
-        color = AppColors.EmeraldAccentLight,
-        border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.EmeraldAccentBorder)
+        color = MaterialTheme.colorScheme.primaryContainer,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
             style = MaterialTheme.typography.labelSmall,
-            color = AppColors.EmeraldAccentDark
+            color = MaterialTheme.colorScheme.onPrimaryContainer
         )
     }
 }
 
 @Composable
 private fun DashboardProgressRing(progress: Float, percent: Int) {
+    val trackColor = MaterialTheme.colorScheme.surfaceVariant
+    val progressColor = MaterialTheme.colorScheme.primary
     Box(
         modifier = Modifier.size(80.dp),
         contentAlignment = Alignment.Center
@@ -409,12 +413,12 @@ private fun DashboardProgressRing(progress: Float, percent: Int) {
         Canvas(modifier = Modifier.size(72.dp)) {
             val stroke = Stroke(width = 6.dp.toPx(), cap = StrokeCap.Round)
             drawCircle(
-                color = AppColors.ProgressTrack,
+                color = trackColor,
                 radius = size.minDimension / 2f,
                 style = stroke
             )
             drawArc(
-                color = AppColors.EmeraldAccent,
+                color = progressColor,
                 startAngle = -90f,
                 sweepAngle = progress * 360f,
                 useCenter = false,
@@ -441,7 +445,7 @@ private fun DashboardMetricCard(
     metric: DashboardMetricUi,
     modifier: Modifier = Modifier
 ) {
-    // heightIn(min) instead of fixed height — prevents label text from being clipped
+    // heightIn(min) instead of fixed height ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â prevents label text from being clipped
     // on small screens or larger font-scale settings.
     AppListItemSurface(
         modifier = modifier.heightIn(min = 84.dp),
@@ -533,7 +537,7 @@ private fun DashboardActivityEmptyCard() {
             dateLabel = "",
             isPositive = true
         ),
-        avatarColor = AppColors.AvatarSuccess,
+        avatarColor = MaterialTheme.colorScheme.secondaryContainer,
         onClick = {}
     )
 }
@@ -571,7 +575,7 @@ private fun DashboardActivityCard(
                         imageVector = Icons.Outlined.AccountBalanceWallet,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
-                        tint = AppColors.EmeraldAccent
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 } else {
                     Text(
@@ -607,7 +611,7 @@ private fun DashboardActivityCard(
                     Text(
                         text = (if (item.isPositive) "+ " else "") + stringResource(Res.string.currency_npr) + " " + formatNpr(item.amount),
                         style = MaterialTheme.typography.titleMedium,
-                        color = if (item.isPositive) AppColors.EmeraldAccent else AppColors.Error,
+                        color = if (item.isPositive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                         maxLines = 1
                     )
                     Text(
@@ -649,3 +653,492 @@ private fun formatNpr(amount: Long): String {
     val formatted = "$leading,$lastThree"
     return if (amount < 0) "-$formatted" else formatted
 }
+@Composable
+fun DashboardHeaderV2(
+    userName: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = stringResource(Res.string.dashboard_home_title),
+            style = MaterialTheme.typography.displayMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        val initials = if (userName.isNotBlank()) TenantUtils.getInitials(userName) else "S"
+        Surface(
+            modifier = Modifier.size(40.dp),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primary,
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(
+                    text = initials,
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun DashboardSegmentedControl(
+    selectedPeriod: com.gaatho.rent.features.dashboard.presentation.home.DashboardPeriod,
+    onPeriodSelected: (com.gaatho.rent.features.dashboard.presentation.home.DashboardPeriod) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth().height(48.dp),
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize().padding(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val isThisMonth = selectedPeriod == com.gaatho.rent.features.dashboard.presentation.home.DashboardPeriod.THIS_MONTH
+            
+            Surface(
+                modifier = Modifier.weight(1f).fillMaxSize().clickable { onPeriodSelected(com.gaatho.rent.features.dashboard.presentation.home.DashboardPeriod.THIS_MONTH) },
+                shape = RoundedCornerShape(20.dp),
+                color = if (isThisMonth) MaterialTheme.colorScheme.surface else Color.Transparent,
+                shadowElevation = if (isThisMonth) 2.dp else 0.dp
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = stringResource(Res.string.dashboard_this_month),
+                        style = if (isThisMonth) MaterialTheme.typography.labelLarge.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) else MaterialTheme.typography.labelLarge,
+                        color = if (isThisMonth) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Surface(
+                modifier = Modifier.weight(1f).fillMaxSize().clickable { onPeriodSelected(com.gaatho.rent.features.dashboard.presentation.home.DashboardPeriod.LAST_MONTH) },
+                shape = RoundedCornerShape(20.dp),
+                color = if (!isThisMonth) MaterialTheme.colorScheme.surface else Color.Transparent,
+                shadowElevation = if (!isThisMonth) 2.dp else 0.dp
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = stringResource(Res.string.dashboard_last_month),
+                        style = if (!isThisMonth) MaterialTheme.typography.labelLarge.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) else MaterialTheme.typography.labelLarge,
+                        color = if (!isThisMonth) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DashboardCollectionCardV2(
+    collectedRent: Long,
+    totalRent: Long,
+    chartData: List<Float> = listOf(20f, 25f, 15f, 30f, 20f, 40f, 50f, 52f),
+    periodLabel: String = "This Month",
+    modifier: Modifier = Modifier
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = modifier) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary))
+            Text(
+                text = stringResource(Res.string.dashboard_collection),
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        
+        Surface(
+            modifier = Modifier.fillMaxWidth().figmaHeroShadow(shape = RoundedCornerShape(24.dp)),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface,
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 12.dp)
+            ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(
+                        text = stringResource(Res.string.dashboard_rent_collected),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            text = "NPR",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = 6.dp)
+                        )
+                        Text(
+                            text = formatNpr(collectedRent),
+                            style = MaterialTheme.typography.displayLarge.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                Text(
+                    text = stringResource(Res.string.dashboard_collected_pending_subtitle, formatNpr(totalRent - collectedRent)),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                // Graph
+                Box(modifier = Modifier.fillMaxWidth().height(100.dp)) {
+                    val lineColor = MaterialTheme.colorScheme.primary
+                    AppLineChart(
+                        data = LineChartData(points = chartData),
+                        lineColor = lineColor
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun").forEach { day ->
+                        Text(
+                            text = day,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+data class DashboardPropertyUi(
+    val id: String,
+    val name: String,
+    val location: String,
+    val imageUrl: String? = null,
+    val totalUnits: Int,
+    val occupiedUnits: Int
+)
+
+@Composable
+fun DashboardPropertiesList(
+    properties: List<DashboardPropertyUi>,
+    onAddProperty: () -> Unit,
+    onSeeAll: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = modifier) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(Res.string.dashboard_properties_section),
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = stringResource(Res.string.see_all_action),
+                modifier = Modifier.clickable(onClick = onSeeAll).padding(end = 4.dp),
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+        
+        androidx.compose.foundation.lazy.LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(end = 16.dp)
+        ) {
+            items(properties.size) { index ->
+                val prop = properties[index]
+                Surface(
+                    modifier = Modifier.width(140.dp).height(160.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                ) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        if (!prop.imageUrl.isNullOrBlank()) {
+                            com.gaatho.rent.core.ui.components.AppAsyncImage(
+                                model = prop.imageUrl,
+                                contentDescription = null,
+                                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                        // Gradient Overlay for text readability
+                        Box(modifier = Modifier.fillMaxSize().background(
+                            brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f))
+                            )
+                        ))
+                        
+                        // Let badge
+                        Surface(
+                            modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
+                            color = Color.White.copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(100.dp)
+                        ) {
+                            Text(
+                                text = stringResource(Res.string.dashboard_property_let_count, prop.occupiedUnits, prop.totalUnits),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                        
+                        Column(
+                            modifier = Modifier.align(Alignment.BottomStart).padding(12.dp)
+                        ) {
+                            Text(
+                                text = prop.name,
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+                                color = Color.White,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = prop.location,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White.copy(alpha = 0.8f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+            
+            item {
+                Surface(
+                    modifier = Modifier.width(140.dp).height(160.dp).clickable(onClick = onAddProperty),
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(Res.string.add_property_action),
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DashboardQuickActionsV2(
+    onRecordPayment: () -> Unit,
+    onReminder: () -> Unit,
+    onAddTenant: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = modifier) {
+        Text(
+            text = stringResource(Res.string.dashboard_quick_actions),
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        
+        Surface(
+            modifier = Modifier.fillMaxWidth().figmaHeroShadow(shape = RoundedCornerShape(24.dp)),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface
+        ) {
+            Column {
+                QuickActionRow(
+                    icon = Res.drawable.dashboard_credit_card,
+                    title = stringResource(Res.string.record_pay_action),
+                    iconBgColor = MaterialTheme.colorScheme.primary,
+                    onClick = onRecordPayment
+                )
+                androidx.compose.material3.HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(start = 64.dp))
+                QuickActionRow(
+                    icon = Res.drawable.dashboard_users,
+                    title = stringResource(Res.string.add_tenant_action),
+                    iconBgColor = MaterialTheme.colorScheme.secondary,
+                    onClick = onAddTenant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuickActionRow(
+    icon: DrawableResource,
+    title: String,
+    iconBgColor: Color,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Surface(
+            modifier = Modifier.size(40.dp),
+            shape = RoundedCornerShape(12.dp),
+            color = iconBgColor
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                DashboardResourceIcon(
+                    resource = icon,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
+        )
+        Icon(
+            imageVector = Icons.Default.ChevronRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+fun DashboardRecentActivityV2(
+    activities: List<DashboardActivityUi>,
+    onSeeAll: () -> Unit,
+    onActivityClick: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = modifier) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(Res.string.dashboard_recent_activity),
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = stringResource(Res.string.see_all_action),
+                modifier = Modifier.clickable(onClick = onSeeAll).padding(end = 4.dp),
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+        
+        Surface(
+            modifier = Modifier.fillMaxWidth().figmaHeroShadow(shape = RoundedCornerShape(24.dp)),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface
+        ) {
+            Column {
+                if (activities.isEmpty()) {
+                    Text(
+                        text = stringResource(Res.string.dashboard_no_recent_payments),
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    activities.take(10).forEachIndexed { index, item ->
+                        RecentActivityRow(
+                            item = item,
+                            avatarColor = when (index % 3) {
+                                0 -> MaterialTheme.colorScheme.primary
+                                1 -> MaterialTheme.colorScheme.secondary
+                                else -> MaterialTheme.colorScheme.outline
+                            },
+                            onClick = { onActivityClick(index) }
+                        )
+                        if (index < activities.size - 1 && index < 9) {
+                            androidx.compose.material3.HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecentActivityRow(
+    item: DashboardActivityUi,
+    avatarColor: Color,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Surface(
+            modifier = Modifier.size(40.dp),
+            shape = CircleShape,
+            color = avatarColor
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(
+                    text = TenantUtils.getInitials(item.title),
+                    color = Color.White,
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = item.subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                text = "NPR " + formatNpr(item.amount),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = if (item.isPositive) stringResource(Res.string.dashboard_activity_paid, item.dateLabel) else stringResource(Res.string.dashboard_activity_due, item.dateLabel),
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+                color = if (item.isPositive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
+            )
+        }
+    }
+}
+

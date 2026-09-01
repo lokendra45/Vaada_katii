@@ -38,7 +38,8 @@ data class PropertyDisplayModel(
 @Serializable
 data class PropertyListState(
     val selectedFilter: String = PropertyListFilters.All,
-    val debouncedQuery: String = ""
+    val debouncedQuery: String = "",
+    val isOnline: Boolean = true
 )
 
 object PropertyListFilters {

@@ -24,11 +24,13 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
 import com.gaatho.rent.features.payment.domain.model.Payment
+import com.gaatho.rent.core.network.connectivity.ConnectivityObserver
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class PaymentListViewModel(
     private val paymentRepository: PaymentRepository,
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val connectivityObserver: ConnectivityObserver
 ) : MviViewModel<PaymentListState, PaymentListSideEffect, PaymentListAction>() {
 
     private val ownerId: String
@@ -46,7 +48,15 @@ class PaymentListViewModel(
 
     override val container = orbitContainer<PaymentListState, PaymentListSideEffect>(
         initialState = PaymentListState()
-    ) {}
+    ) {
+        observeNetwork()
+    }
+    
+    private fun observeNetwork() = intent(registerIdling = false) {
+        connectivityObserver.isConnected.collect { isOnline ->
+            reduce { state.copy(isOnline = isOnline) }
+        }
+    }
 
     /**
      * Single paginated flow. All filtering happens in SQL via the DAO query.

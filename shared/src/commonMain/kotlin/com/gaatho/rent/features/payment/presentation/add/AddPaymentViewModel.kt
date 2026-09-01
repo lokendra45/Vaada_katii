@@ -98,12 +98,11 @@ class AddPaymentViewModel(
             }
 
             is AddPaymentAction.OnPropertySelected -> intent {
+                if (state.selectedPropertyId == action.id) return@intent
+
                 val filtered = filterTenants(state.allTenants, action.id)
-                val newTenantId = if (state.allTenants.find { it.id == state.selectedTenantId }?.propertyId == action.id)
-                    state.selectedTenantId
-                else if (filtered.size == 1)
-                    filtered.first().id
-                else null
+                // Do not clear the tenant selection if it was already made, as requested by the user
+                val newTenantId = state.selectedTenantId ?: if (filtered.size == 1) filtered.first().id else null
 
                 val autoTenant = state.allTenants.find { it.id == newTenantId }
                 val currentAmountText = state.amount.text

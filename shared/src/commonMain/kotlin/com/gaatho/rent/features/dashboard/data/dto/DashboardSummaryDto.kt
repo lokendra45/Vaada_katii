@@ -11,11 +11,24 @@ import kotlinx.serialization.Serializable
 data class DashboardSummaryDto(
     @SerialName("total_rent") val totalRent: Long = 0L,
     @SerialName("collected_rent") val collectedRent: Long = 0L,
+    @SerialName("previous_collected_rent") val previousCollectedRent: Long = 0L,
     @SerialName("outstanding_rent") val outstandingRent: Long = 0L,
     @SerialName("properties_count") val propertiesCount: Long = 0L,
     @SerialName("tenants_count") val tenantsCount: Long = 0L,
     @SerialName("overdue_tenants_count") val overdueTenantsCount: Long = 0L,
+    @SerialName("chart_data") val chartData: List<Float> = emptyList(),
+    @SerialName("recent_properties") val recentProperties: List<DashboardPropertyDto> = emptyList(),
     @SerialName("recent_payments") val recentPayments: List<RecentPaymentSummaryDto> = emptyList()
+)
+
+@Serializable
+data class DashboardPropertyDto(
+    @SerialName("id") val id: String = "",
+    @SerialName("name") val name: String = "",
+    @SerialName("location") val location: String = "",
+    @SerialName("image_url") val imageUrl: String? = null,
+    @SerialName("totalUnits") val totalUnits: Int = 0,
+    @SerialName("occupiedUnits") val occupiedUnits: Int = 0
 )
 
 @Serializable

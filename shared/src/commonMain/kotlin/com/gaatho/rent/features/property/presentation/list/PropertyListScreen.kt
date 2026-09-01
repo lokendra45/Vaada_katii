@@ -36,6 +36,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.WifiOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -204,7 +206,7 @@ fun PropertyListContent(
         },
         floatingActionButton = {
             AnimatedVisibility(
-                visible = isFabVisible,
+                visible = isFabVisible && state.isOnline,
                 enter = slideInVertically(initialOffsetY = { it * 2 }),
                 exit = slideOutVertically(targetOffsetY = { it * 2 })
             ) {
@@ -226,6 +228,15 @@ fun PropertyListContent(
                 .fillMaxSize()
                 .padding(padding)
         ) {
+            if (!state.isOnline && (pagedProperties?.itemCount ?: 0) == 0) {
+                Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
+                    com.gaatho.rent.core.ui.components.AppEmptyState(
+                        icon = Icons.Outlined.WifiOff,
+                        title = "No Internet Connection",
+                        description = "Please check your network settings and try again."
+                    )
+                }
+            } else {
             AppSearchBar(
                 query = searchText,
                 onQueryChange = onSearchQueryChanged,
@@ -325,6 +336,7 @@ fun PropertyListContent(
                     }
                 }
             }
+            } // end else for offline empty state
         }
     }
 }
@@ -520,8 +532,8 @@ private fun EmptyPropertiesState(
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.padding(24.dp).fillMaxWidth()) {
-        com.gaatho.rent.core.ui.components.AppIllustratedEmptyState(
-            icon = Icons.Default.Home,
+        com.gaatho.rent.core.ui.components.AppEmptyState(
+            icon = null,
             title = stringResource(Res.string.welcome_property_empty_title),
             description = stringResource(Res.string.welcome_property_empty_desc)
         )

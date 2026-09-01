@@ -16,16 +16,28 @@ class CloudDashboardRepository(
     private val cache: DataStoreCache
 ) : DashboardRepository {
 
-    override fun getDashboardSummary(ownerId: String): Flow<DashboardSummaryDto> =
+    override fun getDashboardSummary(
+        ownerId: String,
+        startDate: String,
+        endDate: String,
+        prevStartDate: String,
+        prevEndDate: String
+    ): Flow<DashboardSummaryDto> =
         safeSupabaseReadWithCache(
             default = DashboardSummaryDto(),
             tag = "CloudDashboardRepository.getDashboardSummary",
             cache = cache,
-            cacheKey = "dashboard_summary_$ownerId",
+            cacheKey = "dashboard_summary_${ownerId}_${startDate}_${endDate}",
             serializer = DashboardSummaryDto.serializer()
         ) {
-            // No parameters needed — the function uses auth.uid() internally (IDOR-safe)
-            val result = supabase.postgrest.rpc("get_dashboard_summary")
+            val params = buildJsonObject {
+                put("p_owner_id", ownerId)
+                put("p_start_date", startDate)
+                put("p_end_date", endDate)
+                put("p_prev_start_date", prevStartDate)
+                put("p_prev_end_date", prevEndDate)
+            }
+            val result = supabase.postgrest.rpc("get_dashboard_summary_v2", params)
             json.decodeFromString(DashboardSummaryDto.serializer(), result.data)
         }
 }

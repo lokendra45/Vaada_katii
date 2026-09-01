@@ -13,6 +13,7 @@ import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.dialogs.compose.util.encodeToByteArray
 import io.github.vinceglb.filekit.name
 import kotlinx.coroutines.launch
+import com.gaatho.rent.core.utils.compressImage
 
 /**
  * A reusable component that encapsulates:
@@ -47,8 +48,9 @@ fun AppImagePicker(
                     CropResult.Cancelled -> {}
                     is CropError -> {}
                     is CropResult.Success -> {
-                        val bytes = result.bitmap.encodeToByteArray()
-                        onImageCropped(file.name, bytes)
+                        val originalBytes = result.bitmap.encodeToByteArray()
+                        val compressedBytes = compressImage(originalBytes, file.name)
+                        onImageCropped(file.name, compressedBytes)
                     }
                 }
             }
@@ -65,8 +67,9 @@ fun AppImagePicker(
                     CropResult.Cancelled -> {}
                     is CropError -> {}
                     is CropResult.Success -> {
-                        val bytes = result.bitmap.encodeToByteArray()
-                        onImageCropped(file.name, bytes)
+                        val originalBytes = result.bitmap.encodeToByteArray()
+                        val compressedBytes = compressImage(originalBytes, file.name)
+                        onImageCropped(file.name, compressedBytes)
                     }
                 }
             }

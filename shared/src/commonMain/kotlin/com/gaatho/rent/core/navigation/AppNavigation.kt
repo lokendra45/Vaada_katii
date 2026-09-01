@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,6 +25,9 @@ import com.gaatho.rent.core.auth.SessionManager
 import com.gaatho.rent.core.ui.animation.iosPopTransition
 import com.gaatho.rent.core.ui.animation.iosPushTransition
 import com.gaatho.rent.core.ui.components.AppConfirmDialog
+import com.gaatho.rent.core.ui.components.AppSnackbarHost
+import com.gaatho.rent.core.ui.components.AppSnackbarVariant
+import com.gaatho.rent.core.ui.components.rememberAppSnackbarState
 import com.gaatho.rent.features.auth.presentation.LoginScreen
 import com.gaatho.rent.features.dashboard.presentation.MainDashboardScreen
 import com.gaatho.rent.features.payment.presentation.details.PaymentDetailsScreen
@@ -62,6 +66,26 @@ private val navConfig = SavedStateConfiguration {
 fun AppNavigation() {
     val sessionManager: SessionManager = koinInject()
     val authState by sessionManager.authState.collectAsState()
+    
+    val connectivityObserver: com.gaatho.rent.core.network.connectivity.ConnectivityObserver = koinInject()
+    val isOnline by connectivityObserver.isConnected.collectAsState(initial = true)
+    val snackbarState = rememberAppSnackbarState()
+    
+    LaunchedEffect(isOnline) {
+        if (!isOnline) {
+            // Keep showing it indefinitely until isOnline is true
+            // Since our AppSnackbarState automatically dismisses after duration,
+            // we'll loop it or we could add an indefinite duration.
+            // Let's use a very long duration for now.
+            snackbarState.show(
+                message = "No internet connection. Waiting for network...",
+                variant = AppSnackbarVariant.INFO,
+                durationMs = 9999999L
+            )
+        } else {
+            snackbarState.dismiss()
+        }
+    }
     
     // We only treat it as "guest" for the UI lock dialogs if it's explicitly an anonymous state
     val isGuest = authState is com.gaatho.rent.core.auth.AuthState.Anonymous
@@ -308,6 +332,12 @@ fun AppNavigation() {
             }
         }
     )
+        
+        AppSnackbarHost(
+            state = snackbarState,
+            modifier = Modifier.align(Alignment.TopCenter),
+            alignment = Alignment.TopCenter
+        )
     }
 }
 

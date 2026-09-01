@@ -18,6 +18,9 @@ data class SettingsState(
     val showDeleteConfirm: Boolean = false,
     val showEditProfileDialog: Boolean = false,
     val isGuest: Boolean = false,
+    val avatarUrl: String? = null,
+    val isUploadingAvatar: Boolean = false,
+    val showAvatarPicker: Boolean = false,
 )
 
 sealed interface SettingsSideEffect {
@@ -43,4 +46,6 @@ sealed interface SettingsAction {
     data object OnEditProfileClicked : SettingsAction
     data object OnEditProfileDismissed : SettingsAction
     data class OnSaveProfile(val name: String, val phone: String) : SettingsAction
+    data class OnAvatarPicked(val fileName: String, val bytes: ByteArray) : SettingsAction
+    data class OnShowAvatarPicker(val show: Boolean) : SettingsAction
 }

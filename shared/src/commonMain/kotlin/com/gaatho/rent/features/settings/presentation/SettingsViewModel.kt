@@ -11,6 +11,7 @@ import com.gaatho.rent.core.logging.AppLogger
 import com.gaatho.rent.core.mvi.MviViewModel
 import com.gaatho.rent.core.security.BiometricAuthenticator
 import com.gaatho.rent.core.security.BiometricResult
+import com.gaatho.rent.core.network.StorageRepository
 import com.skydoves.sandwich.ApiResponse
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.collectLatest
@@ -24,7 +25,8 @@ class SettingsViewModel(
     private val sessionManager: SessionManager,
     private val dataStore: DataStore<Preferences>,
     private val authenticator: BiometricAuthenticator,
-    private val supabase: io.github.jan.supabase.SupabaseClient
+    private val supabase: io.github.jan.supabase.SupabaseClient,
+    private val storageRepository: StorageRepository
 ) : MviViewModel<SettingsState, SettingsSideEffect, SettingsAction>() {
 
     private val KEY_NOTIFICATIONS = booleanPreferencesKey("pref_notifications")
@@ -55,6 +57,7 @@ class SettingsViewModel(
                 val metadataName = supabaseUser?.userMetadata?.get("full_name")?.jsonPrimitive?.content
                 val displayName = metadataName ?: user?.displayName ?: email.substringBefore("@").replaceFirstChar { it.uppercaseChar() }
                 val phone = supabaseUser?.userMetadata?.get("phone")?.jsonPrimitive?.content ?: ""
+                val avatarUrl = supabaseUser?.userMetadata?.get("avatar_url")?.jsonPrimitive?.content
 
                 // Only consider as guest if the user is explicitly anonymous
                 val isGuest = currentAuthState is com.gaatho.rent.core.auth.AuthState.Anonymous
@@ -64,6 +67,7 @@ class SettingsViewModel(
                         userEmail = email,
                         userName = displayName,
                         userPhone = phone,
+                        avatarUrl = avatarUrl,
                         isGuest = isGuest,
                     )
                 }
@@ -119,7 +123,35 @@ class SettingsViewModel(
             SettingsAction.OnEditProfileClicked -> intent { reduce { state.copy(showEditProfileDialog = true) } }
             SettingsAction.OnEditProfileDismissed -> intent { reduce { state.copy(showEditProfileDialog = false) } }
             is SettingsAction.OnSaveProfile -> handleSaveProfile(action.name, action.phone)
+            
+            is SettingsAction.OnShowAvatarPicker -> intent { reduce { state.copy(showAvatarPicker = action.show) } }
+            is SettingsAction.OnAvatarPicked -> handleAvatarPicked(action.fileName, action.bytes)
         }
+    }
+    
+    private fun handleAvatarPicked(fileName: String, bytes: ByteArray) = intent {
+        reduce { state.copy(isUploadingAvatar = true, showAvatarPicker = false) }
+        val user = supabase.auth.currentUserOrNull()
+        if (user == null) {
+            reduce { state.copy(isUploadingAvatar = false) }
+            postSideEffect(SettingsSideEffect.ShowSnackbar("User not authenticated"))
+            return@intent
+        }
+        val uploadPath = "avatar_${io.ktor.util.date.getTimeMillis()}_$fileName"
+        
+        when (val uploadResult = storageRepository.uploadFile("avatars", uploadPath, bytes)) {
+            is ApiResponse.Success -> {
+                val publicUrl = uploadResult.data
+                when (authRepository.updateAvatarUrl(publicUrl)) {
+                    is ApiResponse.Success -> {
+                        postSideEffect(SettingsSideEffect.ShowSnackbar("Avatar updated successfully"))
+                    }
+                    else -> postSideEffect(SettingsSideEffect.ShowSnackbar("Failed to update avatar URL"))
+                }
+            }
+            else -> postSideEffect(SettingsSideEffect.ShowSnackbar("Failed to upload avatar image"))
+        }
+        reduce { state.copy(isUploadingAvatar = false) }
     }
 
     private fun handleSaveProfile(name: String, phone: String) = intent {

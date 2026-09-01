@@ -1,7 +1,5 @@
 package com.gaatho.rent.features.settings.presentation
 
-import com.gaatho.rent.core.ui.components.*
-
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -33,12 +31,12 @@ import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Mail
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -70,6 +68,11 @@ import com.gaatho.rent.core.designsystem.AppColors
 import com.gaatho.rent.core.designsystem.RentManagerTheme
 import com.gaatho.rent.core.environment.LanguageViewModel
 import com.gaatho.rent.core.ui.components.AppConfirmDialog
+import com.gaatho.rent.core.ui.components.AppImagePicker
+import com.gaatho.rent.core.ui.components.BodySmallText
+import com.gaatho.rent.core.ui.components.BodyText
+import com.gaatho.rent.core.ui.components.CardTitle
+import com.gaatho.rent.core.ui.components.LabelText
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.orbitmvi.orbit.compose.collectSideEffect
@@ -77,7 +80,6 @@ import rentmanagerapp.shared.generated.resources.Res
 import rentmanagerapp.shared.generated.resources.about_gharbhada
 import rentmanagerapp.shared.generated.resources.account_section
 import rentmanagerapp.shared.generated.resources.biometric_lock
-import rentmanagerapp.shared.generated.resources.change_password
 import rentmanagerapp.shared.generated.resources.contact_us
 import rentmanagerapp.shared.generated.resources.currency
 import rentmanagerapp.shared.generated.resources.dark_mode
@@ -96,8 +98,8 @@ import rentmanagerapp.shared.generated.resources.logout_desc
 import rentmanagerapp.shared.generated.resources.logout_title
 import rentmanagerapp.shared.generated.resources.not_signed_in
 import rentmanagerapp.shared.generated.resources.notifications_label
-import rentmanagerapp.shared.generated.resources.pin_lock
 import rentmanagerapp.shared.generated.resources.preferences_section
+import rentmanagerapp.shared.generated.resources.profile_picture_title
 import rentmanagerapp.shared.generated.resources.security_section
 import rentmanagerapp.shared.generated.resources.sign_in_action
 import rentmanagerapp.shared.generated.resources.support_section
@@ -155,6 +157,15 @@ fun SettingsScreen(
         )
     }
 
+    AppImagePicker(
+        show = state.showAvatarPicker,
+        onDismiss = { viewModel.onAction(SettingsAction.OnShowAvatarPicker(false)) },
+        onImageCropped = { fileName, bytes ->
+            viewModel.onAction(SettingsAction.OnAvatarPicked(fileName, bytes))
+        },
+        title = stringResource(Res.string.profile_picture_title)
+    )
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow
@@ -195,15 +206,18 @@ private fun SettingsContent(
             SettingsNavRow(
                 leading = {
                     ProfileAvatar(
-                        imageUrl = null,
+                        imageUrl = state.avatarUrl,
                         displayName = state.userName,
-                        modifier = Modifier.size(56.dp)
+                        isUploading = state.isUploadingAvatar,
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clickable { onAction(SettingsAction.OnShowAvatarPicker(true)) }
                     )
                 },
                 title = state.userName.ifEmpty { stringResource(Res.string.guest) },
                 subtitle = state.userEmail.ifEmpty { stringResource(Res.string.not_signed_in) },
                 showDivider = false,
-                onClick = {}
+                onClick = { onAction(SettingsAction.OnShowAvatarPicker(true)) }
             )
         }
 
@@ -500,6 +514,7 @@ private fun SettingsIcon(
 private fun ProfileAvatar(
     imageUrl: String?,
     displayName: String,
+    isUploading: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -520,6 +535,20 @@ private fun ProfileAvatar(
             modifier = Modifier.fillMaxSize(),
             placeholderType = com.gaatho.rent.core.ui.components.PlaceholderType.AVATAR
         )
+        if (isUploading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp
+                )
+            }
+        }
     }
 }
 

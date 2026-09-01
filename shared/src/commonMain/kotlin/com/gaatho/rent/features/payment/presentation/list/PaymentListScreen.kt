@@ -30,6 +30,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.WifiOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -176,7 +178,7 @@ private fun PaymentListContent(
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
             AnimatedVisibility(
-                visible = isFabVisible,
+                visible = isFabVisible && state.isOnline,
                 enter = slideInVertically(initialOffsetY = { it * 2 }),
                 exit = slideOutVertically(targetOffsetY = { it * 2 })
             ) {
@@ -257,6 +259,17 @@ private fun PaymentListContent(
 
                 if (isSearching) {
                     PaymentSkeletonLoadingState()
+                } else if (!state.isOnline && pagedPayments.itemCount == 0) {
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        com.gaatho.rent.core.ui.components.AppEmptyState(
+                            icon = Icons.Outlined.WifiOff,
+                            title = "No Internet Connection",
+                            description = "Please check your network settings and try again."
+                        )
+                    }
                 } else {
                     // Paged content with LoadState handling
                     when (pagedPayments.loadState.refresh) {
@@ -286,8 +299,8 @@ private fun PaymentListContent(
                                     modifier = Modifier.fillMaxSize().padding(32.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    com.gaatho.rent.core.ui.components.AppIllustratedEmptyState(
-                                        icon = Icons.Default.AttachMoney,
+                                    com.gaatho.rent.core.ui.components.AppEmptyState(
+                                        icon = null,
                                         title = stringResource(Res.string.no_payments_found),
                                         description = stringResource(Res.string.no_payments_found_subtitle)
                                     )
@@ -416,9 +429,12 @@ private fun PaymentRowItem(
             Spacer(Modifier.width(8.dp))
 
             Column(horizontalAlignment = Alignment.End) {
+                val isDarkTheme = com.gaatho.rent.core.environment.LocalAppTheme.current
+                val amountColor = if (isDarkTheme) AppColors.Success.copy(alpha = 0.9f) else AppColors.Success
+                
                 CardTitle(
                     text = payment.formattedAmount,
-                    color = AppColors.EmeraldAccent,
+                    color = amountColor,
                     fontWeight = FontWeight.ExtraBold
                 )
                 Spacer(Modifier.height(4.dp))

@@ -14,6 +14,7 @@ import com.gaatho.rent.features.dashboard.presentation.components.DashboardConte
 import com.gaatho.rent.features.dashboard.presentation.model.DashboardTab
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.activity.compose.BackHandler
 
 /**
  * The main structural shell of the application after login.
@@ -35,6 +36,10 @@ fun MainDashboardScreen(
 ) {
     val viewModel: MainDashboardViewModel = koinViewModel()
     val state by viewModel.container.stateFlow.collectAsStateWithLifecycle()
+
+    BackHandler(enabled = state.selectedTab != DashboardTab.HOME) {
+        viewModel.onAction(MainDashboardAction.OnTabSelected(DashboardTab.HOME))
+    }
 
     MainDashboardContent(
         state = state,

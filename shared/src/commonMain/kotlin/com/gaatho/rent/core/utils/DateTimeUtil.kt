@@ -114,4 +114,42 @@ object DateTimeUtil {
             iso
         }
     }
+
+    /**
+     * Returns start and end dates (YYYY-MM-DD) for a given number of months ago.
+     * 0 = this month, 1 = last month, 2 = two months ago, etc.
+     */
+    fun getMonthsAgoDates(monthsAgo: Int): Pair<String, String> {
+        val today = nowInstant().toLocalDateTime(TimeZone.currentSystemDefault()).date
+
+        var targetYear = today.year
+        var targetMonthOrdinal = today.month.ordinal - monthsAgo
+
+        while (targetMonthOrdinal < 0) {
+            targetYear -= 1
+            targetMonthOrdinal += 12
+        }
+
+        val start = LocalDate(targetYear, targetMonthOrdinal + 1, 1)
+
+        val nextMonthOrdinal = targetMonthOrdinal + 1
+        val nextMonthYear = if (nextMonthOrdinal > 11) targetYear + 1 else targetYear
+        val nextMonth = LocalDate(nextMonthYear, (nextMonthOrdinal % 12) + 1, 1)
+
+        val end = LocalDate.fromEpochDays(nextMonth.toEpochDays() - 1)
+
+        return start.toString() to end.toString()
+    }
+
+    /**
+     * Returns a greeting based on the current system time.
+     */
+    fun getGreeting(): String {
+        val hour = nowInstant().toLocalDateTime(TimeZone.currentSystemDefault()).hour
+        return when (hour) {
+            in 5..11 -> "Good morning"
+            in 12..16 -> "Good afternoon"
+            else -> "Good evening"
+        }
+    }
 }
